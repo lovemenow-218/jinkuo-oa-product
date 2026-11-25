@@ -323,12 +323,10 @@
                 <div class="tab">转交记录</div>
               </div>
               <div class="bar">
-                <span class="inp">陈林</span>
-                <button class="btn" data-a="w3-1">查询</button>
                 <span class="sp"></span>
                 <button class="btn pri" data-a="w3-2">替换处理人（1）</button>
               </div>
-              <table class="tbl t3">
+              <table class="tbl t3" data-a="w3-1">
                 <thead>
                   <tr><th><span class="ck"></span></th><th>流程模板</th><th>节点名称</th><th>节点类型</th><th>当前处理人</th></tr>
                 </thead>
@@ -343,7 +341,7 @@
         </div>
       </div>
       <div class="notes" style="padding-top:56px;">
-        <div class="note" data-anchor="w3-1"><span class="idx">1</span><p>输入<b>本人姓名</b>后查询，列出本人作为指定处理人的审批流程模板及节点，不提供查询他人节点的入口。</p></div>
+        <div class="note" data-anchor="w3-1"><span class="idx">1</span><p>进入页签即按当前登录用户列出<b>本人作为指定处理人</b>的审批流程模板及节点，不需要输入姓名，不提供查询他人节点的入口。</p></div>
         <div class="note"><span class="idx">2</span><p>只替换节点类型为「<b>指定成员</b>」的节点；角色、主管、表单控件关联等动态节点按流程配置自动取人，不在替换范围。</p></div>
         <div class="note" data-anchor="w3-2"><span class="idx">3</span><p>替换只对<b>之后新发起</b>的单据生效；已发起的在途单据不受影响，仍按「在途任务转交」处理。</p></div>
         <div class="note"><span class="idx">4</span><p>现在是勾选多条后统一替换为同一人；一人多岗时（如同时有人事类、出纳类流程），不同流程可能该换给不同的人，要不要改成<b>逐条节点单独选人</b>，待评审确认。</p></div>

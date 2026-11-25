@@ -121,12 +121,12 @@ let S;
 function init(){
   S={
     menu:'handover', htab:'task', ltab:'processing',
-    q1:'', q1done:false, tasks:[
+    tasks:[
       {id:'T1',title:'备用金申请 王芳 出差备用金',template:'备用金申请',initiator:'李娜',node:'会计审批',time:'2026-11-20 09:12',person:'陈林',checked:false},
       {id:'T2',title:'付款申请 供应商货款 12,500.00',template:'付款申请',initiator:'张伟',node:'出纳办理',time:'2026-11-21 14:30',person:'陈林',checked:false},
       {id:'T3',title:'费用报销 团队聚餐 860.00',template:'费用报销',initiator:'刘洋',node:'财务复核',time:'2026-11-22 10:05',person:'陈林',checked:false}
     ],
-    q2:'', q2done:false, nodes:[
+    nodes:[
       {id:'N1',flow:'备用金申请',node:'会计审批',type:'指定成员',person:'陈林',checked:false},
       {id:'N2',flow:'付款申请',node:'出纳办理',type:'指定成员',person:'陈林',checked:false},
       {id:'N3',flow:'费用报销',node:'审批人',type:'角色',person:'财务角色',checked:false}
@@ -178,26 +178,17 @@ function render(){
 function pHan(){
   let inner='';
   if(S.htab==='task'){
-    inner=`<div class="tbar"><input class="input" id="q1" placeholder="输入本人姓名" value="${esc(S.q1)}"/><button class="btn ghost" data-act="q1">查询</button></div>`;
-    if(!S.q1done) inner+=`<div class="panel"><div class="empty">输入姓名后查看本人名下在途任务</div></div>`;
-    else{
-      const list=S.tasks;
-      inner+=`<div class="panel"><table><thead><tr><th style="width:36px;"></th><th>审批标题</th><th>模板</th><th>发起人</th><th>当前节点</th><th>发起时间</th></tr></thead><tbody>`;
-      inner+=list.map(t=>`<tr class="row"><td><span class="ck ${t.checked?'on':''}" data-act="ckTask" data-v="${t.id}">${t.checked?'✓':''}</span></td><td>${esc(t.title)}</td><td>${esc(t.template)}</td><td>${esc(t.initiator)}</td><td>${esc(t.node)}</td><td>${esc(t.time)}</td></tr>`).join('');
-      inner+=`</tbody></table></div>`;
-      const n=list.filter(x=>x.checked).length;
-      inner+=`<div class="tbar" style="margin-top:14px;"><span style="font-size:var(--font-size-sm);color:var(--color-text-secondary);">已选 ${n} 项</span><div class="sp"></div><button class="btn ghost" data-act="doTransfer" ${n?'':'disabled'}>批量转交</button></div>`;
-    }
+    inner=`<div class="panel"><table><thead><tr><th style="width:36px;"></th><th>审批标题</th><th>模板</th><th>发起人</th><th>当前节点</th><th>发起时间</th></tr></thead><tbody>`;
+    inner+=S.tasks.map(t=>`<tr class="row"><td><span class="ck ${t.checked?'on':''}" data-act="ckTask" data-v="${t.id}">${t.checked?'✓':''}</span></td><td>${esc(t.title)}</td><td>${esc(t.template)}</td><td>${esc(t.initiator)}</td><td>${esc(t.node)}</td><td>${esc(t.time)}</td></tr>`).join('');
+    inner+=`</tbody></table></div>`;
+    const n=S.tasks.filter(x=>x.checked).length;
+    inner+=`<div class="tbar" style="margin-top:14px;"><span style="font-size:var(--font-size-sm);color:var(--color-text-secondary);">已选 ${n} 项</span><div class="sp"></div><button class="btn ghost" data-act="doTransfer" ${n?'':'disabled'}>批量转交</button></div>`;
   } else if(S.htab==='node'){
-    inner=`<div class="tbar"><input class="input" id="q2" placeholder="输入本人姓名" value="${esc(S.q2)}"/><button class="btn ghost" data-act="q2">查询</button></div>`;
-    if(!S.q2done) inner+=`<div class="panel"><div class="empty">输入姓名后查询本人作为指定处理人的模板节点</div></div>`;
-    else{
-      inner+=`<div class="panel"><table><thead><tr><th style="width:36px;"></th><th>流程模板</th><th>节点名称</th><th>节点类型</th><th>当前处理人</th></tr></thead><tbody>`;
-      inner+=S.nodes.map(n=>`<tr class="row"><td><span class="ck ${n.checked?'on':''}" data-act="ckNode" data-v="${n.id}">${n.checked?'✓':''}</span></td><td>${esc(n.flow)}</td><td>${esc(n.node)}</td><td>${n.type==='指定成员'?`<span class="tag blue">${n.type}</span>`:`<span class="tag gray">${n.type}</span>`}</td><td>${esc(n.person)}</td></tr>`).join('');
-      inner+=`</tbody></table></div>`;
-      const n=S.nodes.filter(x=>x.checked).length;
-      inner+=`<div class="tbar" style="margin-top:14px;"><span style="font-size:var(--font-size-sm);color:var(--color-text-secondary);">已选 ${n} 项</span><div class="sp"></div><button class="btn" data-act="doReplace" ${n?'':'disabled'}>批量替换处理人</button></div>`;
-    }
+    inner=`<div class="panel"><table><thead><tr><th style="width:36px;"></th><th>流程模板</th><th>节点名称</th><th>节点类型</th><th>当前处理人</th></tr></thead><tbody>`;
+    inner+=S.nodes.map(n=>`<tr class="row"><td><span class="ck ${n.checked?'on':''}" data-act="ckNode" data-v="${n.id}">${n.checked?'✓':''}</span></td><td>${esc(n.flow)}</td><td>${esc(n.node)}</td><td>${n.type==='指定成员'?`<span class="tag blue">${n.type}</span>`:`<span class="tag gray">${n.type}</span>`}</td><td>${esc(n.person)}</td></tr>`).join('');
+    inner+=`</tbody></table></div>`;
+    const n=S.nodes.filter(x=>x.checked).length;
+    inner+=`<div class="tbar" style="margin-top:14px;"><span style="font-size:var(--font-size-sm);color:var(--color-text-secondary);">已选 ${n} 项</span><div class="sp"></div><button class="btn" data-act="doReplace" ${n?'':'disabled'}>批量替换处理人</button></div>`;
   } else {
     inner=`<div class="panel"><table><thead><tr><th>时间</th><th>操作类型</th><th>交接双方</th><th>交接内容</th><th>操作人</th></tr></thead><tbody>`;
     inner+=S.records.map(r=>`<tr><td>${esc(r.time)}</td><td>${r.type==='任务转交'?`<span class="tag blue">${r.type}</span>`:`<span class="tag green">${r.type}</span>`}</td><td>${esc(r.who)}</td><td>${esc(r.detail)}</td><td>${esc(r.op)}</td></tr>`).join('');
@@ -367,8 +358,6 @@ document.addEventListener('click',e=>{
     case 'lfilter': S.lfilter={name:val('flName'),dept:val('flDept'),stage:(S.ltab==='processing'?val('flStage'):''),from:(S.ltab==='processing'?'':val('flFrom')),to:(S.ltab==='processing'?'':val('flTo'))}; render(); break;
     case 'lreset': S.lfilter={name:'',dept:'',stage:'',from:'',to:''}; render(); break;
     case 'sfilter': S.staffFilter=v; render(); break;
-    case 'q1': S.q1=val('q1')||'陈林'; S.q1done=true; render(); toast('查询到 '+S.tasks.length+' 项在途任务'); break;
-    case 'q2': S.q2=val('q2')||'陈林'; S.q2done=true; render(); toast('查询到 '+S.nodes.length+' 个模板节点'); break;
     case 'ckTask': {const t=S.tasks.find(x=>x.id===v);t.checked=!t.checked;render();break;}
     case 'ckNode': {const n=S.nodes.find(x=>x.id===v);if(n.type==='指定成员'){n.checked=!n.checked;render();}else toast('该节点为动态取人，不在替换范围');break;}
     case 'doTransfer': openModal('transfer'); break;

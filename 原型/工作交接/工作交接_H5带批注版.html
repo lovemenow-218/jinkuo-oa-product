@@ -166,10 +166,6 @@
       flex-shrink:0;display:flex;align-items:center;justify-content:center;}
   .sc-prow.on .rd{border-color:var(--color-primary);}
   .sc-prow.on .rd i{width:8px;height:8px;border-radius:50%;background:var(--color-primary);display:block;}
-  .sc-qrow{display:flex;gap:8px;}
-  .sc-qrow .sc-input{flex:1;}
-  .sc-qbtn{flex-shrink:0;width:64px;height:34px;border-radius:7px;background:var(--color-primary);
-      color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;}
 </style>
 </head>
 <body>
@@ -307,20 +303,13 @@
     <div class="row">
       <div class="row-tip" style="top:-8px;">替换只对<b>之后新发起</b>的单据生效，在途单据仍按「在途任务转交」处理</div>
       <div class="screen-wrap" style="margin-top:38px;">
-        <div class="screen-title"><b>H4</b>　流程节点处理人 · 查询与替换</div>
+        <div class="screen-title"><b>H4</b>　流程节点处理人</div>
         <div class="phone">
           <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
           <div class="nav"><span class="bk">‹</span><span class="t">流程节点处理人</span><span class="rt">⋯</span></div>
           <div class="pbody tight">
             <div class="sc-seg"><span>在途任务转交</span><span class="on">流程节点处理人</span><span>转交记录</span></div>
-            <div class="sc-card">
-              <div class="sc-qrow" data-a="h4-1">
-                <div class="sc-input"><span>陈林</span><span style="color:#b3bac6;">✕</span></div>
-                <div class="sc-qbtn">查询</div>
-              </div>
-              <div class="sc-hint">输入本人姓名，查询本人作为指定处理人的流程模板节点</div>
-            </div>
-            <div class="sc-card">
+            <div class="sc-card" data-a="h4-1">
               <div class="sc-trow">
                 <div class="ck on">✓</div>
                 <div class="tb">
@@ -348,7 +337,7 @@
         </div>
       </div>
       <div class="notes" style="padding-top:60px;">
-        <div class="note" data-anchor="h4-1"><span class="idx">1</span><p>输入本人姓名后，列出<b>本人作为指定处理人</b>的流程模板节点，展示流程模板名称、节点名称、节点类型、当前处理人，不提供查询他人节点的入口。</p></div>
+        <div class="note" data-anchor="h4-1"><span class="idx">1</span><p>进入页签即按当前登录用户列出<b>本人作为指定处理人</b>的流程模板节点，展示流程模板名称、节点名称、节点类型、当前处理人。不需要输入姓名，也不提供查询他人节点的入口。</p></div>
         <div class="note"><span class="idx">2</span><p>只能替换节点类型为<b>「指定成员」</b>的节点；角色、主管、表单控件关联等动态类型节点不在替换范围，这类节点按流程配置自动取人，无需替换。</p></div>
         <div class="note" data-anchor="h4-2"><span class="idx">3</span><p>替换只对<b>之后新发起</b>的单据生效，已发起的在途单据不受模板改动影响，仍按「在途任务转交」处理。新处理人限同一门店、在职、不是本人。</p></div>
         <div class="note"><span class="idx">4</span><p><span class="tag">待评审</span>现在是勾选多条统一替换为同一人；一人多岗时（如同时有人事类、出纳类流程），不同流程可能该换给不同的人，要不要改成<b>逐条节点单独选人</b>，待评审确认。</p></div>

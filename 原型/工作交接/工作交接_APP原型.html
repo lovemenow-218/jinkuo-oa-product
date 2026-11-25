@@ -166,8 +166,7 @@ function init(){
       {id:'T2', title:'付款申请 供应商货款 12,500.00', template:'付款申请', initiator:'张伟', time:'2026-11-21 14:30', node:'出纳办理'},
       {id:'T3', title:'费用报销 团队聚餐 860.00', template:'费用报销', initiator:'刘洋', time:'2026-11-22 10:05', node:'财务复核'}
     ],
-    checked:[], receiver:'',
-    q2:'', q2done:false, nodeChecked:[], nodeReceiver:'',
+    checked:[], receiver:'', nodeChecked:[], nodeReceiver:'',
     nodes:[
       {id:'N1', flow:'备用金申请', node:'会计审批', type:'指定成员', person:'陈林'},
       {id:'N2', flow:'付款申请', node:'出纳办理', type:'指定成员', person:'陈林'}
@@ -278,14 +277,10 @@ function pHandover(){
       </div>`).join('');
     }
   } else if(S.tab==='t2'){
-    inner = `<div class="srch" style="display:flex;gap:8px;margin-bottom:12px;"><input class="f" id="q2" placeholder="输入本人姓名" value="${esc(S.q2)}"/><button class="mini" data-act="query2">查询</button></div>`;
-    if(!S.q2done){ inner += `<div class="empty">输入本人姓名后查询自己作为指定处理人的流程节点</div>`; }
-    else{
-      inner += S.nodes.map(n=>`<div class="rowitem">
-        <div class="r1"><div class="ck ${S.nodeChecked.includes(n.id)?'on':''}" data-act="ckNode" data-v="${n.id}">${S.nodeChecked.includes(n.id)?'✓':''}</div><div class="ttl" data-act="go" data-v="nodeDetail" data-id="${n.id}">${esc(n.flow)} · ${esc(n.node)}</div><span class="chip gray">${esc(n.type)}</span></div>
-        <div class="r2">当前处理人：${esc(n.person)}</div>
-      </div>`).join('');
-    }
+    inner = S.nodes.map(n=>`<div class="rowitem">
+      <div class="r1"><div class="ck ${S.nodeChecked.includes(n.id)?'on':''}" data-act="ckNode" data-v="${n.id}">${S.nodeChecked.includes(n.id)?'✓':''}</div><div class="ttl" data-act="go" data-v="nodeDetail" data-id="${n.id}">${esc(n.flow)} · ${esc(n.node)}</div><span class="chip gray">${esc(n.type)}</span></div>
+      <div class="r2">当前处理人：${esc(n.person)}</div>
+    </div>`).join('');
   } else {
     inner = S.records.length ? S.records.map(r=>`<div class="rowitem" data-act="go" data-v="recordDetail" data-id="${r.id}">
       <div class="r1"><div class="ttl">${esc(r.type)} · ${esc(r.who)}</div></div>
@@ -542,7 +537,6 @@ document.addEventListener('click',e=>{
     case 'go': S._id=id; go(v); break;
     case 'noop': toast('该入口仅在完整系统中开放'); break;
     case 'htab': S.tab=v; S.checked=[]; S.nodeChecked=[]; render(); break;
-    case 'query2': S.q2=val('q2')||'陈林'; S.q2done=true; render(); toast('查询到 '+S.nodes.length+' 个本人负责的流程节点'); break;
     case 'ckTask': S.checked=S.checked.includes(v)?S.checked.filter(x=>x!==v):[...S.checked,v]; render(); break;
     case 'ckNode': S.nodeChecked=S.nodeChecked.includes(v)?S.nodeChecked.filter(x=>x!==v):[...S.nodeChecked,v]; render(); break;
     case 'detailReplace': S.nodeChecked=[v]; S.nodeReceiver=''; go('nodePick'); break;
