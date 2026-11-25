@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>审批退回 · h5 可交互原型</title>
+<link rel="stylesheet" href="tokens.css"/>
+<style>
+  body{background:#e8eaee; margin:0; padding:28px 20px 60px; font-family:var(--font-family-base);
+    color:var(--color-text-primary);}
+  .doc-h{text-align:center; font-size:20px; font-weight:var(--font-weight-bold); margin-bottom:6px;}
+  .doc-sub{text-align:center; font-size:13px; color:var(--color-text-secondary); margin-bottom:18px;}
+  .toolbar{text-align:center; margin-bottom:22px;}
+  .toolbar button{margin:0 5px; padding:7px 14px; border:1px solid var(--color-border-strong); background:#fff;
+    border-radius:var(--radius-sm); font-size:13px; cursor:pointer; color:var(--color-text-primary);}
+  .stage{display:flex; justify-content:center;}
+  .phone{width:390px; height:760px; background:var(--color-bg-secondary, #f5f6f8); border-radius:34px;
+    border:1px solid var(--color-border); box-shadow:0 18px 44px rgba(0,0,0,.14); overflow:hidden;
+    display:flex; flex-direction:column; position:relative;}
+  .p-top{height:52px; background:#fff; border-bottom:1px solid var(--color-border);
+    display:flex; align-items:center; padding:0 12px; gap:8px; flex-shrink:0;}
+  .p-top .bk{font-size:22px; color:var(--color-text-primary); cursor:pointer; padding:0 4px; line-height:1;}
+  .p-top .ttl{flex:1; text-align:center; font-size:16px; font-weight:var(--font-weight-semibold);}
+  .p-top .rt{width:26px; text-align:center; color:var(--color-text-tertiary);}
+  .p-body{flex:1; overflow-y:auto; padding:14px 14px 18px;}
+  .p-bottom{flex-shrink:0; padding:12px 14px 16px; background:#fff; border-top:1px solid var(--color-border);}
+  .p-bottom:empty{padding:0; border-top:none; background:transparent;}
+  .card{background:#fff; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  .sec-h{font-size:14px; font-weight:var(--font-weight-semibold); margin-bottom:10px;}
+  .st{display:inline-block; font-size:12px; font-weight:var(--font-weight-semibold); border-radius:999px; padding:3px 10px;}
+  .st.blue{color:var(--color-primary-dark); background:var(--color-primary-light);}
+  .st.orange{color:var(--color-warning-text); background:var(--color-warning-bg);}
+  .st.green{color:var(--color-success); background:var(--color-success-bg);}
+  .st.gray{color:var(--color-text-secondary); background:var(--color-info-bg);}
+  .acard{border:1px solid var(--color-border); border-radius:12px; padding:12px; background:#fff; margin-bottom:10px; cursor:pointer;}
+  .acard:active{background:var(--color-primary-light);}
+  .acard .k{font-size:12px; color:var(--color-text-secondary); margin-bottom:3px;}
+  .acard .h{font-size:15px; font-weight:var(--font-weight-semibold); margin-bottom:6px;}
+  .acard .ft{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--color-text-tertiary);}
+  .info{display:flex; justify-content:space-between; gap:12px; padding:7px 0; font-size:13px;}
+  .info .k{color:var(--color-text-secondary); flex-shrink:0;}
+  .info .v{text-align:right; color:var(--color-text-primary); word-break:break-all;}
+  /* 流程节点图（参照 OA 流程详情） */
+  .fnode{display:flex; gap:12px; position:relative; padding-bottom:18px;}
+  .fnode:last-child{padding-bottom:2px;}
+  .fnode .rail{display:flex; flex-direction:column; align-items:center; flex-shrink:0;}
+  .fnode .dot{width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:12px; flex-shrink:0; z-index:1;}
+  .fnode .dot.done{background:var(--color-success-bg); color:var(--color-success);}
+  .fnode .dot.cur{background:var(--color-primary); color:#fff; box-shadow:0 0 0 4px var(--color-primary-light);}
+  .fnode .dot.todo{background:#fff; border:1.5px solid var(--color-border-strong); color:var(--color-text-tertiary);}
+  .fnode .dot.ret{background:var(--color-warning-bg); color:var(--color-warning-text); border:1.5px solid var(--color-warning-text);}
+  .fnode .line{flex:1; width:2px; background:var(--color-border); margin-top:2px;}
+  .fnode .line.ok{background:var(--color-success);}
+  .fnode .nb{padding-top:1px;}
+  .fnode .r{font-size:14px; font-weight:var(--font-weight-semibold);}
+  .fnode.cur .r{color:var(--color-primary);}
+  .fnode.ret .r{color:var(--color-warning-text);}
+  .fnode .m{font-size:12px; color:var(--color-text-secondary); margin-top:2px;}
+  .btn{display:block; background:var(--color-primary); color:#fff; border:none; border-radius:var(--radius-sm);
+    padding:12px; font-size:15px; text-align:center; cursor:pointer; margin-bottom:10px; width:100%; box-sizing:border-box;}
+  .btn.ghost{background:#fff; color:var(--color-text-primary); border:1px solid var(--color-border-strong);}
+  .btn.warn{background:#fff; color:var(--color-warning-text); border:1px solid var(--color-warning-text);}
+  .btn-row{display:flex; gap:10px;}
+  .btn-row .btn{margin-bottom:0;}
+  .fld{padding:10px 0; border-bottom:1px solid var(--color-border);}
+  .fld .lb{font-size:13px; color:var(--color-text-secondary); margin-bottom:6px;}
+  .fld input,.fld textarea{border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); padding:9px 10px;
+    font-size:14px; width:100%; box-sizing:border-box; outline:none; font-family:var(--font-family-base); color:var(--color-text-primary);}
+  .fld textarea{min-height:70px; resize:vertical;}
+  .toast{position:absolute; left:50%; bottom:90px; transform:translateX(-50%); background:rgba(30,35,45,.92); color:#fff;
+    font-size:13px; padding:9px 16px; border-radius:999px; opacity:0; transition:opacity .25s; pointer-events:none;
+    max-width:320px; text-align:center; z-index:9;}
+  .toast.show{opacity:1;}
+  .mask{position:absolute; inset:0; background:rgba(0,0,0,.4); z-index:5; display:flex; align-items:flex-end;}
+  .sheet{background:#fff; border-radius:14px 14px 0 0; width:100%; padding:8px 0 14px;}
+  .sheet .sh{font-size:13px; color:var(--color-text-secondary); text-align:center; padding:10px 0 6px;}
+  .sheet .it{padding:13px 20px; font-size:15px; cursor:pointer;}
+  .sheet .it:active{background:var(--color-primary-light);}
+  .sheet .it.ret{color:var(--color-warning-text);}
+  .empty{text-align:center; color:var(--color-text-tertiary); font-size:13px; padding:34px 0;}
+  .tip{font-size:12px; color:var(--color-text-tertiary); line-height:1.6; padding-top:8px;}
+</style>
+</head>
+<body>
+  <div class="doc-h">审批退回 · h5 可交互原型</div>
+  <div class="doc-sub">通用审批退回演示：审批人退回 → 申请人修改后重新提交，流程全链重走。数据为演示假数据。</div>
+  <div class="toolbar" id="toolbar">
+    <button data-act="reset">重置数据</button>
+    <button data-act="demoReturn">模拟：我的合同审批被退回</button>
+  </div>
+  <div class="stage">
+    <div class="phone">
+      <div class="p-top">
+        <span class="bk" data-act="back">‹</span>
+        <span class="ttl" id="ttl">待办</span>
+        <span class="rt">⋯</span>
+      </div>
+      <div class="p-body" id="body"></div>
+      <div class="p-bottom" id="bottom"></div>
+      <div class="toast" id="toast"></div>
+      <div id="layer"></div>
+    </div>
+  </div>
+
+<script>
+const NOW='2026-11-25 11:20';
+let S;
+function init(){
+  S={
+    page:'todo', stack:[], more:false, _id:'',
+    tasks:[
+      {id:'T1', tpl:'付款申请', title:'付款申请 · 供应商货款', initiator:'张伟 · 采购部', amount:'12,500.00', reason:'支付供应商货款', time:'2026-11-24 15:40', node:'部门主管审批',
+       nodes:[{r:'提交', m:'张伟 · 采购部　·　已完成', st:'done', lk:'ok'},{r:'部门主管审批', m:'陈林 · 财务部　·　审批中', st:'cur'},{r:'出纳办理', m:'王芳 · 财务部　·　未开始', st:'todo'}]},
+      {id:'T2', tpl:'费用报销', title:'费用报销 · 团队聚餐', initiator:'刘洋 · 运营部', amount:'860.00', reason:'团队聚餐费用', time:'2026-11-25 09:12', node:'部门主管审批',
+       nodes:[{r:'提交', m:'刘洋 · 运营部　·　已完成', st:'done', lk:'ok'},{r:'部门主管审批', m:'陈林 · 财务部　·　审批中', st:'cur'}]}
+    ],
+    myForm:freshMyForm()
+  };
+}
+const TITLES={todo:'待办',detail:'审批详情',return:'退回申请',mine:'我发起的',myDetail:'审批详情',edit:'修改并重新提交'};
+const PAGES={todo:pTodo,detail:pDetail,return:pReturn,mine:pMine,myDetail:pMyDetail,edit:pEdit};
+const DOT={done:'✓',cur:'',todo:'',ret:'✕'};
+function freshMyForm(){ return {state:'审批中', tpl:'合同审批', title:'合同审批 · 门禁设备采购合同', amount:'45,000.00', content:'采购门禁设备一批，含安装调试，合同编号 HT-2026-1108',
+  returnReason:'', returnedBy:'', returnedAt:'',
+  nodes:[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　审批中', st:'cur'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}]}; }
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+function go(v){ S.stack.push(S.page); S.page=v; render(); }
+function back(){ if(S.stack.length){ S.page=S.stack.pop(); } else { S.page=S.tasks&&S._id&&S._id[0]==='T'?'todo':'mine'; } render(); }
+
+function nodeCard(nodes){
+  return `<div class="card"><div class="sec-h">流程</div>${nodes.map((n,i)=>`
+    <div class="fnode ${n.st==='cur'?'cur':''} ${n.st==='ret'?'ret':''}">
+      <div class="rail"><div class="dot ${n.st}">${DOT[n.st]||''}</div>${i<nodes.length-1?`<div class="line ${n.lk||''}"></div>`:''}</div>
+      <div class="nb"><div class="r">${esc(n.r)}</div><div class="m">${esc(n.m)}</div></div>
+    </div>`).join('')}</div>`;
+}
+function records(rows){
+  return `<div class="card"><div class="sec-h">审批记录</div>${rows.map(x=>`<div class="info"><span class="k">${esc(x.k)}</span><span class="v">${esc(x.v)}</span></div>`).join('')}</div>`;
+}
+
+function pTodo(){
+  return `<div class="sec-h">待我处理（${S.tasks.length}）</div>` +
+    (S.tasks.length? S.tasks.map(t=>`
+    <div class="acard" data-act="openTask" data-id="${t.id}">
+      <div class="k">${esc(t.tpl)}</div>
+      <div class="h">${esc(t.title)}</div>
+      <div class="ft"><span>${esc(t.initiator.split(' ')[0])}　提交于 ${esc(t.time)}</span><span class="st orange">待审批</span></div>
+    </div>`).join('') : '<div class="empty">暂无待办</div>');
+}
+
+function pDetail(){
+  const t=S.tasks.find(x=>x.id===S._id);
+  if(!t) return '<div class="empty">该审批已处理</div>';
+  return `<div class="card"><div class="st blue" style="margin-bottom:10px;">审批中</div>
+    <div class="info"><span class="k">审批模板</span><span class="v">${esc(t.tpl)}</span></div>
+    <div class="info"><span class="k">申请人</span><span class="v">${esc(t.initiator)}</span></div>
+    <div class="info"><span class="k">申请内容</span><span class="v">${esc(t.reason)}</span></div>
+    <div class="info"><span class="k">金额</span><span class="v">${esc(t.amount)}</span></div>
+    <div class="info"><span class="k">提交时间</span><span class="v">${esc(t.time)}</span></div>
+  </div>` +
+  nodeCard(t.nodes) +
+  records([{k:'张伟 · 采购部 提交', v:t.time}]) +
+  `<div class="btn ghost" data-act="more">更多操作</div>`;
+}
+
+function pReturn(){
+  const t=S.tasks.find(x=>x.id===S._id)||S.tasks[0];
+  return `<div class="card">
+    <div class="info"><span class="k">退回对象</span><span class="v">申请人 ${esc(t.initiator.split(' ')[0])}</span></div>
+    <div class="fld"><div class="lb">退回理由</div><textarea id="retReason">金额与合同附件不一致，请核对后修改重新提交</textarea></div>
+    <div class="tip">退回后流程不作废；申请人修改内容重新提交后，流程将从第一个审批节点重新依次审批。</div>
+  </div>`;
+}
+
+function pMine(){
+  const f=S.myForm;
+  const stTxt=f.state==='审批中'?['blue','审批中']:f.state==='已退回'?['orange','已退回']:['blue','审批中'];
+  return `<div class="sec-h">我发起的</div>
+    <div class="acard" data-act="go" data-v="myDetail">
+      <div class="k">${esc(f.tpl)}</div>
+      <div class="h">${esc(f.title)}</div>
+      <div class="ft"><span>陈林　提交于 2026-11-25 10:02</span><span class="st ${stTxt[0]}">${stTxt[1]}</span></div>
+    </div>`;
+}
+
+function pMyDetail(){
+  const f=S.myForm;
+  if(f.state==='已退回'){
+    return `<div class="card"><div class="st orange" style="margin-bottom:10px;">已退回</div>
+      <div class="info"><span class="k">审批模板</span><span class="v">${esc(f.tpl)}</span></div>
+      <div class="info"><span class="k">申请内容</span><span class="v">${esc(f.content)}</span></div>
+      <div class="info"><span class="k">金额</span><span class="v">${esc(f.amount)}</span></div>
+      <div class="info"><span class="k">退回人</span><span class="v">${esc(f.returnedBy)}</span></div>
+      <div class="info"><span class="k">退回时间</span><span class="v">${esc(f.returnedAt)}</span></div>
+      <div class="info"><span class="k">退回理由</span><span class="v">${esc(f.returnReason)}</span></div>
+    </div>` +
+    nodeCard(f.nodes) +
+    records([{k:'陈林 提交', v:'2026-11-25 10:02'},{k:f.returnedBy+' 退回', v:f.returnReason+'（'+f.returnedAt+'）'}]) +
+    `<div class="btn" data-act="go" data-v="edit">修改并重新提交</div>
+     <div class="btn warn" data-act="myRevoke">撤销申请</div>`;
+  }
+  const isResub=f.state==='重新提交后审批中';
+  return `<div class="card"><div class="st blue" style="margin-bottom:10px;">审批中</div>
+    <div class="info"><span class="k">审批模板</span><span class="v">${esc(f.tpl)}</span></div>
+    <div class="info"><span class="k">申请内容</span><span class="v">${esc(f.content)}</span></div>
+    <div class="info"><span class="k">金额</span><span class="v">${esc(f.amount)}</span></div>
+    <div class="info"><span class="k">提交时间</span><span class="v">2026-11-25 10:02</span></div>
+  </div>` +
+  nodeCard(f.nodes) +
+  (isResub? records([{k:'陈林 提交', v:'2026-11-25 10:02'},{k:'郑华 退回', v:'金额与合同附件不一致'},{k:'陈林 修改后重新提交', v:NOW}])
+          : records([{k:'陈林 提交', v:'2026-11-25 10:02'}]));
+}
+
+function pEdit(){
+  const f=S.myForm;
+  return `<div class="card">
+    <div class="fld"><div class="lb">申请内容</div><textarea id="mfContent">${esc(f.content)}</textarea></div>
+    <div class="fld"><div class="lb">金额</div><input id="mfAmount" value="${esc(f.amount)}"/></div>
+    <div class="tip">重新提交后流程从第一个审批节点重新依次审批，已通过的审批人需重新审批。</div>
+  </div>`;
+}
+
+function bottomFor(){
+  switch(S.page){
+    case 'return': return `<div class="btn" data-act="doReturn">确定退回</div>`;
+    case 'detail': return `<div class="btn-row"><div class="btn ghost" data-act="adReject">驳回</div><div class="btn" data-act="adApprove">同意</div></div>`;
+    case 'edit': return `<div class="btn" data-act="myResubmit">重新提交</div>`;
+    default: return '';
+  }
+}
+
+function render(){
+  document.getElementById('ttl').textContent=TITLES[S.page]||'';
+  document.getElementById('body').innerHTML=(PAGES[S.page]||pTodo)();
+  document.getElementById('bottom').innerHTML=bottomFor();
+  const bt=document.getElementById('layer');
+  bt.innerHTML = S.more? `<div class="mask" data-act="closeMore"><div class="sheet" data-act="stop">
+      <div class="sh">更多操作</div>
+      <div class="it ret" data-act="go" data-v="return">退回</div>
+      <div class="it" data-act="noopMore">转交</div>
+      <div class="it" data-act="noopMore">加签</div>
+    </div></div>`:'';
+  document.querySelector('.bk').style.visibility=S.stack.length?'visible':'hidden';
+}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, v=el.dataset.v, id=el.dataset.id;
+  switch(a){
+    case 'reset': init(); render(); toast('数据已重置'); break;
+    case 'back': back(); break;
+    case 'openTask': S._id=id; go('detail'); break;
+    case 'go': S.more=false; S.stack.push(S.page); S.page=v; render(); break;
+    case 'more': S.more=true; render(); break;
+    case 'closeMore': if(e.target.classList.contains('mask')){ S.more=false; render(); } break;
+    case 'stop': break;
+    case 'noopMore': S.more=false; render(); toast('转交、加签按既有规则执行，本次演示不含'); break;
+    case 'doReturn':{
+      const t=S.tasks.find(x=>x.id===S._id)||S.tasks[0];
+      const reason=document.getElementById('retReason').value.trim();
+      if(!reason){ toast('请填写退回理由'); break; }
+      S.tasks=S.tasks.filter(x=>x.id!==t.id);
+      S.page='todo'; S.stack=[]; S.more=false;
+      toast('已退回申请人 '+t.initiator.split(' ')[0]+'，流程不作废');
+      render(); break;}
+    case 'adApprove':{
+      const t=S.tasks.find(x=>x.id===S._id);
+      if(t){ S.tasks=S.tasks.filter(x=>x.id!==t.id); S.page='todo'; S.stack=[]; render(); toast('已同意，流转至下一节点'); }
+      break;}
+    case 'adReject':{
+      const t=S.tasks.find(x=>x.id===S._id);
+      if(t){ S.tasks=S.tasks.filter(x=>x.id!==t.id); S.page='todo'; S.stack=[]; render(); toast('已驳回，流程终止，申请人需重新发起'); }
+      break;}
+    case 'demoReturn':{
+      if(S.myForm.state==='审批中'){
+        const f=S.myForm;
+        f.state='已退回'; f.returnedBy='郑华 · 财务部'; f.returnedAt=NOW;
+        f.returnReason='金额与合同附件不一致，请核对后修改重新提交';
+        f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　已退回', st:'ret', lk:'ret'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
+        toast('已模拟退回，请到「我发起的」查看');
+        render();
+      } else toast('当前单据不处于审批中，无法演示退回');
+      break;}
+    case 'myResubmit':{
+      const c=document.getElementById('mfContent').value.trim(), a=document.getElementById('mfAmount').value.trim();
+      if(!c||!a){ toast('请填写完整后再提交'); break; }
+      const f=S.myForm; f.content=c; f.amount=a; f.state='重新提交后审批中';
+      f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'修改后重新提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　重新审批中', st:'cur'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
+      S.page='myDetail'; S.stack=[]; render(); toast('已重新提交，流程重新依次审批');
+      break;}
+    case 'myRevoke':{
+      S.myForm=freshMyForm(); S.page='mine'; S.stack=[]; render(); toast('已撤销，请修改后重新发起');
+      break;}
+  }
+});
+
+init(); render();
+</script>
+</body>
+</html>

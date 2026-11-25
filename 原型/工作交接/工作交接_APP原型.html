@@ -133,7 +133,6 @@
     <button data-act="reset">重置数据</button>
     <button data-act="approve">模拟上级审批</button>
     <button data-act="hrConfirm">模拟 HR 确认离职</button>
-    <button data-act="demoReturn">模拟：我的合同审批被退回</button>
   </div>
   <div class="stage">
     <div class="phone">
@@ -164,7 +163,7 @@ function init(){
     page:'workbench', stack:[], tab:'t1',
     tasks:[
       {id:'T1', title:'备用金申请 王芳 出差备用金', template:'备用金申请', initiator:'李娜', time:'2026-11-20 09:12', node:'会计审批'},
-      {id:'T2', title:'付款申请 供应商货款 12,500.00', template:'付款申请', initiator:'张伟', time:'2026-11-21 14:30', node:'出纳办理', amount:'12,500.00', reason:'支付供应商货款'},
+      {id:'T2', title:'付款申请 供应商货款 12,500.00', template:'付款申请', initiator:'张伟', time:'2026-11-21 14:30', node:'出纳办理'},
       {id:'T3', title:'费用报销 团队聚餐 860.00', template:'费用报销', initiator:'刘洋', time:'2026-11-22 10:05', node:'财务复核'}
     ],
     checked:[], receiver:'', nodeChecked:[], nodeReceiver:'',
@@ -175,7 +174,6 @@ function init(){
     records:[
       {id:'R1', type:'任务转交', who:'陈林 → 王芳', detail:'在途任务 2 项：备用金申请、费用报销', time:'2026-11-22 16:40', op:'陈林（本人）'}
     ],
-    myForm:{state:'审批中', tpl:'合同审批', title:'合同审批 门禁设备采购合同', amount:'45,000.00', content:'采购门禁设备一批，含安装调试，合同编号 HT-2026-1108', returnReason:'', returnedBy:''},
     leaveStage:0, leaveType:'主动离职', leaveDate:'', leaveReason:'', leaveRemark:'',
     handoverScope:[], handoverAssign:{}, _assignScope:'',
     handoverItems:[], _curItem:0,
@@ -207,9 +205,9 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 function val(id){ const e=document.getElementById(id); return e?e.value:''; }
 function personName(n){ const p=PEOPLE.find(x=>x.name===n); return p?p.name+' · '+p.post:n; }
 
-const TITLES={workbench:'工作台',handover:'工作交接',transfer:'选择接手人',nodePick:'选择新处理人',nodeDetail:'流程节点详情',recordDetail:'转交记录详情',leave:'离职审批',leaveApply:'发起离职申请',leaveHandover:'发起离职交接',handoverDetail:'交接详情',pickAssign:'选择接收人',approveApply:'离职申请审批',staff:'员工档案',staffDetail:'员工详情',notice:'消息',noticeDetail:'消息详情',todo:'待办',mine:'我的',approveDetail:'审批详情',approveReturn:'退回申请',myForm:'我的审批单',myFormEdit:'修改并重新提交'};
+const TITLES={workbench:'工作台',handover:'工作交接',transfer:'选择接手人',nodePick:'选择新处理人',nodeDetail:'流程节点详情',recordDetail:'转交记录详情',leave:'离职审批',leaveApply:'发起离职申请',leaveHandover:'发起离职交接',handoverDetail:'交接详情',pickAssign:'选择接收人',approveApply:'离职申请审批',staff:'员工档案',staffDetail:'员工详情',notice:'消息',noticeDetail:'消息详情',todo:'待办',mine:'我的'};
 
-const PAGES={workbench:pWorkbench,handover:pHandover,transfer:pTransfer,nodePick:pNodePick,nodeDetail:pNodeDetail,recordDetail:pRecordDetail,leave:pLeave,leaveApply:pLeaveApply,leaveHandover:pLeaveHandover,handoverDetail:pHandoverDetail,pickAssign:pPickAssign,approveApply:pApproveApply,staff:pStaff,staffDetail:pStaffDetail,notice:pNotice,noticeDetail:pNoticeDetail,todo:pTodo,mine:pMine,approveDetail:pApproveDetail,approveReturn:pApproveReturn,myForm:pMyForm,myFormEdit:pMyFormEdit};
+const PAGES={workbench:pWorkbench,handover:pHandover,transfer:pTransfer,nodePick:pNodePick,nodeDetail:pNodeDetail,recordDetail:pRecordDetail,leave:pLeave,leaveApply:pLeaveApply,leaveHandover:pLeaveHandover,handoverDetail:pHandoverDetail,pickAssign:pPickAssign,approveApply:pApproveApply,staff:pStaff,staffDetail:pStaffDetail,notice:pNotice,noticeDetail:pNoticeDetail,todo:pTodo,mine:pMine};
 
 function render(){
   document.getElementById('ttl').textContent = TITLES[S.page]||'工作台';
@@ -235,9 +233,6 @@ function bottomFor(){
     case 'leaveApply': return `<div class="btn" data-act="submitApply">提交申请</div>`;
     case 'leaveHandover': return `<div class="btn" data-act="submitHandover">提交交接</div>`;
     case 'approveApply': return `<div class="btn-row"><div class="btn ghost" data-act="rejectApply">驳回</div><div class="btn" data-act="approveApply">通过</div></div>`;
-    case 'approveDetail': return `<div class="btn-row"><div class="btn ghost" data-act="adReject">驳回</div><div class="btn ghost" data-act="go" data-v="approveReturn">退回</div><div class="btn" data-act="adApprove">同意</div></div>`;
-    case 'approveReturn': return `<div class="btn" data-act="doReturn">确定退回</div>`;
-    case 'myFormEdit': return `<div class="btn" data-act="myResubmit">重新提交</div>`;
     default: return '';
   }
 }
@@ -500,9 +495,9 @@ function pTodo(){
   const cards=[];
   if(S.leaveStage===1) cards.push({k:'离职申请审批',h:'陈林的离职申请',who:'陈林',tm:NOW,tg:'待审批',v:'approveApply'});
   if(S.leaveStage===3) cards.push({k:'测试',h:'离职交接',who:'陈林',tm:NOW,tg:'待确认',v:'leave'});
-  S.tasks.slice(0,2).forEach(t=>cards.push({k:t.template,h:t.title,who:t.initiator,tm:t.time,tg:'待审批',v:'approveDetail',id:t.id}));
+  S.tasks.slice(0,2).forEach(t=>cards.push({k:t.template,h:t.title,who:'陈林',tm:NOW,tg:'处理中',v:''}));
   return `<div class="sec-h" style="padding:0 2px;">待我处理（${cards.length}）</div>
-    ${cards.length?cards.map(c=>`<div class="tcard" ${c.v?`data-act="go" data-v="${c.v}"`:'data-act="noop"'} ${c.id?`data-id="${c.id}"`:''}>
+    ${cards.length?cards.map(c=>`<div class="tcard" ${c.v?`data-act="go" data-v="${c.v}"`:'data-act="noop"'}>
       <div class="k">${esc(c.k)}</div>
       <div class="h">${esc(c.h)}</div>
       <div class="who">${U}${esc(c.who)}</div>
@@ -514,7 +509,6 @@ function pMine(){
   return `<div class="card"><div class="person"><div class="av">陈</div><div class="meta"><div class="nm">陈林</div><div class="sb">财务部 · 会计 · 工号 15751</div></div></div></div>
   <div class="card">
     <div class="rowitem" data-act="go" data-v="leave"><div class="r1"><div class="ttl">我的离职审批</div><span class="chip gray">${STAGE_TXT[S.leaveStage]}</span></div></div>
-    <div class="rowitem" data-act="go" data-v="myForm"><div class="r1"><div class="ttl">我的审批单</div><span class="chip gray">${S.myForm.state}</span></div></div>
     <div class="rowitem" data-act="go" data-v="staff"><div class="r1"><div class="ttl">员工档案</div></div></div>
     <div class="rowitem" data-act="go" data-v="notice"><div class="r1"><div class="ttl">消息中心</div></div></div>
   </div>`;
@@ -522,71 +516,6 @@ function pMine(){
 
 function addNotice(type,title,body){
   S.notices.unshift({id:'M'+Date.now()+Math.floor(Math.random()*10),type,title,body,time:NOW,read:false});
-}
-
-function pApproveDetail(){
-  const t=S.tasks.find(x=>x.id===S._id)||S.tasks.find(x=>x.id==='T2');
-  if(!t) return `<div class="empty">该审批已处理</div>`;
-  return `<div class="card"><div class="status info">审批中</div>
-    <div class="info"><span class="k">审批模板</span><span class="v">${esc(t.template)}</span></div>
-    <div class="info"><span class="k">申请人</span><span class="v">${esc(t.initiator)}</span></div>
-    <div class="info"><span class="k">申请内容</span><span class="v">${esc(t.reason||'—')}</span></div>
-    ${t.amount?`<div class="info"><span class="k">金额</span><span class="v">${esc(t.amount)}</span></div>`:''}
-    <div class="info"><span class="k">当前节点</span><span class="v">${esc(t.node)}</span></div>
-    <div class="info"><span class="k">提交时间</span><span class="v">${esc(t.time)}</span></div>
-  </div>
-  <div class="card"><div class="sec-h">审批记录</div>
-    <div class="info"><span class="k">${esc(t.initiator)} 提交</span><span class="v">${esc(t.time)}</span></div>
-    <div class="info"><span class="k">陈林 · 会计　·　审批中</span><span class="v">当前节点</span></div>
-  </div>`;
-}
-
-function pApproveReturn(){
-  const t=S.tasks.find(x=>x.id===S._id)||S.tasks.find(x=>x.id==='T2');
-  return `<div class="card">
-    <div class="info"><span class="k">退回对象</span><span class="v">申请人 ${esc(t?t.initiator:'')}</span></div>
-    <div class="fld"><div class="lb">退回理由</div><textarea class="txarea" id="retReason" placeholder="必填，说明需要修改的内容">金额与合同附件不一致，请核对后修改重新提交</textarea></div>
-    <div class="empty" style="text-align:left;">退回后流程不作废，申请人修改内容重新提交后，流程将从第一个审批节点重新依次审批</div>
-  </div>`;
-}
-
-function pMyForm(){
-  const f=S.myForm;
-  if(f.state==='已退回'){
-    return `<div class="card"><div class="status">已退回</div>
-      <div class="info"><span class="k">审批模板</span><span class="v">${esc(f.tpl)}</span></div>
-      <div class="info"><span class="k">申请内容</span><span class="v">${esc(f.content)}</span></div>
-      <div class="info"><span class="k">金额</span><span class="v">${esc(f.amount)}</span></div>
-      <div class="info"><span class="k">退回人</span><span class="v">${esc(f.returnedBy)}</span></div>
-      <div class="info"><span class="k">退回理由</span><span class="v">${esc(f.returnReason)}</span></div>
-    </div>
-    <div class="card"><div class="sec-h">审批记录</div>
-      <div class="info"><span class="k">陈林 提交</span><span class="v">2026-11-23 10:20</span></div>
-      <div class="info"><span class="k">${esc(f.returnedBy)} 退回</span><span class="v">${esc(f.returnReason)}</span></div>
-      <div class="info"><span class="k">待重新提交</span><span class="v">修改后流程重新依次审批</span></div>
-    </div>
-    <div class="btn" data-act="go" data-v="myFormEdit">修改并重新提交</div>
-    <div class="btn ghost" data-act="myRevoke">撤销申请</div>`;
-  }
-  return `<div class="card"><div class="status info">${esc(f.state)}</div>
-    <div class="info"><span class="k">审批模板</span><span class="v">${esc(f.tpl)}</span></div>
-    <div class="info"><span class="k">申请内容</span><span class="v">${esc(f.content)}</span></div>
-    <div class="info"><span class="k">金额</span><span class="v">${esc(f.amount)}</span></div>
-    <div class="info"><span class="k">提交时间</span><span class="v">2026-11-23 10:20</span></div>
-  </div>
-  <div class="card"><div class="sec-h">审批记录</div>
-    <div class="info"><span class="k">陈林 提交</span><span class="v">2026-11-23 10:20</span></div>
-    ${f.state==='已通过'?'<div class="info"><span class="k">财务主管 郑华　·　已通过</span><span class="v">2026-11-23 14:05</span></div>':f.state==='重新提交后审批中'?'<div class="info"><span class="k">陈林 修改后重新提交</span><span class="v">'+NOW+'</span></div><div class="info"><span class="k">财务主管 郑华　·　重新审批中</span><span class="v">当前节点</span></div>':'<div class="info"><span class="k">财务主管 郑华　·　审批中</span><span class="v">当前节点</span></div>'}
-  </div>`;
-}
-
-function pMyFormEdit(){
-  const f=S.myForm;
-  return `<div class="card">
-    <div class="fld"><div class="lb">申请内容</div><textarea class="txarea" id="mfContent">${esc(f.content)}</textarea></div>
-    <div class="fld"><div class="lb">金额</div><input class="f" id="mfAmount" value="${esc(f.amount)}"/></div>
-    <div class="empty" style="text-align:left;">重新提交后流程从第一个审批节点重新依次审批，已通过的审批人需重新审批</div>
-  </div>`;
 }
 
 document.addEventListener('click',e=>{
@@ -607,42 +536,6 @@ document.addEventListener('click',e=>{
     case 'tab': S.stack=[]; S.page=v; render(); break;
     case 'go': S._id=id; go(v); break;
     case 'noop': toast('该入口仅在完整系统中开放'); break;
-    case 'demoReturn':
-      if(S.myForm.state==='审批中'||S.myForm.state==='重新提交后审批中'){
-        S.myForm.state='已退回'; S.myForm.returnedBy='财务主管 郑华';
-        S.myForm.returnReason='金额与合同附件不一致，请核对后修改重新提交';
-        addNotice('审批退回','你的合同审批被退回','财务主管 郑华 退回了你的合同审批：金额与合同附件不一致，请修改后重新提交。流程不作废，修改内容后可重新提交。');
-        render(); toast('已模拟退回，请在「我的 → 我的审批单」查看');
-      } else toast('当前单据不处于审批中，无法演示退回');
-      break;
-    case 'doReturn':{
-      const t=S.tasks.find(x=>x.id===S._id)||S.tasks.find(x=>x.id==='T2');
-      if(t){ S.tasks=S.tasks.filter(x=>x.id!==t.id);
-        addNotice('审批退回','你的'+t.template+'被退回','陈林 退回了你的'+t.template+'：'+(val('retReason')||'请核对后修改重新提交')+'。流程不作废，修改内容后可重新提交。');
-        S.page='todo'; S.stack=[]; render(); toast('已退回申请人 '+t.initiator+'，流程不作废');
-      } else toast('该审批已处理');
-      break;}
-    case 'adApprove':{
-      const t=S.tasks.find(x=>x.id===S._id);
-      if(t){ S.tasks=S.tasks.filter(x=>x.id!==t.id); S.page='todo'; S.stack=[]; render(); toast('已同意，流转至下一节点'); }
-      else toast('该审批已处理');
-      break;}
-    case 'adReject':{
-      const t=S.tasks.find(x=>x.id===S._id);
-      if(t){ S.tasks=S.tasks.filter(x=>x.id!==t.id); S.page='todo'; S.stack=[]; render(); toast('已驳回，流程终止，申请人需重新发起'); }
-      else toast('该审批已处理');
-      break;}
-    case 'myResubmit':{
-      const c=val('mfContent'), a=val('mfAmount');
-      if(!c.trim()||!a.trim()){ toast('请填写完整后再提交'); break; }
-      S.myForm.content=c.trim(); S.myForm.amount=a.trim(); S.myForm.state='重新提交后审批中';
-      addNotice('重新提交','合同审批已重新提交','你已修改并重新提交合同审批，流程从第一个审批节点重新依次审批，已通过的审批人需重新审批。');
-      back(); render(); toast('已重新提交，流程重新依次审批');
-      break;}
-    case 'myRevoke':
-      S.myForm.state='审批中'; S.myForm.returnReason=''; S.myForm.returnedBy='';
-      render(); toast('已撤销，请修改后重新发起');
-      break;
     case 'htab': S.tab=v; S.checked=[]; S.nodeChecked=[]; render(); break;
     case 'ckTask': S.checked=S.checked.includes(v)?S.checked.filter(x=>x!==v):[...S.checked,v]; render(); break;
     case 'ckNode': S.nodeChecked=S.nodeChecked.includes(v)?S.nodeChecked.filter(x=>x!==v):[...S.nodeChecked,v]; render(); break;
