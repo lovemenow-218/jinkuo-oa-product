@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>工作交接 · web 原型（带批注）</title>
+<style>
+  /* ---- 设计令牌（内联自 docs/tokens.css，单文件自包含） ---- */
+  :root{
+    --color-primary:#1f6ad8;
+    --color-primary-hover:#4c88e0;
+    --color-primary-active:#1853a8;
+    --color-primary-disabled:#84adea;
+    --color-primary-light:#e4edfa;
+    --color-primary-dark:#1b5dbe;
+    --color-success:#3aa655;
+    --color-success-bg:#e6f6ea;
+    --color-info:#909399;
+    --color-info-bg:#f2f3f5;
+    --color-text-primary:#1f2329;
+    --color-text-secondary:#4e5969;
+    --color-text-tertiary:#a8adb5;
+    --color-border:#edf0f3;
+    --color-border-strong:#dcdfe6;
+    --color-bg-page:#f2f4f7;
+    --color-bg-muted:#f7f8fa;
+    --font-family-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    --font-weight-medium:500;
+    --font-weight-semibold:600;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:#eef0f4;font-family:var(--font-family-base);color:var(--color-text-primary);-webkit-font-smoothing:antialiased;}
+  .page{max-width:1560px;margin:0 auto;padding:34px 28px 90px;}
+
+  .hd h1{font-size:25px;font-weight:var(--font-weight-semibold);margin:0 0 10px;}
+  .hd .sub{font-size:13px;color:#5f6672;line-height:1.8;margin:0;}
+  .hd .sub b{color:var(--color-text-primary);font-weight:var(--font-weight-semibold);}
+
+  .roles{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0 4px;position:sticky;top:0;z-index:20;
+         background:#eef0f4;padding:12px 0 12px;border-bottom:1px solid #dfe3e9;}
+  .roles button{border:1px solid #cfd5de;background:#fff;color:#3d4450;border-radius:999px;
+         height:34px;padding:0 18px;font-size:13px;cursor:pointer;font-family:inherit;}
+  .roles button.on{background:var(--color-primary);border-color:var(--color-primary);color:#fff;font-weight:var(--font-weight-medium);}
+  .roles .hint{font-size:12px;color:#8890a0;align-self:center;margin-left:auto;}
+
+  .role{display:none;}
+  .role.on{display:block;}
+
+  .row{position:relative;display:flex;gap:56px;padding:40px 0 34px;border-top:1px dashed #d3d8e0;}
+  .row:first-of-type{border-top:0;padding-top:26px;}
+
+  .screen-wrap{width:780px;flex-shrink:0;position:relative;}
+  .screen-title{font-size:12px;color:#8890a0;margin:0 0 10px;letter-spacing:.2px;}
+  .screen-title b{color:#4d5563;font-weight:var(--font-weight-semibold);font-size:12.5px;}
+
+  /* ---- 浏览器窗口 mockup ---- */
+  .brw{width:780px;height:500px;background:#fff;border-radius:10px;border:1px solid #d5dae2;
+       overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 14px rgba(24,34,54,.07);}
+  .bbar{height:34px;background:#f5f6f8;border-bottom:1px solid var(--color-border);display:flex;
+        align-items:center;padding:0 12px;flex-shrink:0;gap:12px;}
+  .bdots{display:flex;gap:6px;flex-shrink:0;}
+  .bdots i{width:10px;height:10px;border-radius:50%;display:block;}
+  .bdots i:nth-child(1){background:#ee8a80;}
+  .bdots i:nth-child(2){background:#f2cf7d;}
+  .bdots i:nth-child(3){background:#93d79f;}
+  .baddr{flex:1;max-width:340px;margin:0 auto;height:20px;background:#e7eaef;border-radius:999px;
+         font-size:11px;color:#8a92a2;display:flex;align-items:center;justify-content:center;}
+  .bbody{flex:1;display:flex;overflow:hidden;}
+
+  /* ---- 左侧菜单 ---- */
+  .side{width:150px;flex-shrink:0;background:var(--color-bg-muted);border-right:1px solid var(--color-border);
+        padding:8px 0;overflow:hidden;}
+  .mitem{font-size:12px;color:var(--color-text-secondary);padding:6px 12px 6px 18px;cursor:default;}
+  .mitem:hover{color:var(--color-text-primary);}
+  .mitem.on{background:var(--color-primary-light);color:var(--color-primary-dark);
+        font-weight:var(--font-weight-medium);border-right:2px solid var(--color-primary);}
+  .mgrp{font-size:10.5px;color:var(--color-text-tertiary);padding:10px 12px 3px 18px;letter-spacing:.5px;}
+
+  /* ---- 右侧内容区 ---- */
+  .carea{flex:1;min-width:0;background:#fff;position:relative;overflow:hidden;padding:10px 12px;}
+  .tabs{display:flex;border-bottom:1px solid var(--color-border);margin-bottom:10px;}
+  .tab{font-size:12.5px;color:var(--color-text-secondary);padding:8px 2px;margin-right:20px;
+       border-bottom:2px solid transparent;cursor:default;}
+  .tab.on{color:var(--color-primary);border-bottom-color:var(--color-primary);font-weight:var(--font-weight-medium);}
+
+  .bar{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .bar .sp{flex:1;}
+
+  .btn{height:28px;padding:0 14px;border-radius:6px;font-size:12px;border:1px solid var(--color-border-strong);
+       background:#fff;color:var(--color-text-primary);display:inline-flex;align-items:center;
+       font-family:inherit;cursor:default;}
+  .btn.pri{background:var(--color-primary);border-color:var(--color-primary);color:#fff;
+       font-weight:var(--font-weight-medium);}
+  .inp{height:28px;border:1px solid var(--color-border-strong);border-radius:6px;background:#fdfdfe;
+       font-size:12px;color:var(--color-text-primary);display:inline-flex;align-items:center;
+       padding:0 10px;width:150px;color:var(--color-text-primary);}
+
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+  .tbl th{background:var(--color-bg-muted);color:var(--color-text-secondary);font-weight:var(--font-weight-medium);
+       text-align:left;padding:7px 6px;border-bottom:1px solid var(--color-border);white-space:nowrap;}
+  .tbl td{padding:8px 6px;border-bottom:1px solid var(--color-border);color:var(--color-text-primary);
+       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .tbl tr.sel td{background:var(--color-primary-light);}
+
+  .ck{width:13px;height:13px;border:1px solid var(--color-border-strong);border-radius:3px;background:#fff;
+      display:inline-block;vertical-align:-2px;font-size:9px;line-height:11px;text-align:center;color:#fff;}
+  .ck.on{background:var(--color-primary);border-color:var(--color-primary);}
+
+  .chip{display:inline-block;background:var(--color-info-bg);color:var(--color-text-secondary);
+        border-radius:4px;padding:2px 8px;font-size:11px;}
+
+  /* ---- 弹窗 ---- */
+  .wmask{position:absolute;left:0;top:0;right:0;bottom:0;background:rgba(22,28,38,.4);}
+  .wdlg{position:absolute;left:50%;top:70px;transform:translateX(-50%);width:330px;background:#fff;
+        border-radius:10px;padding:14px 16px;box-shadow:0 10px 30px rgba(20,28,44,.22);}
+  .wdlg .dt{font-size:13.5px;font-weight:var(--font-weight-semibold);margin-bottom:10px;}
+  .person{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:6px;font-size:12.5px;
+        color:var(--color-text-primary);margin-bottom:6px;}
+  .person.on{background:var(--color-primary-light);color:var(--color-primary-dark);
+        font-weight:var(--font-weight-medium);}
+  .rd{width:13px;height:13px;border-radius:50%;border:1px solid #b9c0cc;background:#fff;
+      flex-shrink:0;position:relative;}
+  .person.on .rd{border-color:var(--color-primary);}
+  .person.on .rd:after{content:"";position:absolute;left:2.5px;top:2.5px;width:6px;height:6px;
+      border-radius:50%;background:var(--color-primary);}
+  .dlg-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+
+  /* ---- 批注框架（沿用 h5 模板） ---- */
+  .notes{flex:1;min-width:0;padding-top:22px;}
+  .note{position:relative;padding-left:26px;margin-bottom:22px;}
+  .note .idx{position:absolute;left:0;top:1px;width:17px;height:17px;border-radius:50%;
+        background:var(--color-primary);color:#fff;font-size:10.5px;display:flex;align-items:center;
+        justify-content:center;font-weight:var(--font-weight-medium);}
+  .note p{margin:0;font-size:12.5px;line-height:1.8;color:#333a45;}
+  .note p b{color:var(--color-primary-dark);font-weight:var(--font-weight-semibold);}
+  .note p .tag{display:inline-block;background:#fff3d6;color:#8a5a00;border-radius:3px;
+        padding:1px 5px;font-size:11px;margin-right:4px;}
+
+  .row-tip{position:absolute;left:0;top:0;background:#fff8e1;border:1px solid #f2dfa8;border-radius:6px;
+        padding:7px 11px;font-size:12px;color:#7a5200;line-height:1.7;max-width:640px;}
+  .row-tip b{color:#5c3d00;}
+
+  svg.links{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  svg.links line{stroke:#e0a03c;stroke-width:1;}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hd">
+    <h1>工作交接 · web 原型（带批注）</h1>
+    <p class="sub">工作交接由<b>员工本人</b>发起、只处理<b>本人名下</b>的任务与节点；web 与 h5 <b>数据互通</b>，任一端发起的操作在两端均可查看。</p>
+  </div>
+
+  <div class="roles">
+    <button data-role="owner" class="on">发起人 · 员工本人</button>
+    <span class="hint">仅静态展示，不可点击</span>
+  </div>
+
+  <div class="role on" id="role-owner">
+
+    <!-- W1 -->
+    <div class="row">
+      <div class="row-tip" style="top:-6px;">「在途」= 当前作为审批人 / 办理人挂在你名下的单；<b>已完成、已驳回的不出现</b></div>
+      <div class="screen-wrap" style="margin-top:34px;">
+        <div class="screen-title"><b>W1</b>　人事 → 工作交接 · 在途任务转交页签</div>
+        <div class="brw">
+          <div class="bbar">
+            <div class="bdots"><i></i><i></i><i></i></div>
+            <div class="baddr">https://oa.fzjinkuo.com</div>
+          </div>
+          <div class="bbody">
+            <div class="side">
+              <div class="mitem">概览</div>
+              <div class="mgrp">OA审批</div>
+              <div class="mitem">发起审批</div>
+              <div class="mitem">待我处理</div>
+              <div class="mitem">我发起的</div>
+              <div class="mitem">抄送我的</div>
+              <div class="mitem">我已处理</div>
+              <div class="mgrp">人事</div>
+              <div class="mitem">员工档案</div>
+              <div class="mitem on">工作交接</div>
+              <div class="mitem">考勤</div>
+              <div class="mgrp">审批类型</div>
+              <div class="mitem">类型配置</div>
+              <div class="mitem">类型分组</div>
+            </div>
+            <div class="carea">
+              <div class="tabs">
+                <div class="tab on">在途任务转交</div>
+                <div class="tab">流程节点处理人</div>
+                <div class="tab">转交记录</div>
+              </div>
+              <div class="bar">
+                <span class="sp"></span>
+                <button class="btn pri" data-a="w1-1">批量转交（1）</button>
+              </div>
+              <table class="tbl t1">
+                <thead>
+                  <tr><th><span class="ck"></span></th><th>审批编号</th><th>审批模板</th><th>标题</th><th>发起人</th><th>发起时间</th><th>当前节点</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="sel"><td><span class="ck on">✓</span></td><td>SP202611220018</td><td>备用金申请</td><td>王芳 出差备用金</td><td>王芳</td><td>2026-11-22 16:08</td><td>出纳复核</td></tr>
+                  <tr><td><span class="ck"></span></td><td>SP202611220009</td><td>付款申请</td><td>供应商货款 12,500.00</td><td>李明</td><td>2026-11-22 10:32</td><td>部门主管审批</td></tr>
+                  <tr><td><span class="ck"></span></td><td>SP202611210044</td><td>合同审批</td><td>门店装修合同用印</td><td>赵倩</td><td>2026-11-21 09:15</td><td>用印登记</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes" style="padding-top:56px;">
+        <div class="note" data-anchor="w1-1"><span class="idx">1</span><p>只列<b>本人名下</b>在途的审批任务，不提供查询他人任务的入口。</p></div>
+        <div class="note"><span class="idx">2</span><p>支持勾选多条任务，选择接手人后<b>一键批量转交</b>；按钮括号里的数字实时等于已勾选条数。</p></div>
+        <div class="note"><span class="idx">3</span><p>已完成、已驳回的审批单不在范围，列表只出现在途的。</p></div>
+        <div class="note"><span class="idx">4</span><p>本期仅 <b>qt 品牌测试门店</b>可见，其他门店员工看不到「工作交接」菜单。</p></div>
+      </div>
+    </div>
+
+    <!-- W2 -->
+    <div class="row">
+      <div class="screen-wrap">
+        <div class="screen-title"><b>W2</b>　选择接手人弹窗</div>
+        <div class="brw">
+          <div class="bbar">
+            <div class="bdots"><i></i><i></i><i></i></div>
+            <div class="baddr">https://oa.fzjinkuo.com</div>
+          </div>
+          <div class="bbody">
+            <div class="side">
+              <div class="mitem">概览</div>
+              <div class="mgrp">OA审批</div>
+              <div class="mitem">发起审批</div>
+              <div class="mitem">待我处理</div>
+              <div class="mitem">我发起的</div>
+              <div class="mitem">抄送我的</div>
+              <div class="mitem">我已处理</div>
+              <div class="mgrp">人事</div>
+              <div class="mitem">员工档案</div>
+              <div class="mitem on">工作交接</div>
+              <div class="mitem">考勤</div>
+              <div class="mgrp">审批类型</div>
+              <div class="mitem">类型配置</div>
+              <div class="mitem">类型分组</div>
+            </div>
+            <div class="carea">
+              <div class="tabs">
+                <div class="tab on">在途任务转交</div>
+                <div class="tab">流程节点处理人</div>
+                <div class="tab">转交记录</div>
+              </div>
+              <div class="bar">
+                <span class="sp"></span>
+                <button class="btn pri">批量转交（1）</button>
+              </div>
+              <table class="tbl t1">
+                <thead>
+                  <tr><th><span class="ck"></span></th><th>审批编号</th><th>审批模板</th><th>标题</th><th>发起人</th><th>发起时间</th><th>当前节点</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="sel"><td><span class="ck on">✓</span></td><td>SP202611220018</td><td>备用金申请</td><td>王芳 出差备用金</td><td>王芳</td><td>2026-11-22 16:08</td><td>出纳复核</td></tr>
+                  <tr><td><span class="ck"></span></td><td>SP202611220009</td><td>付款申请</td><td>供应商货款 12,500.00</td><td>李明</td><td>2026-11-22 10:32</td><td>部门主管审批</td></tr>
+                  <tr><td><span class="ck"></span></td><td>SP202611210044</td><td>合同审批</td><td>门店装修合同用印</td><td>赵倩</td><td>2026-11-21 09:15</td><td>用印登记</td></tr>
+                </tbody>
+              </table>
+              <div class="wmask"></div>
+              <div class="wdlg">
+                <div class="dt">选择接手人</div>
+                <div data-a="w2-2">
+                  <div class="person on"><span class="rd"></span>王芳 · 出纳</div>
+                  <div class="person"><span class="rd"></span>李明 · 会计</div>
+                  <div class="person"><span class="rd"></span>刘洋 · 人事专员</div>
+                </div>
+                <div class="dlg-ft">
+                  <button class="btn">取消</button>
+                  <button class="btn pri" data-a="w2-1">确认转交</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="note"><span class="idx">1</span><p>接手人限<b>同一门店、在职、不是本人</b>，本人不出现在候选列表里。</p></div>
+        <div class="note" data-anchor="w2-2"><span class="idx">2</span><p>候选项显示「<b>姓名 · 岗位</b>」，重名靠岗位区分。</p></div>
+        <div class="note" data-anchor="w2-1"><span class="idx">3</span><p>确认转交后，任务从本人待办<b>移除</b>，进入接手人的「待我处理」，接手人收到<b>转交通知</b>。</p></div>
+        <div class="note"><span class="idx">4</span><p>一人多岗时<b>分开多次操作</b>，每次勾对应任务转给对应接手人。</p></div>
+      </div>
+    </div>
+
+    <!-- W3 -->
+    <div class="row">
+      <div class="row-tip" style="top:-6px;">现在是勾选多条<b>统一替换为同一人</b>；一人多岗要不要改成逐条节点单独选人，<b>待评审确认</b></div>
+      <div class="screen-wrap" style="margin-top:34px;">
+        <div class="screen-title"><b>W3</b>　流程节点处理人页签</div>
+        <div class="brw">
+          <div class="bbar">
+            <div class="bdots"><i></i><i></i><i></i></div>
+            <div class="baddr">https://oa.fzjinkuo.com</div>
+          </div>
+          <div class="bbody">
+            <div class="side">
+              <div class="mitem">概览</div>
+              <div class="mgrp">OA审批</div>
+              <div class="mitem">发起审批</div>
+              <div class="mitem">待我处理</div>
+              <div class="mitem">我发起的</div>
+              <div class="mitem">抄送我的</div>
+              <div class="mitem">我已处理</div>
+              <div class="mgrp">人事</div>
+              <div class="mitem">员工档案</div>
+              <div class="mitem on">工作交接</div>
+              <div class="mitem">考勤</div>
+              <div class="mgrp">审批类型</div>
+              <div class="mitem">类型配置</div>
+              <div class="mitem">类型分组</div>
+            </div>
+            <div class="carea">
+              <div class="tabs">
+                <div class="tab">在途任务转交</div>
+                <div class="tab on">流程节点处理人</div>
+                <div class="tab">转交记录</div>
+              </div>
+              <div class="bar">
+                <span class="inp">陈林</span>
+                <button class="btn" data-a="w3-1">查询</button>
+                <span class="sp"></span>
+                <button class="btn pri" data-a="w3-2">替换处理人（1）</button>
+              </div>
+              <table class="tbl t3">
+                <thead>
+                  <tr><th><span class="ck"></span></th><th>流程模板</th><th>节点名称</th><th>节点类型</th><th>当前处理人</th></tr>
+                </thead>
+                <tbody>
+                  <tr class="sel"><td><span class="ck on">✓</span></td><td>费用报销</td><td>部门主管审批</td><td><span class="chip">指定成员</span></td><td>陈林</td></tr>
+                  <tr><td><span class="ck"></span></td><td>备用金申请</td><td>出纳复核</td><td><span class="chip">指定成员</span></td><td>陈林</td></tr>
+                  <tr><td><span class="ck"></span></td><td>付款申请</td><td>付款复核</td><td><span class="chip">指定成员</span></td><td>陈林</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes" style="padding-top:56px;">
+        <div class="note" data-anchor="w3-1"><span class="idx">1</span><p>输入<b>本人姓名</b>后查询，列出本人作为指定处理人的审批流程模板及节点，不提供查询他人节点的入口。</p></div>
+        <div class="note"><span class="idx">2</span><p>只替换节点类型为「<b>指定成员</b>」的节点；角色、主管、表单控件关联等动态节点按流程配置自动取人，不在替换范围。</p></div>
+        <div class="note" data-anchor="w3-2"><span class="idx">3</span><p>替换只对<b>之后新发起</b>的单据生效；已发起的在途单据不受影响，仍按「在途任务转交」处理。</p></div>
+        <div class="note"><span class="idx">4</span><p>现在是勾选多条后统一替换为同一人；一人多岗时（如同时有人事类、出纳类流程），不同流程可能该换给不同的人，要不要改成<b>逐条节点单独选人</b>，待评审确认。</p></div>
+      </div>
+    </div>
+
+    <!-- W4 -->
+    <div class="row">
+      <div class="screen-wrap">
+        <div class="screen-title"><b>W4</b>　转交记录页签</div>
+        <div class="brw">
+          <div class="bbar">
+            <div class="bdots"><i></i><i></i><i></i></div>
+            <div class="baddr">https://oa.fzjinkuo.com</div>
+          </div>
+          <div class="bbody">
+            <div class="side">
+              <div class="mitem">概览</div>
+              <div class="mgrp">OA审批</div>
+              <div class="mitem">发起审批</div>
+              <div class="mitem">待我处理</div>
+              <div class="mitem">我发起的</div>
+              <div class="mitem">抄送我的</div>
+              <div class="mitem">我已处理</div>
+              <div class="mgrp">人事</div>
+              <div class="mitem">员工档案</div>
+              <div class="mitem on">工作交接</div>
+              <div class="mitem">考勤</div>
+              <div class="mgrp">审批类型</div>
+              <div class="mitem">类型配置</div>
+              <div class="mitem">类型分组</div>
+            </div>
+            <div class="carea">
+              <div class="tabs">
+                <div class="tab">在途任务转交</div>
+                <div class="tab">流程节点处理人</div>
+                <div class="tab on">转交记录</div>
+              </div>
+              <table class="tbl t4">
+                <thead>
+                  <tr><th>操作类型</th><th>交接双方</th><th>内容</th><th>操作人</th><th>操作时间</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>任务转交</td><td>陈林 → 王芳</td><td>在途任务 2 项已批量转交</td><td>陈林（本人）</td><td>2026-11-22 16:40</td></tr>
+                  <tr><td>处理人替换</td><td>陈林 → 李明</td><td>流程节点 1 个：费用报销</td><td>陈林（本人）</td><td>2026-11-22 17:05</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes">
+        <div class="note"><span class="idx">1</span><p>两类记录<b>按时间倒序</b>混排：任务转交记录含移交人、接手人、任务清单；处理人替换记录含流程模板、节点、原处理人、新处理人。</p></div>
+        <div class="note"><span class="idx">2</span><p>操作人即<b>发起操作的员工本人</b>；web 与 h5 的记录互通，任一端发起的操作在两端均可查看。</p></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function draw(){
+  document.querySelectorAll('.role.on .row').forEach(row=>{
+    let svg=row.querySelector('svg.links');
+    if(!svg){svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','links');row.appendChild(svg);}
+    svg.innerHTML='';
+    const rb=row.getBoundingClientRect();
+    row.querySelectorAll('.note[data-anchor]').forEach(n=>{
+      const a=row.querySelector('[data-a="'+n.dataset.anchor+'"]');
+      if(!a) return;
+      const ab=a.getBoundingClientRect(), nb=n.getBoundingClientRect();
+      const x1=ab.right-rb.left, y1=ab.top+ab.height/2-rb.top;
+      const x2=nb.left-rb.left-4, y2=nb.top+12-rb.top;
+      const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1',x1);l.setAttribute('y1',y1);
+      l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+      svg.appendChild(l);
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',x1);c.setAttribute('cy',y1);c.setAttribute('r',2.5);
+      c.setAttribute('fill','#e0a03c');svg.appendChild(c);
+    });
+  });
+}
+window.addEventListener('resize',()=>{clearTimeout(window._t);window._t=setTimeout(draw,120);});
+window.addEventListener('load',draw);
+</script>
+</body>
+</html>

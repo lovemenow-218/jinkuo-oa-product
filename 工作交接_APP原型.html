@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1200"/>
+<title>工作交接与离职审批 · h5 可交互原型</title>
+<link rel="stylesheet" href="tokens.css"/>
+<style>
+  body{font-family:var(--font-family-base); background:var(--color-bg-page); color:var(--color-text-primary); padding:22px 16px 60px;}
+  .doc-h{font-size:var(--font-size-xxl); font-weight:var(--font-weight-semibold); text-align:center;}
+  .doc-sub{font-size:var(--font-size-sm); color:var(--color-text-secondary); text-align:center; line-height:var(--line-height-relaxed); margin:8px auto 20px; max-width:900px;}
+  .stage{display:flex; justify-content:center;}
+
+  .phone{width:390px; background:var(--color-bg-page); border-radius:22px; overflow:hidden;
+         box-shadow:var(--shadow-raised); border:1px solid var(--color-border); display:flex; flex-direction:column; height:760px; flex-shrink:0;}
+  .p-top{height:52px; background:var(--color-bg-card); border-bottom:1px solid var(--color-border);
+         display:flex; align-items:center; padding:0 14px; gap:10px; flex-shrink:0;}
+  .p-top .back{font-size:24px; color:var(--color-text-primary); width:26px; cursor:pointer; line-height:1;}
+  .p-top .ttl{font-size:var(--font-size-md); font-weight:var(--font-weight-semibold); flex:1; text-align:center;}
+  .p-top .rt{width:26px; text-align:right; font-size:var(--font-size-lg); color:var(--color-text-secondary);}
+  .p-body{flex:1; overflow-y:auto; padding:14px;}
+
+  .card{background:var(--color-bg-card); border-radius:var(--radius-md); padding:14px; margin-bottom:12px; box-shadow:var(--shadow-card);}
+  .sec-h{font-size:var(--font-size-md); font-weight:var(--font-weight-semibold); margin:0 0 12px;}
+  .fld{padding:11px 0; border-bottom:1px solid var(--color-border);}
+  .fld:last-child{border-bottom:none;}
+  .fld .lb{font-size:var(--font-size-sm); color:var(--color-text-secondary); margin-bottom:6px;}
+  .fld .lb .req{color:var(--color-danger); margin-right:2px;}
+  .seg{display:flex; gap:8px;}
+  .seg .opt{flex:1; border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); padding:10px; text-align:center; font-size:var(--font-size-base); color:var(--color-text-secondary); cursor:pointer; transition:all var(--duration-fast) var(--ease-out);}
+  .seg .opt.on{border-color:var(--color-primary); background:var(--color-primary-light); color:var(--color-primary-dark); font-weight:var(--font-weight-semibold);}
+  .val{font-size:var(--font-size-base); color:var(--color-text-primary); display:flex; justify-content:space-between; align-items:center; min-height:22px;}
+  .val .ph{color:var(--color-text-tertiary);}
+  .val .arw{color:var(--color-text-tertiary);}
+  input.f{border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); padding:9px 10px; font-size:var(--font-size-base); width:100%; box-sizing:border-box; outline:none; color:var(--color-text-primary); font-family:var(--font-family-base);}
+  input.f:focus{border-color:var(--color-primary); box-shadow:var(--focus-ring);}
+  .txarea{border:1px solid var(--color-border-strong); border-radius:var(--radius-sm); padding:10px; font-size:var(--font-size-sm); color:var(--color-text-primary); width:100%; box-sizing:border-box; min-height:64px; outline:none; font-family:var(--font-family-base);}
+  .txarea:focus{border-color:var(--color-primary);}
+
+  .tabs{display:flex; background:var(--color-bg-card); border-radius:var(--radius-sm); padding:4px; margin-bottom:12px;}
+  .tabs .t{flex:1; text-align:center; font-size:var(--font-size-sm); padding:9px 0; color:var(--color-text-secondary); border-radius:var(--radius-xs); cursor:pointer; transition:all var(--duration-fast) var(--ease-out);}
+  .tabs .t.on{background:var(--color-primary); color:var(--color-text-inverse); font-weight:var(--font-weight-medium);}
+
+  .mini{border:none; border-radius:var(--radius-sm); height:38px; box-sizing:border-box; padding:0 14px; font-size:var(--font-size-sm); font-weight:var(--font-weight-medium); background:var(--color-primary); color:var(--color-text-inverse); cursor:pointer; white-space:nowrap; font-family:var(--font-family-base);}
+  .mini.ghost{background:var(--color-bg-card); color:var(--color-text-primary); border:1px solid var(--color-border-strong);}
+
+  .rowitem{padding:12px 0; border-bottom:1px solid var(--color-border); cursor:pointer;}
+  .rowitem:last-child{border-bottom:none;}
+  .rowitem .r1{display:flex; align-items:flex-start; gap:8px;}
+  .rowitem .ttl{font-size:var(--font-size-base); font-weight:var(--font-weight-medium); flex:1; line-height:var(--line-height-tight);}
+  .rowitem .r2{font-size:var(--font-size-xs); color:var(--color-text-tertiary); margin-top:6px; line-height:1.6;}
+  .rowitem .r3{display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;}
+
+  .tcard{background:var(--color-bg-card); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:10px; box-shadow:var(--shadow-card); cursor:pointer;}
+  .tcard .k{font-size:var(--font-size-sm); color:var(--color-text-secondary);}
+  .tcard .h{font-size:var(--font-size-lg); font-weight:var(--font-weight-medium); margin:9px 0 11px; line-height:var(--line-height-tight);}
+  .tcard .who{display:flex; align-items:center; gap:6px; font-size:var(--font-size-base); color:var(--color-text-primary);}
+  .tcard .ft{display:flex; justify-content:space-between; align-items:center; margin-top:12px;}
+  .tcard .tm{font-size:var(--font-size-xs); color:var(--color-text-tertiary);}
+  .tcard .tg{font-size:var(--font-size-xs); color:var(--color-warning-text); border:1px solid var(--color-warning); border-radius:var(--radius-xs); padding:3px 9px;}
+  .ck{width:18px; height:18px; border-radius:var(--radius-xs); border:1.5px solid var(--color-border-strong); display:flex; align-items:center; justify-content:center; color:var(--color-text-inverse); font-size:12px; flex-shrink:0; margin-top:1px; cursor:pointer;}
+  .ck.on{background:var(--color-primary); border-color:var(--color-primary);}
+
+  .chip{font-size:var(--font-size-xs); background:var(--color-primary-light); color:var(--color-primary-dark); border-radius:var(--radius-xs); padding:3px 8px;}
+  .chip.gray{background:var(--color-info-bg); color:var(--color-text-secondary);}
+  .status{display:inline-block; font-size:var(--font-size-sm); font-weight:var(--font-weight-semibold); color:var(--color-warning-text); background:var(--color-warning-bg); border-radius:var(--radius-pill); padding:4px 12px; margin-bottom:12px;}
+  .status.done{color:var(--color-success); background:var(--color-success-bg);}
+  .status.info{color:var(--color-primary-dark); background:var(--color-primary-light);}
+  .status.gray{color:var(--color-text-secondary); background:var(--color-info-bg);}
+
+  .info{display:flex; justify-content:space-between; padding:8px 0; font-size:var(--font-size-base); gap:12px;}
+  .info .k{color:var(--color-text-secondary); flex-shrink:0;}
+  .info .v{color:var(--color-text-primary); text-align:right;}
+
+  .app-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px 4px;}
+  .app{display:flex; flex-direction:column; align-items:center; gap:7px; font-size:var(--font-size-sm); color:var(--color-text-secondary); cursor:pointer;}
+  .app .ic{width:46px; height:46px; border-radius:var(--radius-sm); display:flex; align-items:center; justify-content:center; background:var(--color-primary-light); color:var(--color-primary-dark); position:relative;}
+  .app .ic.o{background:var(--color-warning-bg); color:var(--color-warning-text);}
+  .app .ic.g{background:var(--color-success-bg); color:var(--color-success);}
+  .app .dot{position:absolute; top:-3px; right:-3px; width:8px; height:8px; border-radius:50%; background:var(--color-danger);}
+  .banner{background:var(--color-primary); border-radius:var(--radius-md); padding:18px 16px; color:var(--color-text-inverse); margin-bottom:12px;}
+  .banner .t{font-size:var(--font-size-lg); font-weight:var(--font-weight-semibold);}
+
+  .person{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--color-border); cursor:pointer;}
+  .person:last-child{border-bottom:none;}
+  .person .av{width:36px; height:36px; border-radius:50%; background:var(--color-avatar-bg); color:var(--color-text-inverse); display:flex; align-items:center; justify-content:center; font-size:var(--font-size-base); font-weight:var(--font-weight-semibold); flex-shrink:0;}
+  .person .meta{flex:1;}
+  .person .meta .nm{font-size:var(--font-size-base); font-weight:var(--font-weight-medium);}
+  .person .meta .sb{font-size:var(--font-size-xs); color:var(--color-text-tertiary); margin-top:2px;}
+
+  .assign{padding:11px 0; border-bottom:1px solid var(--color-border);}
+  .assign:last-child{border-bottom:none;}
+  .assign .a1{display:flex; align-items:center; gap:8px;}
+  .assign .a1 .ttl{font-size:var(--font-size-base); font-weight:var(--font-weight-medium); flex:1;}
+  .assign .a2{display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-left:26px; font-size:var(--font-size-sm);}
+  .assign .a2 .who{color:var(--color-text-primary);}
+  .assign .a2 .who.ph{color:var(--color-text-tertiary);}
+  .assign .a2 .sel{color:var(--color-primary-dark); cursor:pointer;}
+
+  .tl .n{display:flex; gap:10px; padding-bottom:16px; position:relative;}
+  .tl .n:not(:last-child):before{content:""; position:absolute; left:11px; top:24px; bottom:0; width:1px; background:var(--color-border);}
+  .tl .n .pt{width:22px; height:22px; border-radius:50%; background:var(--color-success); color:var(--color-text-inverse); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;}
+  .tl .n.wait .pt{background:var(--color-warning);}
+  .tl .n.pend .pt{background:var(--color-border-strong);}
+  .tl .n .nb{flex:1;}
+  .tl .n .nb .r{font-size:var(--font-size-base); font-weight:var(--font-weight-medium);}
+  .tl .n .nb .m{font-size:var(--font-size-xs); color:var(--color-text-tertiary); margin-top:3px;}
+
+  .bottom{padding:12px 14px 18px; background:var(--color-bg-card); border-top:1px solid var(--color-border); flex-shrink:0;}
+  .btn{height:44px; border:none; border-radius:var(--radius-sm); width:100%; font-size:var(--font-size-md); font-weight:var(--font-weight-semibold); background:var(--color-primary); color:var(--color-text-inverse); cursor:pointer; transition:all var(--duration-fast) var(--ease-out);}
+  .btn:active{background:var(--color-primary-active);}
+  .btn.ghost{background:var(--color-bg-card); color:var(--color-text-primary); border:1px solid var(--color-border-strong);}
+  .btn-row{display:flex; gap:10px;}
+
+  .tabbar{display:flex; border-top:1px solid var(--color-border); background:var(--color-bg-card); padding:8px 0 12px; flex-shrink:0;}
+  .tabbar .tb{flex:1; text-align:center; font-size:var(--font-size-xs); color:var(--color-text-tertiary); cursor:pointer;}
+  .tabbar .tb.on{color:var(--color-primary); font-weight:var(--font-weight-medium);}
+  .tabbar .tb .ti{font-size:18px; display:block; margin-bottom:2px;}
+
+  .toast{position:absolute; left:50%; bottom:120px; transform:translateX(-50%); background:var(--color-text-primary); color:var(--color-text-inverse); font-size:var(--font-size-sm); padding:10px 18px; border-radius:var(--radius-pill); opacity:0; transition:opacity .2s; pointer-events:none; z-index:20; white-space:nowrap;}
+  .toast.show{opacity:.92;}
+  .empty{text-align:center; color:var(--color-text-tertiary); font-size:var(--font-size-sm); padding:30px 0;}
+  .note-line{font-size:var(--font-size-xs); color:var(--color-text-tertiary); margin-top:8px; line-height:1.6;}
+  .toolbar{display:flex; gap:8px; justify-content:center; margin-bottom:14px; flex-wrap:wrap;}
+  .toolbar button{height:34px; box-sizing:border-box; border:1px solid var(--color-border-strong); background:var(--color-bg-card); color:var(--color-text-secondary); border-radius:var(--radius-pill); padding:0 14px; font-size:var(--font-size-sm); cursor:pointer; font-family:var(--font-family-base);}
+  .toolbar button.on{background:var(--color-primary); border-color:var(--color-primary); color:var(--color-text-inverse);}
+</style>
+</head>
+<body>
+  <div class="doc-h">工作交接与离职审批 · h5 可交互原型</div>
+  <div class="doc-sub">点击体验：工作台「人事」入口 → 工作交接 / 离职审批 → 员工档案。数据为演示假数据。</div>
+  <div class="toolbar" id="toolbar">
+    <button data-act="reset">重置数据</button>
+    <button data-act="approve">模拟上级审批</button>
+    <button data-act="hrConfirm">模拟 HR 确认离职</button>
+  </div>
+  <div class="stage">
+    <div class="phone">
+      <div class="p-top">
+        <span class="back" data-act="back">‹</span>
+        <span class="ttl" id="ttl">工作台</span>
+        <span class="rt">⋯</span>
+      </div>
+      <div class="p-body" id="body"></div>
+      <div class="bottom" id="bottom"></div>
+      <div class="tabbar" id="tabbar"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+<script>
+const NOW = '2026-11-23 11:30';
+const SCOPES = ['审批待办','发起中流程','权限点','文档与数据归属','流程节点处理人','预警接收人'];
+const PEOPLE = [
+  {name:'王芳', post:'出纳'},
+  {name:'李明', post:'会计'},
+  {name:'刘洋', post:'人事专员'},
+  {name:'张强', post:'店长'}
+];
+let S;
+function init(){
+  S = {
+    page:'workbench', stack:[], tab:'t1',
+    tasks:[
+      {id:'T1', title:'备用金申请 王芳 出差备用金', template:'备用金申请', initiator:'李娜', time:'2026-11-20 09:12', node:'会计审批'},
+      {id:'T2', title:'付款申请 供应商货款 12,500.00', template:'付款申请', initiator:'张伟', time:'2026-11-21 14:30', node:'出纳办理'},
+      {id:'T3', title:'费用报销 团队聚餐 860.00', template:'费用报销', initiator:'刘洋', time:'2026-11-22 10:05', node:'财务复核'}
+    ],
+    checked:[], receiver:'',
+    q2:'', q2done:false, nodeChecked:[], nodeReceiver:'',
+    nodes:[
+      {id:'N1', flow:'备用金申请', node:'会计审批', type:'指定成员', person:'陈林'},
+      {id:'N2', flow:'付款申请', node:'出纳办理', type:'指定成员', person:'陈林'}
+    ],
+    records:[
+      {id:'R1', type:'任务转交', who:'陈林 → 王芳', detail:'在途任务 2 项：备用金申请、费用报销', time:'2026-11-22 16:40', op:'陈林（本人）'}
+    ],
+    leaveStage:0, leaveType:'主动离职', leaveDate:'', leaveReason:'', leaveRemark:'',
+    handoverScope:[], handoverAssign:{}, _assignScope:'',
+    handoverItems:[], _curItem:0,
+    apprNodes:[
+      {t:'直接主管审批', who:'郑华 · 财务主管'},
+      {t:'人事审核', who:'刘洋 · 人事专员'},
+      {t:'总经理审批', who:'高翔 · 总经理'}
+    ],
+    notices:[
+      {id:'M1', type:'审批通过', title:'你的备用金申请已通过', body:'备用金申请 1,100.00 已由会计审批处理人陈林于 2026-11-22 14:20 确认还款。', time:'2026-11-22 14:20', read:false},
+      {id:'M2', type:'任务转交', title:'你转交了 2 项在途任务给王芳', body:'你已将备用金申请、费用报销共 2 项在途任务转交给王芳。', time:'2026-11-22 16:40', read:false}
+    ],
+    staff:[
+      {id:'E1', name:'陈林', dept:'财务部', post:'会计', status:'在职'},
+      {id:'E2', name:'王芳', dept:'财务部', post:'出纳', status:'在职'},
+      {id:'E3', name:'李明', dept:'财务部', post:'会计', status:'在职'},
+      {id:'E4', name:'刘洋', dept:'人事部', post:'人事专员', status:'在职'},
+      {id:'E5', name:'张强', dept:'门店二部', post:'店长', status:'待离职'},
+      {id:'E6', name:'赵敏', dept:'人事部', post:'人事专员', status:'已离职'}
+    ]
+  };
+}
+
+const STAGE_TXT = ['未发起','离职申请审批中','待离职','离职交接审批中','待 HR 确认离职','已离职'];
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function go(page){ S.stack.push(S.page); S.page=page; render(); }
+function back(){ if(S.stack.length){ S.page=S.stack.pop(); render(); } else toast('已在首页'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800); }
+function val(id){ const e=document.getElementById(id); return e?e.value:''; }
+function personName(n){ const p=PEOPLE.find(x=>x.name===n); return p?p.name+' · '+p.post:n; }
+
+const TITLES={workbench:'工作台',handover:'工作交接',transfer:'选择接手人',nodePick:'选择新处理人',nodeDetail:'流程节点详情',recordDetail:'转交记录详情',leave:'离职审批',leaveApply:'发起离职申请',leaveHandover:'发起离职交接',handoverDetail:'交接详情',pickAssign:'选择接收人',approveApply:'离职申请审批',staff:'员工档案',staffDetail:'员工详情',notice:'消息',noticeDetail:'消息详情',todo:'待办',mine:'我的'};
+
+const PAGES={workbench:pWorkbench,handover:pHandover,transfer:pTransfer,nodePick:pNodePick,nodeDetail:pNodeDetail,recordDetail:pRecordDetail,leave:pLeave,leaveApply:pLeaveApply,leaveHandover:pLeaveHandover,handoverDetail:pHandoverDetail,pickAssign:pPickAssign,approveApply:pApproveApply,staff:pStaff,staffDetail:pStaffDetail,notice:pNotice,noticeDetail:pNoticeDetail,todo:pTodo,mine:pMine};
+
+function render(){
+  document.getElementById('ttl').textContent = TITLES[S.page]||'工作台';
+  const b=document.getElementById('body'), bt=document.getElementById('bottom'), tb=document.getElementById('tabbar');
+  b.innerHTML = (PAGES[S.page]||pWorkbench)();
+  bt.innerHTML = bottomFor();
+  const on = ['workbench','notice','todo','mine'].includes(S.page) ? S.page : '';
+  tb.innerHTML = `<div class="tb ${on==='notice'?'on':''}" data-act="tab" data-v="notice"><span class="ti">◇</span>消息</div>
+    <div class="tb ${on==='todo'?'on':''}" data-act="tab" data-v="todo"><span class="ti">☑</span>待办</div>
+    <div class="tb ${on==='workbench'?'on':''}" data-act="tab" data-v="workbench"><span class="ti">▦</span>工作台</div>
+    <div class="tb ${on==='mine'?'on':''}" data-act="tab" data-v="mine"><span class="ti">○</span>我的</div>`;
+  document.querySelector('.back').style.visibility = S.page==='workbench'?'hidden':'visible';
+}
+
+function bottomFor(){
+  switch(S.page){
+    case 'handover':
+      if(S.tab==='t1' && S.checked.length) return `<div class="btn" data-act="toTransfer">批量转交（${S.checked.length}）</div>`;
+      if(S.tab==='t2' && S.nodeChecked.length) return `<div class="btn" data-act="toNodePick">替换处理人（${S.nodeChecked.length}）</div>`;
+      return `<div class="btn ghost" data-act="noop">关闭</div>`;
+    case 'transfer': return `<div class="btn" data-act="confirmTransfer">确认转交</div>`;
+    case 'nodePick': return `<div class="btn" data-act="confirmNodeReplace">确认替换</div>`;
+    case 'leaveApply': return `<div class="btn" data-act="submitApply">提交申请</div>`;
+    case 'leaveHandover': return `<div class="btn" data-act="submitHandover">提交交接</div>`;
+    case 'approveApply': return `<div class="btn-row"><div class="btn ghost" data-act="rejectApply">驳回</div><div class="btn" data-act="approveApply">通过</div></div>`;
+    default: return '';
+  }
+}
+
+function pWorkbench(){
+  const unread = S.notices.filter(n=>!n.read).length;
+  return `<div class="banner"><div class="t">从工作台开始</div></div>
+  <div class="card">
+    <div class="sec-h">OA审批</div>
+    <div class="app-grid">
+      <div class="app" data-act="noop"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 10h7M9 14h7"/></svg></div>OA审批</div>
+      <div class="app" data-act="tab" data-v="todo"><div class="ic o"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v14H4z"/><path d="M8 10h8M8 14h5"/></svg></div>全部审批</div>
+      <div class="app" data-act="go" data-v="handover"><div class="ic g"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13m0 0-3-3m3 3-3 3"/><path d="M20 17H7m0 0 3-3m-3 3 3 3"/></svg></div>工作交接</div>
+      <div class="app" data-act="go" data-v="notice"><div class="ic" style="background:var(--color-accent-bg);color:var(--color-accent);">${unread?'<span class="dot"></span>':''}<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-3-3-9"/><path d="M10 21h4"/></svg></div>消息</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-h">人事</div>
+    <div class="app-grid">
+      <div class="app" data-act="go" data-v="handover"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h13m0 0-3-3m3 3-3 3"/><path d="M20 17H7m0 0 3-3m-3 3 3 3"/></svg></div>工作交接</div>
+      <div class="app" data-act="go" data-v="leave"><div class="ic o"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6m-3-3v6"/></svg></div>离职审批</div>
+      <div class="app" data-act="go" data-v="staff"><div class="ic g"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 2.7-5 6-5s6 2 6 5"/><path d="M17 8h4m-2-2v4"/></svg></div>员工档案</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-h">报表</div>
+    <div class="app-grid">
+      <div class="app" data-act="noop"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8"/></svg></div>营业概况</div>
+      <div class="app" data-act="noop"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="6" width="16" height="13" rx="2"/><path d="M8 3h8"/></svg></div>日报分析</div>
+    </div>
+  </div>`;
+}
+
+function pHandover(){
+  let inner='';
+  if(S.tab==='t1'){
+    if(!S.tasks.length){ inner += `<div class="empty">名下暂无在途任务</div>`; }
+    else{
+      inner += S.tasks.map(t=>`<div class="rowitem">
+        <div class="r1"><div class="ck ${S.checked.includes(t.id)?'on':''}" data-act="ckTask" data-v="${t.id}">${S.checked.includes(t.id)?'✓':''}</div><div class="ttl">${esc(t.title)}</div></div>
+        <div class="r2">${esc(t.template)} · 发起人 ${esc(t.initiator)} · 当前节点 ${esc(t.node)}<br>${esc(t.time)}</div>
+      </div>`).join('');
+    }
+  } else if(S.tab==='t2'){
+    inner = `<div class="srch" style="display:flex;gap:8px;margin-bottom:12px;"><input class="f" id="q2" placeholder="输入本人姓名" value="${esc(S.q2)}"/><button class="mini" data-act="query2">查询</button></div>`;
+    if(!S.q2done){ inner += `<div class="empty">输入本人姓名后查询自己作为指定处理人的流程节点</div>`; }
+    else{
+      inner += S.nodes.map(n=>`<div class="rowitem">
+        <div class="r1"><div class="ck ${S.nodeChecked.includes(n.id)?'on':''}" data-act="ckNode" data-v="${n.id}">${S.nodeChecked.includes(n.id)?'✓':''}</div><div class="ttl" data-act="go" data-v="nodeDetail" data-id="${n.id}">${esc(n.flow)} · ${esc(n.node)}</div><span class="chip gray">${esc(n.type)}</span></div>
+        <div class="r2">当前处理人：${esc(n.person)}</div>
+      </div>`).join('');
+    }
+  } else {
+    inner = S.records.length ? S.records.map(r=>`<div class="rowitem" data-act="go" data-v="recordDetail" data-id="${r.id}">
+      <div class="r1"><div class="ttl">${esc(r.type)} · ${esc(r.who)}</div></div>
+      <div class="r2">${esc(r.detail)}<br>${esc(r.time)} · 操作人 ${esc(r.op)}</div>
+    </div>`).join('') : `<div class="empty">暂无转交记录</div>`;
+  }
+  return `<div class="tabs">
+    <div class="t ${S.tab==='t1'?'on':''}" data-act="htab" data-v="t1">在途任务转交</div>
+    <div class="t ${S.tab==='t2'?'on':''}" data-act="htab" data-v="t2">流程节点处理人</div>
+    <div class="t ${S.tab==='t3'?'on':''}" data-act="htab" data-v="t3">转交记录</div>
+  </div><div class="card">${inner}</div>`;
+}
+
+function pTransfer(){
+  return `<div class="card">
+    <div class="sec-h">选择接手人</div>
+    ${PEOPLE.map(p=>`<div class="person" data-act="pickRecv" data-v="${p.name}">
+      <div class="av">${p.name[0]}</div><div class="meta"><div class="nm">${p.name}</div><div class="sb">${p.post}</div></div>
+      <div class="ck ${S.receiver===p.name?'on':''}">${S.receiver===p.name?'✓':''}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function pNodePick(){
+  return `<div class="card">
+    <div class="sec-h">选择新处理人</div>
+    ${PEOPLE.map(p=>`<div class="person" data-act="pickNodeRecv" data-v="${p.name}">
+      <div class="av">${p.name[0]}</div><div class="meta"><div class="nm">${p.name}</div><div class="sb">${p.post}</div></div>
+      <div class="ck ${S.nodeReceiver===p.name?'on':''}">${S.nodeReceiver===p.name?'✓':''}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function pNodeDetail(){
+  const n = S.nodes.find(x=>x.id===S._id)||S.nodes[0];
+  return `<div class="card"><div class="status info">${esc(n.type)}</div>
+    <div class="info"><span class="k">流程模板</span><span class="v">${esc(n.flow)}</span></div>
+    <div class="info"><span class="k">节点名称</span><span class="v">${esc(n.node)}</span></div>
+    <div class="info"><span class="k">节点类型</span><span class="v">${esc(n.type)}</span></div>
+    <div class="info"><span class="k">当前处理人</span><span class="v">${esc(n.person)}</span></div>
+  </div><div class="btn" data-act="detailReplace" data-v="${n.id}">替换该节点处理人</div>`;
+}
+
+function pRecordDetail(){
+  const r = S.records.find(x=>x.id===S._id)||S.records[0];
+  return `<div class="card"><div class="status ${r.type==='处理人替换'?'info':'done'}">${r.type==='处理人替换'?'已替换':'已转交'}</div>
+    <div class="info"><span class="k">操作类型</span><span class="v">${esc(r.type)}</span></div>
+    <div class="info"><span class="k">交接双方</span><span class="v">${esc(r.who)}</span></div>
+    <div class="info"><span class="k">交接内容</span><span class="v" style="max-width:62%;">${esc(r.detail)}</span></div>
+    <div class="info"><span class="k">操作人</span><span class="v">${esc(r.op)}</span></div>
+    <div class="info"><span class="k">操作时间</span><span class="v">${esc(r.time)}</span></div>
+  </div>`;
+}
+
+function pLeave(){
+  const st=S.leaveStage;
+  let body='';
+  if(st===0){ body=`<div class="card"><div class="status gray">未发起</div></div><div class="btn" data-act="go" data-v="leaveApply">发起离职申请</div>`; }
+  else if(st===1){ body=`<div class="card"><div class="status">离职申请审批中</div><div class="info"><span class="k">预计离职日期</span><span class="v">${esc(S.leaveDate||'2026-12-20')}</span></div><div class="info"><span class="k">离职类型</span><span class="v">${esc(S.leaveType)}</span></div><div class="info"><span class="k">提交时间</span><span class="v">${NOW}</span></div></div>${timeline(1)}<div class="btn ghost" data-act="noop">查看申请详情</div><div class="btn ghost" data-act="recallLeave">撤回申请</div>`; }
+  else if(st===2){ body=`<div class="card"><div class="status info">待离职</div><div class="info"><span class="k">当前状态</span><span class="v">离职申请已通过</span></div><div class="info"><span class="k">预计离职日期</span><span class="v">${esc(S.leaveDate||'2026-12-20')}</span></div></div>${timeline(2)}<div class="btn" data-act="go" data-v="leaveHandover">发起离职交接</div>`; }
+  else if(st===3){
+    const done=S.handoverItems.filter(x=>x.status==='已确认').length;
+    const anyDone=S.handoverItems.some(x=>x.status==='已确认');
+    body=`<div class="card"><div class="status">离职交接中</div><div class="info"><span class="k">交接项进度</span><span class="v">${done} / ${S.handoverItems.length} 项已确认</span></div><div class="info"><span class="k">当前处理人</span><span class="v">${S.handoverItems[S._curItem]?esc(personName(S.handoverItems[S._curItem].person)):'—'}</span></div><div class="info"><span class="k">完成期限</span><span class="v">${esc(S.leaveDate||'2026-12-20')} 前</span></div></div>
+      <div class="card"><div class="sec-h">各项接收人与确认状态</div>${S.handoverItems.map(it=>`<div class="info"><span class="k">${esc(it.scope)}</span><span class="v">${esc(personName(it.person))}　·　${it.status}</span></div>`).join('')}</div>
+      ${timeline(3)}<div class="btn" data-act="confirmItem">确认当前交接项</div><div class="btn ghost" data-act="go" data-v="handoverDetail">查看交接详情</div>${anyDone?'':'<div class="btn ghost" data-act="recallHandover">撤回交接单</div>'}`; }
+  else if(st===4){ body=`<div class="card"><div class="status">待 HR 确认离职</div></div>${timeline(4)}<div class="btn ghost" data-act="noop">查看进度</div>`; }
+  else { body=`<div class="card"><div class="status done">已离职</div><div class="info"><span class="k">离职日期</span><span class="v">${esc(S.leaveDate||'2026-12-20')}</span></div></div>${timeline(5)}`; }
+  return body;
+}
+function timeline(cur){
+  // 审批链提交时即全部显示（按类型配置，配几级显示几个）；交接子节点进入交接中才展开，HR 节点到待确认阶段才出现
+  const items=[];
+  items.push({name:'发起离职申请', who:'陈林 · 会计'});
+  S.apprNodes.forEach(n=>items.push({name:n.t, who:n.who}));
+  const apprEnd=items.length;
+  if(cur>=3){
+    if(S.handoverItems.length){
+      S.handoverItems.forEach(it=>items.push({name:'离职交接 · '+it.scope, who:it.person}));
+    } else {
+      SCOPES.slice(0,3).forEach(s=>items.push({name:'离职交接 · '+s, who:S.handoverAssign[s]?personName(S.handoverAssign[s]):'待选择接收人'}));
+    }
+  }
+  if(cur>=4) items.push({name:'HR 确认离职', who:'人事专员'});
+  const total=items.length;
+  // 当前节点下标按已展开的节点算
+  let curIdx;
+  if(cur===0) curIdx=0;
+  else if(cur===1) curIdx=1;
+  else if(cur===2) curIdx=apprEnd;
+  else if(cur===3) curIdx=apprEnd+Math.min(S._curItem,Math.max(0,(S.handoverItems.length||SCOPES.slice(0,3).length)-1));
+  else if(cur===4) curIdx=total-1;
+  else curIdx=total;
+  return `<div class="card"><div class="sec-h">离职流程进度</div><div class="tl">
+    ${items.map((it,i)=>{
+      const done=i<curIdx, active=i===curIdx;
+      const cls=done?'':(active?'wait':'pend');
+      const pt=done?'✓':(active?'•':'');
+      const st=done?'已通过':(active?'处理中':'未开始');
+      return `<div class="n ${cls}"><div class="pt">${pt}</div><div class="nb"><div class="r">${esc(it.name)}</div><div class="m">处理人：${esc(it.who)}　·　${st}</div></div></div>`;
+    }).join('')}
+  </div></div>`;
+}
+
+function pLeaveApply(){
+  return `<div class="card">
+    <div class="fld"><div class="lb"><span class="req">*</span>离职类型</div><div class="seg">
+      <div class="opt ${S.leaveType==='主动离职'?'on':''}" data-act="leaveType" data-v="主动离职">主动离职</div>
+      <div class="opt ${S.leaveType==='被动离职'?'on':''}" data-act="leaveType" data-v="被动离职">被动离职</div>
+    </div></div>
+    <div class="fld"><div class="lb"><span class="req">*</span>预计离职日期</div><input class="f" type="date" id="leaveDate" value="${esc(S.leaveDate)}"/></div>
+    <div class="fld"><div class="lb"><span class="req">*</span>离职原因</div><input class="f" id="leaveReason" placeholder="请输入离职原因" value="${esc(S.leaveReason)}"/></div>
+    <div class="fld"><div class="lb">备注</div><textarea class="txarea" id="leaveRemark" placeholder="选填">${esc(S.leaveRemark)}</textarea></div>
+  </div>
+  <div class="card"><div class="sec-h">审批流程</div>
+    <div class="info"><span class="k">发起离职申请</span><span class="v">陈林 · 会计</span></div>
+    ${S.apprNodes.map(n=>`<div class="info"><span class="k">${esc(n.t)}</span><span class="v">${esc(n.who)}</span></div>`).join('')}
+  </div>`;
+}
+
+function pLeaveHandover(){
+  return `<div class="card"><div class="sec-h">交接范围与接收人</div>
+    ${SCOPES.map(s=>{
+      const on=S.handoverScope.includes(s), who=S.handoverAssign[s];
+      return `<div class="assign">
+        <div class="a1"><div class="ck ${on?'on':''}" data-act="ckScope" data-v="${s}">${on?'✓':''}</div><div class="ttl">${s}</div></div>
+        ${on?`<div class="a2"><span class="who ${who?'':'ph'}">${who?esc(personName(who)):'请选择接收人'}</span><span class="sel" data-act="pickAssign" data-v="${s}">选择 ›</span></div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function pPickAssign(){
+  const s=S._assignScope;
+  return `<div class="card"><div class="sec-h">为「${esc(s)}」选择接收人</div>
+    ${PEOPLE.map(p=>`<div class="person" data-act="pickAssignRecv" data-v="${p.name}">
+      <div class="av">${p.name[0]}</div><div class="meta"><div class="nm">${p.name}</div><div class="sb">${p.post}</div></div>
+      <div class="ck ${S.handoverAssign[s]===p.name?'on':''}">${S.handoverAssign[s]===p.name?'✓':''}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function pApproveApply(){
+  return `<div class="card"><div class="status">待我审批</div>
+    <div class="info"><span class="k">申请人</span><span class="v">陈林（本人）</span></div>
+    <div class="info"><span class="k">离职类型</span><span class="v">${esc(S.leaveType)}</span></div>
+    <div class="info"><span class="k">预计离职日期</span><span class="v">${esc(S.leaveDate||'2026-12-20')}</span></div>
+    <div class="info"><span class="k">离职原因</span><span class="v">${esc(S.leaveReason||'个人原因')}</span></div>
+    <div class="info"><span class="k">提交时间</span><span class="v">${NOW}</span></div>
+  </div><div class="card"><div class="sec-h">审批流程</div><div class="tl">
+    <div class="n"><div class="pt">✓</div><div class="nb"><div class="r">陈林 发起</div><div class="m">${NOW}</div></div></div>
+    <div class="n wait"><div class="pt">•</div><div class="nb"><div class="r">上级审批 · 待处理</div><div class="m">处理人：部门主管</div></div></div>
+  </div></div>`;
+}
+
+function pHandoverDetail(){
+  const scopes=Object.keys(S.handoverAssign).length?Object.keys(S.handoverAssign):SCOPES.slice(0,4);
+  const who=s=>S.handoverAssign[s]?personName(S.handoverAssign[s]):personName(PEOPLE[SCOPES.indexOf(s)%PEOPLE.length].name);
+  return `<div class="card"><div class="status info">离职交接审批中</div>
+    <div class="info"><span class="k">申请人</span><span class="v">陈林（本人）</span></div>
+    <div class="info"><span class="k">预计离职日期</span><span class="v">2026-12-01</span></div>
+    <div class="info"><span class="k">提交时间</span><span class="v">2026-11-22 09:15</span></div>
+  </div><div class="card"><div class="sec-h">交接内容</div>
+    ${scopes.map(s=>`<div class="assign"><div class="a1"><div class="ttl">${esc(s)}</div></div><div class="a2"><span class="who">${esc(who(s))}</span></div></div>`).join('')}
+  </div>${S.handoverItems.length?`<div class="card"><div class="sec-h">交接项确认进度</div><div class="tl">
+    ${S.handoverItems.map(it=>`<div class="n ${it.status==='已确认'?'':(it.status==='处理中'?'wait':'pend')}"><div class="pt">${it.status==='已确认'?'✓':(it.status==='处理中'?'•':'')}</div><div class="nb"><div class="r">${esc(it.scope)}</div><div class="m">处理人：${esc(personName(it.person))}　·　${it.status}</div></div></div>`).join('')}
+  </div></div>`:`<div class="card"><div class="sec-h">审批进度</div><div class="tl">
+    <div class="n"><div class="pt">✓</div><div class="nb"><div class="r">陈林 提交交接</div><div class="m">2026-11-22 09:15</div></div></div>
+    <div class="n wait"><div class="pt">•</div><div class="nb"><div class="r">交接项逐项确认中</div><div class="m">处理人：各项所选接收人</div></div></div>
+  </div></div>`}`;
+}
+
+function pStaff(){
+  const filter = S._staffFilter||'全部';
+  const f=['全部','在职','待离职','已离职'];
+  const list = S.staff.filter(e=>filter==='全部'||e.status===filter);
+  return `<div class="tabs">${f.map(x=>`<div class="t ${filter===x?'on':''}" data-act="staffFilter" data-v="${x}">${x}</div>`).join('')}</div>
+  <div class="card">${list.map(e=>`<div class="person" data-act="go" data-v="staffDetail" data-id="${e.id}">
+    <div class="av">${e.name[0]}</div><div class="meta"><div class="nm">${esc(e.name)} · ${esc(e.post)}</div><div class="sb">${esc(e.dept)}</div></div>
+    <span class="status ${e.status==='在职'?'done':(e.status==='已离职'?'gray':'')}" style="margin:0;">${esc(e.status)}</span>
+  </div>`).join('')}</div>`;
+}
+
+function pStaffDetail(){
+  const e=S.staff.find(x=>x.id===S._id)||S.staff[0];
+  return `<div class="card"><div class="status ${e.status==='在职'?'done':(e.status==='已离职'?'gray':'')}">${esc(e.status)}</div>
+    <div class="info"><span class="k">姓名</span><span class="v">${esc(e.name)}</span></div>
+    <div class="info"><span class="k">部门</span><span class="v">${esc(e.dept)}</span></div>
+    <div class="info"><span class="k">职位</span><span class="v">${esc(e.post)}</span></div>
+    <div class="info"><span class="k">工号</span><span class="v">157${esc(e.id.slice(1))}</span></div>
+  </div>`;
+}
+
+function pNotice(){
+  return `<div class="card">${S.notices.length?S.notices.map(n=>`<div class="rowitem" data-act="go" data-v="noticeDetail" data-id="${n.id}">
+    <div class="r1"><div class="ttl">${n.read?'': '<span class="chip" style="margin-right:6px;">未读</span>'}${esc(n.title)}</div></div>
+    <div class="r2">${esc(n.type)} · ${esc(n.time)}</div>
+  </div>`).join(''):'<div class="empty">暂无消息</div>'}</div>`;
+}
+
+function pNoticeDetail(){
+  const n=S.notices.find(x=>x.id===S._id)||S.notices[0];
+  n.read=true;
+  return `<div class="card"><div class="status info">${esc(n.type)}</div><div style="font-size:var(--font-size-md);font-weight:var(--font-weight-semibold);margin-bottom:10px;">${esc(n.title)}</div>
+    <div style="font-size:var(--font-size-base);line-height:var(--line-height-relaxed);">${esc(n.body)}</div>
+    <div class="info" style="margin-top:14px;"><span class="k">时间</span><span class="v">${esc(n.time)}</span></div>
+  </div>`;
+}
+
+function pTodo(){
+  const U='<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="4.6" r="2.8"/><path d="M2.2 14.4c0-2.8 2.6-4.6 5.8-4.6s5.8 1.8 5.8 4.6z"/></svg>';
+  const cards=[];
+  if(S.leaveStage===1) cards.push({k:'离职申请审批',h:'陈林的离职申请',who:'陈林',tm:NOW,tg:'待审批',v:'approveApply'});
+  if(S.leaveStage===3) cards.push({k:'测试',h:'离职交接',who:'陈林',tm:NOW,tg:'待确认',v:'leave'});
+  S.tasks.slice(0,2).forEach(t=>cards.push({k:t.template,h:t.title,who:'陈林',tm:NOW,tg:'处理中',v:''}));
+  return `<div class="sec-h" style="padding:0 2px;">待我处理（${cards.length}）</div>
+    ${cards.length?cards.map(c=>`<div class="tcard" ${c.v?`data-act="go" data-v="${c.v}"`:'data-act="noop"'}>
+      <div class="k">${esc(c.k)}</div>
+      <div class="h">${esc(c.h)}</div>
+      <div class="who">${U}${esc(c.who)}</div>
+      <div class="ft"><span class="tm">提交于 ${esc(c.tm)}</span><span class="tg">${esc(c.tg)}</span></div>
+    </div>`).join(''):'<div class="empty">暂无待办</div>'}`;
+}
+
+function pMine(){
+  return `<div class="card"><div class="person"><div class="av">陈</div><div class="meta"><div class="nm">陈林</div><div class="sb">财务部 · 会计 · 工号 15751</div></div></div></div>
+  <div class="card">
+    <div class="rowitem" data-act="go" data-v="leave"><div class="r1"><div class="ttl">我的离职审批</div><span class="chip gray">${STAGE_TXT[S.leaveStage]}</span></div></div>
+    <div class="rowitem" data-act="go" data-v="staff"><div class="r1"><div class="ttl">员工档案</div></div></div>
+    <div class="rowitem" data-act="go" data-v="notice"><div class="r1"><div class="ttl">消息中心</div></div></div>
+  </div>`;
+}
+
+function addNotice(type,title,body){
+  S.notices.unshift({id:'M'+Date.now()+Math.floor(Math.random()*10),type,title,body,time:NOW,read:false});
+}
+
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, v=el.dataset.v, id=el.dataset.id;
+  switch(a){
+    case 'reset': init(); render(); toast('数据已重置'); break;
+    case 'approve':
+      if(S.leaveStage===1){ S.leaveStage=2; S.staff.find(x=>x.id==='E1').status='待离职'; addNotice('审批通过','离职申请已通过','你的离职申请已通过，员工状态变为待离职，请发起离职交接。'); render(); toast('上级已通过，进入待离职'); }
+      else if(S.leaveStage===3){ S.leaveStage=4; addNotice('审批通过','离职交接已通过','你的离职交接已通过，等待 HR 在离职管理中确认离职。'); render(); toast('交接审批通过，待 HR 确认'); }
+      else toast('当前没有待审批的离职单');
+      break;
+    case 'hrConfirm':
+      if(S.leaveStage===4){ S.leaveStage=5; S.staff.find(x=>x.id==='E1').status='已离职'; addNotice('审批通过','离职已生效','HR 已确认离职，你的员工状态变为已离职，账号已退出组织。'); render(); toast('HR 已确认，离职生效'); }
+      else toast('当前不满足确认离职条件');
+      break;
+    case 'back': back(); break;
+    case 'tab': S.stack=[]; S.page=v; render(); break;
+    case 'go': S._id=id; go(v); break;
+    case 'noop': toast('该入口仅在完整系统中开放'); break;
+    case 'htab': S.tab=v; S.checked=[]; S.nodeChecked=[]; render(); break;
+    case 'query2': S.q2=val('q2')||'陈林'; S.q2done=true; render(); toast('查询到 '+S.nodes.length+' 个本人负责的流程节点'); break;
+    case 'ckTask': S.checked=S.checked.includes(v)?S.checked.filter(x=>x!==v):[...S.checked,v]; render(); break;
+    case 'ckNode': S.nodeChecked=S.nodeChecked.includes(v)?S.nodeChecked.filter(x=>x!==v):[...S.nodeChecked,v]; render(); break;
+    case 'detailReplace': S.nodeChecked=[v]; S.nodeReceiver=''; go('nodePick'); break;
+    case 'toTransfer': if(S.checked.length){S.receiver='';go('transfer');} break;
+    case 'pickRecv': S.receiver=v; render(); toast('已选择接手人 '+personName(v)); break;
+    case 'toNodePick': if(S.nodeChecked.length){S.nodeReceiver='';go('nodePick');} break;
+    case 'pickNodeRecv': S.nodeReceiver=v; render(); toast('已选择新处理人 '+personName(v)); break;
+    case 'confirmNodeReplace':
+      if(!S.nodeReceiver){ toast('请先选择新处理人'); return; }
+      const ids=[...S.nodeChecked]; const changed=ids.length;
+      S.nodes.forEach(n=>{ if(ids.includes(n.id)){ n.person=S.nodeReceiver; } });
+      S.records.unshift({id:'R'+Date.now(),type:'处理人替换',who:'陈林 → '+personName(S.nodeReceiver),detail:'流程节点 '+changed+' 个：'+ids.map(i=>(S.nodes.find(n=>n.id===i)||{}).flow).join('、'),time:NOW,op:'陈林（本人）'});
+      addNotice('处理人变更','你替换了 '+changed+' 个流程节点处理人','你已将 '+changed+' 个流程节点的处理人替换为'+S.nodeReceiver+'，只对新发起的单据生效。');
+      S.nodeChecked=[]; S.nodeReceiver=''; S.page='handover'; S.tab='t3'; render(); toast('成功替换 '+changed+' 个节点处理人');
+      break;
+    case 'confirmTransfer':
+      if(!S.receiver){ toast('请先选择接手人'); return; }
+      S.tasks=S.tasks.filter(t=>!S.checked.includes(t.id));
+      S.records.unshift({id:'R'+Date.now(),type:'任务转交',who:'陈林 → '+personName(S.receiver),detail:'在途任务 '+S.checked.length+' 项已批量转交',time:NOW,op:'陈林（本人）'});
+      addNotice('任务转交','你转交了 '+S.checked.length+' 项在途任务给'+S.receiver,'你已将 '+S.checked.length+' 项在途任务转交给'+S.receiver+'。');
+      const n=S.checked.length; S.checked=[]; S.page='handover'; S.tab='t3'; render(); toast('成功转交 '+n+' 项任务');
+      break;
+    case 'leaveType': S.leaveType=v; render(); break;
+    case 'recallLeave':
+      S.leaveStage=0; S.page='leave'; render(); toast('离职申请已撤回，可重新发起');
+      break;
+    case 'recallHandover':
+      S.handoverItems=[]; S._curItem=0; S.leaveStage=2; S.page='leave'; render(); toast('交接单已撤回，可修改后重新发起');
+      break;
+    case 'submitApply':
+      if(!val('leaveDate')||!val('leaveReason')){ toast('请填写离职日期和离职原因'); return; }
+      S.leaveDate=val('leaveDate'); S.leaveReason=val('leaveReason'); S.leaveRemark=val('leaveRemark');
+      S.leaveStage=1; S.page='leave'; render(); toast('申请已提交，等待上级审批');
+      break;
+    case 'ckScope':
+      S.handoverScope=S.handoverScope.includes(v)?S.handoverScope.filter(x=>x!==v):[...S.handoverScope,v];
+      if(!S.handoverScope.includes(v)) delete S.handoverAssign[v];
+      render(); break;
+    case 'pickAssign': S._assignScope=v; go('pickAssign'); break;
+    case 'pickAssignRecv': S.handoverAssign[S._assignScope]=v; back(); toast('已为「'+S._assignScope+'」选择 '+personName(v)); break;
+    case 'submitHandover':
+      if(!S.handoverScope.length){ toast('请勾选交接范围'); return; }
+      const miss=S.handoverScope.filter(s=>!S.handoverAssign[s]);
+      if(miss.length){ toast('请为已选交接项选择接收人'); return; }
+      // 按交接项生成逐项确认节点，第一项为当前处理中
+      S.handoverItems=S.handoverScope.map(s=>({scope:s,person:S.handoverAssign[s],status:'待确认'}));
+      S._curItem=0;
+      if(S.handoverItems.length) S.handoverItems[0].status='处理中';
+      S.leaveStage=3; S.page='leave'; render(); toast('交接单已提交，流转到第一项接收人确认');
+      break;
+    case 'confirmItem': {
+      if(S._curItem>=S.handoverItems.length){ toast('交接已全部完成'); return; }
+      const it=S.handoverItems[S._curItem];
+      it.status='已确认';
+      addNotice('审批通过','交接项已确认','你负责的「'+it.scope+'」交接项已由'+personName(it.person)+'确认完成。');
+      S._curItem++;
+      if(S._curItem<S.handoverItems.length){ S.handoverItems[S._curItem].status='处理中'; toast('已确认「'+it.scope+'」，流转到下一项'); }
+      else { S.leaveStage=4; toast('全部交接项已确认，待 HR 确认离职'); }
+      render(); break;
+    }
+    case 'approveApply': S.leaveStage=2; S.staff.find(x=>x.id==='E1').status='待离职'; addNotice('审批通过','离职申请已通过','你的离职申请已通过，状态变为待离职，请发起离职交接。'); S.page='leave'; render(); toast('已通过'); break;
+    case 'rejectApply': S.leaveStage=0; S.page='leave'; render(); toast('已驳回，可修改后重新提交'); break;
+    case 'staffFilter': S._staffFilter=v; render(); break;
+  }
+});
+
+init(); render();
+</script>
+</body>
+</html>
