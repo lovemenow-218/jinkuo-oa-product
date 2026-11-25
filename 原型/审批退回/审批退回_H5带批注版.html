@@ -247,16 +247,54 @@
   </div>
 
   <div class="role" id="role-applicant">
-    <!-- A1 -->
+    <!-- A1 通知 -->
+    <div class="row">
+      <div class="row-tip" style="top:-6px;">文案三要素：<b>审批模板名称、退回人、退回理由</b>；时间 yyyy-MM-dd HH:mm，卡片里不出现金额</div>
+      <div class="screen-wrap" style="margin-top:34px;">
+        <div class="screen-title"><b>A1</b>　退回通知 · 站内与站外</div>
+        <div class="phone" style="position:relative;">
+          <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
+          <div style="position:absolute;top:28px;left:8px;right:8px;z-index:3;" data-a="a1-3">
+            <div style="background:rgba(252,253,255,.97);border-radius:14px;box-shadow:0 6px 22px rgba(20,28,44,.28);padding:10px 12px;display:flex;gap:10px;">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">阔</div>
+              <div style="flex:1;min-width:0;">
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#7c8494;"><span>金阔OA</span><span>刚刚</span></div>
+                <div style="font-size:12px;font-weight:var(--font-weight-semibold);margin-top:2px;">审批退回</div>
+                <div style="font-size:11px;color:#3d4450;margin-top:2px;line-height:1.5;">郑华退回了你的【合同审批】：金额与合同附件不一致，请核对后修改重新提交</div>
+              </div>
+            </div>
+          </div>
+          <div class="nav"><span class="bk"></span><span class="t">消息</span><span class="rt">⋯</span></div>
+          <div class="pbody" style="padding-top:82px;">
+            <div class="sc-tcard" data-a="a1-1" style="display:flex;gap:10px;align-items:flex-start;">
+              <div style="width:44px;height:44px;border-radius:10px;background:#fde6cd;color:#ef9a3c;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">退</div>
+              <div style="flex:1;min-width:0;">
+                <div data-a="a1-2" style="font-size:13px;font-weight:var(--font-weight-semibold);line-height:1.5;">郑华退回了你的【合同审批】，理由：金额与合同附件不一致，请核对后修改重新提交</div>
+                <div style="font-size:10.5px;color:#9aa2b1;margin-top:4px;">2026-11-25 11:20</div>
+              </div>
+              <span style="width:7px;height:7px;border-radius:50%;background:#e14b3f;flex-shrink:0;margin-top:4px;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes" style="padding-top:56px;">
+        <div class="note" data-anchor="a1-3"><span class="idx">1</span><p>站外推送与站内同文案，点开进审批详情。</p></div>
+        <div class="note" data-anchor="a1-2"><span class="idx">2</span><p>文案含<b>审批模板名称、退回人、退回理由</b>三要素；时间格式 yyyy-MM-dd HH:mm，显示在通知详情里。退回理由超长在卡片里截断，详情显示全文。</p></div>
+        <div class="note" data-anchor="a1-1"><span class="idx">3</span><p>站内通知<b>复用消息中心既有卡片样式</b>：左侧方形类型图标、标题（未读加粗）、时间、右上未读红点。退回是新增类型，图标为橙底「退」字，规格同既有六类；来源分组、未读红点按消息中心既有规则。</p></div>
+      </div>
+    </div>
+
+
+    <!-- A2 -->
     <div class="row">
       <div class="screen-wrap">
-        <div class="screen-title"><b>A1</b>　我发起的</div>
+        <div class="screen-title"><b>A2</b>　我发起的</div>
         <div class="phone">
           <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
           <div class="nav"><span class="bk"></span><span class="t">我发起的</span><span class="rt">⋯</span></div>
           <div class="pbody">
             <div class="sc-h" style="padding-left:2px;">我发起的</div>
-            <div class="sc-tcard" data-a="a1-1">
+            <div class="sc-tcard" data-a="a2-1">
               <div class="k">合同审批</div>
               <div class="h">合同审批 · 门禁设备采购合同 45,000.00</div>
               <div class="who"><svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="vertical-align:-2px;margin-right:4px;color:#8b93a3;"><circle cx="8" cy="4.6" r="2.8"/><path d="M2.2 14.4c0-2.8 2.6-4.6 5.8-4.6s5.8 1.8 5.8 4.6z"/></svg>陈林</div>
@@ -266,29 +304,29 @@
         </div>
       </div>
       <div class="notes">
-        <div class="note" data-anchor="a1-1"><span class="idx">1</span><p>被退回前单据一直是<b>审批中</b>。申请人收到退回通知后，从「我发起的」或通知进详情处理。</p></div>
+        <div class="note" data-anchor="a2-1"><span class="idx">1</span><p>被退回前单据一直是<b>审批中</b>。申请人收到退回通知后，从「我发起的」或通知进详情处理。</p></div>
         <div class="note"><span class="idx">2</span><p>流程中的审批单本人<b>不能主动修改表单</b>，只能等审批人退回或自行撤销；已通过的审批单修改与撤销按原规则执行。</p></div>
       </div>
     </div>
 
-    <!-- A2 -->
+    <!-- A3 -->
     <div class="row">
       <div class="screen-wrap">
-        <div class="screen-title"><b>A2</b>　审批详情 · 已退回</div>
+        <div class="screen-title"><b>A3</b>　审批详情 · 已退回</div>
         <div class="phone">
           <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
           <div class="nav"><span class="bk">‹</span><span class="t">审批详情</span><span class="rt">⋯</span></div>
           <div class="pbody tight">
             <div class="sc-card">
-              <div class="sc-status" data-a="a2-1">已退回</div>
+              <div class="sc-status" data-a="a3-1">已退回</div>
               <div class="sc-f"><span class="k">审批模板</span><span class="v">合同审批</span></div>
               <div class="sc-f"><span class="k">申请内容</span><span class="v">采购门禁设备一批，含安装调试</span></div>
               <div class="sc-f"><span class="k">金额</span><span class="v">45,000.00</span></div>
-              <div class="sc-f" data-a="a2-2"><span class="k">退回人</span><span class="v">郑华 · 财务部</span></div>
+              <div class="sc-f" data-a="a3-2"><span class="k">退回人</span><span class="v">郑华 · 财务部</span></div>
               <div class="sc-f"><span class="k">退回时间</span><span class="v">2026-11-25 11:20</span></div>
-              <div class="sc-f" data-a="a2-3"><span class="k">退回理由</span><span class="v">金额与合同附件不一致</span></div>
+              <div class="sc-f" data-a="a3-3"><span class="k">退回理由</span><span class="v">金额与合同附件不一致</span></div>
             </div>
-            <div class="sc-card" data-a="a2-4">
+            <div class="sc-card" data-a="a3-4">
               <div class="sc-h">流程</div>
               <div class="tl">
                 <div class="n"><div class="pt">✓</div><div class="nb"><div class="r">提交</div><div class="m">陈林 · 财务部　·　已完成</div></div></div>
@@ -301,51 +339,51 @@
               <div class="sc-f"><span class="k">陈林 提交</span><span class="v">2026-11-25 10:02</span></div>
               <div class="sc-f"><span class="k">郑华 退回</span><span class="v">金额与合同附件不一致（2026-11-25 11:20）</span></div>
             </div>
-            <div class="sc-btn" data-a="a2-5">修改并重新提交</div>
-            <div class="sc-btn warn" data-a="a2-6">撤销申请</div>
+            <div class="sc-btn" data-a="a3-5">修改并重新提交</div>
+            <div class="sc-btn warn" data-a="a3-6">撤销申请</div>
           </div>
         </div>
       </div>
       <div class="notes" style="padding-top:56px;">
-        <div class="note" data-anchor="a2-1"><span class="idx">1</span><p>状态变<b>已退回</b>。退回不是作废，单据留在审批链里等你处理，走完还能继续。</p></div>
-        <div class="note" data-anchor="a2-2"><span class="idx">2</span><p>退回人、退回时间、退回理由都展示在详情里，和通知文案一致。</p></div>
-        <div class="note" data-anchor="a2-4"><span class="idx">3</span><p>流程节点图上退回节点标<b>已退回</b>，后面的节点仍是未开始；已通过的前序节点保持通过状态。</p></div>
-        <div class="note" data-anchor="a2-5"><span class="idx">4</span><p>点进去改表单内容重新提交，可修改的字段范围与发起时一致。</p></div>
-        <div class="note" data-anchor="a2-6"><span class="idx">5</span><p>退回后、重新提交前，可以<b>撤销申请</b>（作废）；重新提交后不能再撤回为退回态，仍按原撤销规则执行。</p></div>
-      </div>
-    </div>
-
-    <!-- A3 -->
-    <div class="row">
-      <div class="row-tip" style="top:-6px;">只改表单内容，<b>审批人和流程节点不换</b>；重新提交后从第一个审批节点重新依次审批</div>
-      <div class="screen-wrap" style="margin-top:34px;">
-        <div class="screen-title"><b>A3</b>　修改并重新提交</div>
-        <div class="phone">
-          <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
-          <div class="nav"><span class="bk">‹</span><span class="t">修改并重新提交</span><span class="rt">⋯</span></div>
-          <div class="pbody">
-            <div class="sc-card">
-              <div class="sc-lb" data-a="a3-1"><span class="req">*</span>申请内容</div>
-              <div class="sc-area" style="min-height:66px;">采购门禁设备一批，含安装调试，合同编号 HT-2026-1108</div>
-              <div class="sc-lb" data-a="a3-2"><span class="req">*</span>金额</div>
-              <div class="sc-input"><span>45,000.00</span></div>
-              <div class="sc-btn" data-a="a3-3">重新提交</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="notes" style="padding-top:56px;">
-        <div class="note" data-anchor="a3-1"><span class="idx">1</span><p>表单<b>预填退回前的内容</b>，在上面改就行，不用重新填整张单。空着提交拦下。</p></div>
-        <div class="note" data-anchor="a3-2"><span class="idx">2</span><p>可修改的字段范围与发起时一致，金额按千分位两位小数。</p></div>
-        <div class="note" data-anchor="a3-3"><span class="idx">3</span><p>重新提交后状态变回审批中，申请人收到提交成功反馈；退回通知里的红点与未读一并消除。</p></div>
+        <div class="note" data-anchor="a3-1"><span class="idx">1</span><p>状态变<b>已退回</b>。退回不是作废，单据留在审批链里等你处理，走完还能继续。</p></div>
+        <div class="note" data-anchor="a3-2"><span class="idx">2</span><p>退回人、退回时间、退回理由都展示在详情里，和通知文案一致。</p></div>
+        <div class="note" data-anchor="a3-4"><span class="idx">3</span><p>流程节点图上退回节点标<b>已退回</b>，后面的节点仍是未开始；已通过的前序节点保持通过状态。</p></div>
+        <div class="note" data-anchor="a3-5"><span class="idx">4</span><p>点进去改表单内容重新提交，可修改的字段范围与发起时一致。</p></div>
+        <div class="note" data-anchor="a3-6"><span class="idx">5</span><p>退回后、重新提交前，可以<b>撤销申请</b>（作废）；重新提交后不能再撤回为退回态，仍按原撤销规则执行。</p></div>
       </div>
     </div>
 
     <!-- A4 -->
     <div class="row">
+      <div class="row-tip" style="top:-6px;">只改表单内容，<b>审批人和流程节点不换</b>；重新提交后从第一个审批节点重新依次审批</div>
+      <div class="screen-wrap" style="margin-top:34px;">
+        <div class="screen-title"><b>A4</b>　修改并重新提交</div>
+        <div class="phone">
+          <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
+          <div class="nav"><span class="bk">‹</span><span class="t">修改并重新提交</span><span class="rt">⋯</span></div>
+          <div class="pbody">
+            <div class="sc-card">
+              <div class="sc-lb" data-a="a4-1"><span class="req">*</span>申请内容</div>
+              <div class="sc-area" style="min-height:66px;">采购门禁设备一批，含安装调试，合同编号 HT-2026-1108</div>
+              <div class="sc-lb" data-a="a4-2"><span class="req">*</span>金额</div>
+              <div class="sc-input"><span>45,000.00</span></div>
+              <div class="sc-btn" data-a="a4-3">重新提交</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="notes" style="padding-top:56px;">
+        <div class="note" data-anchor="a4-1"><span class="idx">1</span><p>表单<b>预填退回前的内容</b>，在上面改就行，不用重新填整张单。空着提交拦下。</p></div>
+        <div class="note" data-anchor="a4-2"><span class="idx">2</span><p>可修改的字段范围与发起时一致，金额按千分位两位小数。</p></div>
+        <div class="note" data-anchor="a4-3"><span class="idx">3</span><p>重新提交后状态变回审批中，申请人收到提交成功反馈；退回通知里的红点与未读一并消除。</p></div>
+      </div>
+    </div>
+
+    <!-- A5 -->
+    <div class="row">
       <div class="row-tip" style="top:-6px;">重新提交后按<b>全链重走</b>：从第一个审批节点重新依次审批，中间已通过的节点全部重新审批<span class="tag" style="margin-left:6px;">待确认</span>是否支持「从当前节点继续审批」待评审确认</div>
       <div class="screen-wrap" style="margin-top:34px;">
-        <div class="screen-title"><b>A4</b>　重新提交后 · 审批中</div>
+        <div class="screen-title"><b>A5</b>　重新提交后 · 审批中</div>
         <div class="phone">
           <div class="sbar"><span>9:41</span><span class="r">4G　100%</span></div>
           <div class="nav"><span class="bk">‹</span><span class="t">审批详情</span><span class="rt">⋯</span></div>
@@ -357,17 +395,17 @@
               <div class="sc-f"><span class="k">金额</span><span class="v">45,000.00</span></div>
               <div class="sc-f"><span class="k">提交时间</span><span class="v">2026-11-25 10:02</span></div>
             </div>
-            <div class="sc-card" data-a="a4-1">
+            <div class="sc-card" data-a="a5-1">
               <div class="sc-h">流程</div>
               <div class="tl">
                 <div class="n tight"><div class="pt">✓</div><div class="nb"><div class="r">提交</div><div class="m">陈林 · 财务部　·　已完成</div></div></div>
-                <div class="n ret" data-a="a4-2"><div class="pt">✕</div><div class="nb"><div class="r">财务主管审批<span class="rtag">退回节点</span></div><div class="m">郑华 · 财务部　·　已退回</div></div></div>
+                <div class="n ret" data-a="a5-2"><div class="pt">✕</div><div class="nb"><div class="r">财务主管审批<span class="rtag">退回节点</span></div><div class="m">郑华 · 财务部　·　已退回</div></div></div>
                 <div class="n tight"><div class="pt">✓</div><div class="nb"><div class="r">修改后重新提交</div><div class="m">陈林 · 财务部　·　已完成</div></div></div>
                 <div class="n wait"><div class="pt">•</div><div class="nb"><div class="r">财务主管审批</div><div class="m">郑华 · 财务部　·　重新审批中</div></div></div>
                 <div class="n pend"><div class="pt"></div><div class="nb"><div class="r">出纳确认</div><div class="m">王芳 · 财务部　·　未开始</div></div></div>
               </div>
             </div>
-            <div class="sc-card" data-a="a4-3">
+            <div class="sc-card" data-a="a5-3">
               <div class="sc-h">审批记录</div>
               <div class="sc-f"><span class="k">陈林 提交</span><span class="v">2026-11-25 10:02</span></div>
               <div class="sc-f"><span class="k">郑华 退回</span><span class="v">金额与合同附件不一致（2026-11-25 11:20）</span></div>
@@ -378,9 +416,9 @@
         </div>
       </div>
       <div class="notes" style="padding-top:56px;">
-        <div class="note" data-anchor="a4-1"><span class="idx">1</span><p>节点图按<b>时间顺序</b>往下排：退回节点在「修改后重新提交」上面，重新依次审批的节点在图里<b>再出现一行</b>，不是复用上面的节点。</p></div>
-        <div class="note" data-anchor="a4-2"><span class="idx">2</span><p>退回人所在的节点标<b>「退回节点」</b>，不用翻审批记录就知道退回发生在哪：等重新提交后，流程从第一个审批节点重新依次审批，走完流转回该节点继续审批。原已同意的审批人<b>需要重新审批</b>；之前的同意记录保留在审批记录中并标注「被退回重审」。</p></div>
-        <div class="note" data-anchor="a4-3"><span class="idx">3</span><p>审批记录完整记录<b>每次退回与重新提交</b>：退回人、退回理由、退回时间、重新提交时间、修改人（申请人本人）。多次退回多次重提都往下排，不覆盖。</p></div>
+        <div class="note" data-anchor="a5-1"><span class="idx">1</span><p>节点图按<b>时间顺序</b>往下排：退回节点在「修改后重新提交」上面，重新依次审批的节点在图里<b>再出现一行</b>，不是复用上面的节点。</p></div>
+        <div class="note" data-anchor="a5-2"><span class="idx">2</span><p>退回人所在的节点标<b>「退回节点」</b>，不用翻审批记录就知道退回发生在哪：等重新提交后，流程从第一个审批节点重新依次审批，走完流转回该节点继续审批。原已同意的审批人<b>需要重新审批</b>；之前的同意记录保留在审批记录中并标注「被退回重审」。</p></div>
+        <div class="note" data-anchor="a5-3"><span class="idx">3</span><p>审批记录完整记录<b>每次退回与重新提交</b>：退回人、退回理由、退回时间、重新提交时间、修改人（申请人本人）。多次退回多次重提都往下排，不覆盖。</p></div>
         <div class="note"><span class="idx">4</span><p>会签、或签节点被退回重审时规则不变：会签须全部重新同意，或签任一人同意即通过。</p></div>
         <div class="note"><span class="idx">5</span><p>同一人既是发起人又是审批人的单据，退回后重新提交，该审批节点<b>同样需要重新审批</b>。</p></div>
       </div>

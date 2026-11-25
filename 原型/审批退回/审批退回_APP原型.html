@@ -97,6 +97,7 @@
   </div>
   <div class="toolbar" id="toolbar">
     <button data-act="reset">重置数据</button>
+    <button data-act="go" data-v="notice">通知样式</button>
     <button data-act="demoReturn">模拟：我的合同审批被退回</button>
   </div>
   <div class="stage">
@@ -129,8 +130,8 @@ function init(){
     myForm:freshMyForm()
   };
 }
-const TITLES={todo:'待办',detail:'审批详情',return:'退回申请',mine:'我发起的',myDetail:'审批详情',edit:'修改并重新提交'};
-const PAGES={todo:pTodo,detail:pDetail,return:pReturn,mine:pMine,myDetail:pMyDetail,edit:pEdit};
+const TITLES={todo:'待办',detail:'审批详情',return:'退回申请',mine:'我发起的',myDetail:'审批详情',edit:'修改并重新提交',notice:'通知样式'};
+const PAGES={todo:pTodo,detail:pDetail,return:pReturn,mine:pMine,myDetail:pMyDetail,edit:pEdit,notice:pNotice};
 const DOT={done:'✓',cur:'',todo:'',ret:'✕'};
 function freshMyForm(){ return {state:'审批中', tpl:'合同审批', title:'合同审批 · 门禁设备采购合同', amount:'45,000.00', content:'采购门禁设备一批，含安装调试，合同编号 HT-2026-1108',
   returnReason:'', returnedBy:'', returnedAt:'',
@@ -231,6 +232,31 @@ function pEdit(){
   return `<div class="card">
     <div class="fld"><div class="lb">申请内容</div><textarea id="mfContent">${esc(f.content)}</textarea></div>
     <div class="fld"><div class="lb">金额</div><input id="mfAmount" value="${esc(f.amount)}"/></div>
+  </div>`;
+}
+
+function pNotice(){
+  const f=S.myForm;
+  const reason=f.returnReason||'金额与合同附件不一致，请核对后修改重新提交';
+  return `<div class="sec-h">站内通知（消息中心）</div>
+  <div class="acard" style="display:flex;gap:10px;align-items:flex-start;">
+    <div style="width:44px;height:44px;border-radius:10px;background:var(--color-warning-bg);color:var(--color-warning-text);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">退</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:var(--font-weight-semibold);line-height:1.5;">郑华退回了你的【${esc(f.tpl)}】，理由：${esc(reason)}</div>
+      <div style="font-size:12px;color:var(--color-text-tertiary);margin-top:4px;">2026-11-25 11:20</div>
+    </div>
+    <span style="width:8px;height:8px;border-radius:50%;background:#e14b3f;flex-shrink:0;margin-top:4px;"></span>
+  </div>
+  <div class="sec-h">站外推送</div>
+  <div class="card" style="padding:10px 12px;">
+    <div style="display:flex;gap:10px;">
+      <div style="width:34px;height:34px;border-radius:8px;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">阔</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-secondary);"><span>金阔OA</span><span>刚刚</span></div>
+        <div style="font-size:13px;font-weight:var(--font-weight-semibold);margin-top:2px;">审批退回</div>
+        <div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.5;">郑华退回了你的【${esc(f.tpl)}】：${esc(reason)}</div>
+      </div>
+    </div>
   </div>`;
 }
 
