@@ -13,6 +13,10 @@
   .toolbar{text-align:center; margin-bottom:22px;}
   .toolbar button{margin:0 5px; padding:7px 14px; border:1px solid var(--color-border-strong); background:#fff;
     border-radius:var(--radius-sm); font-size:13px; cursor:pointer; color:var(--color-text-primary);}
+  .roles{display:flex; justify-content:center; gap:10px; margin-bottom:12px;}
+  .roles button{padding:7px 22px; border:1px solid var(--color-border-strong); background:#fff;
+    border-radius:999px; font-size:13px; cursor:pointer; color:var(--color-text-primary);}
+  .roles button.on{background:var(--color-primary); border-color:var(--color-primary); color:#fff;}
   .stage{display:flex; justify-content:center;}
   .phone{width:390px; height:760px; background:var(--color-bg-secondary, #f5f6f8); border-radius:34px;
     border:1px solid var(--color-border); box-shadow:0 18px 44px rgba(0,0,0,.14); overflow:hidden;
@@ -54,6 +58,9 @@
   .fnode .line.ok{background:var(--color-success);}
   .fnode .nb{padding-top:1px;}
   .fnode .r{font-size:14px; font-weight:var(--font-weight-semibold);}
+  .rtag{display:inline-block; font-size:10px; font-weight:400; color:var(--color-warning-text);
+    background:var(--color-warning-bg); border-radius:3px; padding:1px 5px; margin-left:5px;
+    vertical-align:1px;}
   .fnode.cur .r{color:var(--color-primary);}
   .fnode.ret .r{color:var(--color-warning-text);}
   .fnode .m{font-size:12px; color:var(--color-text-secondary); margin-top:2px;}
@@ -79,12 +86,15 @@
   .sheet .it:active{background:var(--color-primary-light);}
   .sheet .it.ret{color:var(--color-warning-text);}
   .empty{text-align:center; color:var(--color-text-tertiary); font-size:13px; padding:34px 0;}
-  .tip{font-size:12px; color:var(--color-text-tertiary); line-height:1.6; padding-top:8px;}
 </style>
 </head>
 <body>
   <div class="doc-h">审批退回 · h5 可交互原型</div>
   <div class="doc-sub">通用审批退回演示：审批人退回 → 申请人修改后重新提交，流程全链重走。数据为演示假数据。</div>
+  <div class="roles" id="roles">
+    <button class="on" data-act="role" data-v="approver">审批人（陈林）</button>
+    <button data-act="role" data-v="applicant">申请人（陈林）</button>
+  </div>
   <div class="toolbar" id="toolbar">
     <button data-act="reset">重置数据</button>
     <button data-act="demoReturn">模拟：我的合同审批被退回</button>
@@ -108,6 +118,7 @@ const NOW='2026-11-25 11:20';
 let S;
 function init(){
   S={
+    role:'approver',
     page:'todo', stack:[], more:false, _id:'',
     tasks:[
       {id:'T1', tpl:'付款申请', title:'付款申请 · 供应商货款', initiator:'张伟 · 采购部', amount:'12,500.00', reason:'支付供应商货款', time:'2026-11-24 15:40', node:'部门主管审批',
@@ -129,13 +140,14 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
 function go(v){ S.stack.push(S.page); S.page=v; render(); }
-function back(){ if(S.stack.length){ S.page=S.stack.pop(); } else { S.page=S.tasks&&S._id&&S._id[0]==='T'?'todo':'mine'; } render(); }
+function back(){ if(S.stack.length){ S.page=S.stack.pop(); } else { S.page=home(); } render(); }
+function home(){ return S.role==='approver'?'todo':'mine'; }
 
 function nodeCard(nodes){
   return `<div class="card"><div class="sec-h">流程</div>${nodes.map((n,i)=>`
     <div class="fnode ${n.st==='cur'?'cur':''} ${n.st==='ret'?'ret':''}">
       <div class="rail"><div class="dot ${n.st}">${DOT[n.st]||''}</div>${i<nodes.length-1?`<div class="line ${n.lk||''}"></div>`:''}</div>
-      <div class="nb"><div class="r">${esc(n.r)}</div><div class="m">${esc(n.m)}</div></div>
+      <div class="nb"><div class="r">${esc(n.r)}${n.retnode?'<span class="rtag">退回节点</span>':''}</div><div class="m">${esc(n.m)}</div></div>
     </div>`).join('')}</div>`;
 }
 function records(rows){
@@ -172,7 +184,6 @@ function pReturn(){
   return `<div class="card">
     <div class="info"><span class="k">退回对象</span><span class="v">申请人 ${esc(t.initiator.split(' ')[0])}</span></div>
     <div class="fld"><div class="lb">退回理由</div><textarea id="retReason">金额与合同附件不一致，请核对后修改重新提交</textarea></div>
-    <div class="tip">退回后流程不作废；申请人修改内容重新提交后，流程将从第一个审批节点重新依次审批。</div>
   </div>`;
 }
 
@@ -220,7 +231,6 @@ function pEdit(){
   return `<div class="card">
     <div class="fld"><div class="lb">申请内容</div><textarea id="mfContent">${esc(f.content)}</textarea></div>
     <div class="fld"><div class="lb">金额</div><input id="mfAmount" value="${esc(f.amount)}"/></div>
-    <div class="tip">重新提交后流程从第一个审批节点重新依次审批，已通过的审批人需重新审批。</div>
   </div>`;
 }
 
@@ -237,6 +247,7 @@ function render(){
   document.getElementById('ttl').textContent=TITLES[S.page]||'';
   document.getElementById('body').innerHTML=(PAGES[S.page]||pTodo)();
   document.getElementById('bottom').innerHTML=bottomFor();
+  document.querySelectorAll('#roles button').forEach(b=>b.classList.toggle('on', b.dataset.v===S.role));
   const bt=document.getElementById('layer');
   bt.innerHTML = S.more? `<div class="mask" data-act="closeMore"><div class="sheet" data-act="stop">
       <div class="sh">更多操作</div>
@@ -252,6 +263,7 @@ document.addEventListener('click',e=>{
   const a=el.dataset.act, v=el.dataset.v, id=el.dataset.id;
   switch(a){
     case 'reset': init(); render(); toast('数据已重置'); break;
+    case 'role': S.role=v; S.stack=[]; S.more=false; S.page=home(); render(); break;
     case 'back': back(); break;
     case 'openTask': S._id=id; go('detail'); break;
     case 'go': S.more=false; S.stack.push(S.page); S.page=v; render(); break;
@@ -280,7 +292,7 @@ document.addEventListener('click',e=>{
         const f=S.myForm;
         f.state='已退回'; f.returnedBy='郑华 · 财务部'; f.returnedAt=NOW;
         f.returnReason='金额与合同附件不一致，请核对后修改重新提交';
-        f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　已退回', st:'ret', lk:'ret'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
+        f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　已退回', st:'ret', lk:'ret', retnode:true},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
         toast('已模拟退回，请到「我发起的」查看');
         render();
       } else toast('当前单据不处于审批中，无法演示退回');
@@ -289,7 +301,7 @@ document.addEventListener('click',e=>{
       const c=document.getElementById('mfContent').value.trim(), a=document.getElementById('mfAmount').value.trim();
       if(!c||!a){ toast('请填写完整后再提交'); break; }
       const f=S.myForm; f.content=c; f.amount=a; f.state='重新提交后审批中';
-      f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'修改后重新提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　重新审批中', st:'cur'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
+      f.nodes=[{r:'提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　已退回', st:'ret', lk:'ret', retnode:true},{r:'修改后重新提交', m:'陈林 · 财务部　·　已完成', st:'done', lk:'ok'},{r:'财务主管审批', m:'郑华 · 财务部　·　重新审批中', st:'cur'},{r:'出纳确认', m:'王芳 · 财务部　·　未开始', st:'todo'}];
       S.page='myDetail'; S.stack=[]; render(); toast('已重新提交，流程重新依次审批');
       break;}
     case 'myRevoke':{
