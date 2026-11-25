@@ -1,0 +1,228 @@
+/* ==========================================================================
+   金阔 OA · 设计令牌（Design Tokens）· 唯一真源
+   文件：docs/tokens.css          版本：v1.0          适用范围：H5 / App / PC 后台 / 原型
+   --------------------------------------------------------------------------
+   【这个文件是什么】
+   全系统颜色、圆角、描边、间距、字号的唯一真源（single source of truth）。
+   组件、页面、原型一律引用 var(--token)，不得在自己文件里写死色值或尺寸。
+
+   【四条硬约定（评审已锁定）】
+   1. 唯一真源：只有本文件可以出现品牌色 hex。组件里出现 hex 视为缺陷。
+   2. 命名语义化：写 --color-primary，不写 --blue-500 / --c1 这类编号名。
+   3. 换肤只改变量：深色、活动主题、白标定制，只允许改本文件里的变量值；
+      禁止在组件里写 if/条件类 来换色。
+   4. 新色入册需评审：要加颜色，先改本文件 + 更新 docs/设计规范_DesignToken.html，
+      评审通过才算入册；不得就地造色。
+
+   【与既有资产的关系】
+   本文件是 docs/消息通知_图标令牌表.html 里那套
+     :root{--blue:#2b7fff; --blue-l:#2b6fd4; --blue-bg:#e2edff;
+           --green:#3aa655; --red:#f5453d; --orange:#ef9a3c; --gray:#909399;
+           --line:#edf0f3; --bg:#f2f4f7; --sub:#a8adb5; ...}
+   的升格与补全。既有色值一个不改（那套已定稿），只做三件事：
+   补派生档、补结构量（圆角/间距/字号）、把命名改成语义化。
+
+   【当前真实基线（迁移依据，别美化）】
+   · 业务代码里 #1f6ad8 命中 0 —— 本文件是「新立的法」，不是「已生效的法」。
+   · 现网主色实际来自 Element Plus 默认 --el-color-primary:#409EFF。
+   · 全站流通约 47 种饱和蓝，没有任何品牌色 token。
+   · Element Plus 的 11 个派生档（hover/active/disabled/light-3/5/7/8/9/dark-2 等）
+     已编译成 rgb() 字面量，不跟随 primary 变量 —— 只改 --el-color-primary 不会
+     连带生效，这是迁移第二步必须桥接的地方（见文末「EP 桥接」）。
+   ========================================================================== */
+
+:root {
+
+  /* ======================================================================
+     1. 品牌层 Brand
+     只有一个品牌色 #1f6ad8，其余 6 个都是它的推导档，不得另立品牌色。
+     推导规则统一写在注释里，方便后续做主题时按同样比例生成。
+     ====================================================================== */
+
+  --color-primary:            #1f6ad8;  /* 品牌主色 · 基准档 hsl(216,70%,48%) · 白字 5.10:1 达 AA */
+  --color-primary-hover:      #4c88e0;  /* 主色混 20% 白；实心按钮悬停。比 EP 的 light-3(#79bbff) 收敛，保留品牌饱和度 */
+  --color-primary-active:     #1853a8;  /* 主色混 22% 黑；实心按钮按下，比 dark 再深一档，避免两态混用同值 */
+  --color-primary-disabled:   #84adea;  /* 主色混 45% 白；禁用填充。用不透明平色而非 opacity，避免叠底不可控 */
+  --color-primary-light:      #e4edfa;  /* 主色混 88% 白；选中背景、浅底标签、hover 行底色 */
+  --color-primary-dark:       #1b5dbe;  /* 深一档；浅蓝底上的文字与图标（@我、链接），白底上 6.26:1 达 AA */
+  --color-primary-ring:       rgba(31, 106, 216, .2);  /* 焦点环外发光；唯一允许的 alpha 品牌色 */
+
+
+  /* ======================================================================
+     2. 语义层 Semantic
+     「什么状态用什么色」在这里定死，组件不再自己判断。
+     每个语义色配一个 -bg 浅底，实心用于图标/图形，浅底用于提示条与标签。
+     ====================================================================== */
+
+  /* 成功 · 已完成 · 审批通过 · 还款完成 */
+  --color-success:            #3aa655;
+  --color-success-bg:         #e6f6ea;
+
+  /* 警告 · 临近到期 · 需关注 */
+  --color-warning:            #ef9a3c;  /* 仅作图标/圆点/描边 —— 它在 warning-bg 上仅 1.86:1，不可当文字 */
+  --color-warning-bg:         #fde6cd;
+  --color-warning-text:       #94560a;  /* warning-bg 上的文字档，4.83:1 达 AA。
+                                           橙色系要到 4.5:1 必然压成偏棕的深档 —— 这是色相代价，
+                                           不接受的话就退回 text-primary（#1f2329，12.5:1） */
+
+  /* 危险 · 驳回 · 逾期 · 删除类操作 */
+  --color-danger:             #f5453d;
+  --color-danger-bg:          #fdeaea;
+  --color-danger-hover:       #e73a32;  /* danger 混 8% 黑；危险实心按钮悬停 */
+
+  /* 中性信息 · 灰态 · 不承担情绪的地方 */
+  --color-info:               #909399;
+  --color-info-bg:            #f2f3f5;
+
+  /* ---- 文本三级（只有三级，不要再造第四级） ---- */
+  --color-text-primary:       #1f2329;  /* 标题、正文主力；白底 15.8:1 */
+  --color-text-secondary:     #4e5969;  /* 副标题、说明、表单辅助文案；白底 7.0:1 */
+  --color-text-tertiary:      #a8adb5;  /* 占位、未选中、禁用、时间戳；白底仅 2.28:1 —— 只用于图标与非正文，不可承载正文 */
+  --color-text-inverse:       #ffffff;  /* 深色底上的文字 */
+
+  /* ---- 分隔与背景 ---- */
+  --color-border:             #edf0f3;  /* 卡片描边、分割线、表格线（1px 细线，靠色差而非粗细） */
+  --color-border-strong:      #dcdfe6;  /* 表单控件描边；比分割线深一档，保证 1px 可见。沿用现网输入框观感，迁移零视觉差 */
+  --color-bg-page:            #f2f4f7;  /* 页面底 */
+  --color-bg-card:            #ffffff;  /* 卡片、弹窗、列表行 */
+  --color-bg-muted:           #f7f8fa;  /* 表头、只读区、次级容器 */
+  --color-skeleton:           #e9edf2;  /* 骨架屏占位条 */
+  --color-code-bg:            #f4f7fc;  /* 行内代码/等宽数值底 */
+
+
+  /* ======================================================================
+     3. 业务扩展层 Business Extension
+     来源：docs/消息通知_图标令牌表.html（已定稿）。色值原样搬过来，不许改。
+     这些是「已经被某个业务占用的专用色」，不属于通用语义色：
+     除了对应业务，其它地方不得引用，避免紫色被当成第二个主色。
+     ====================================================================== */
+
+  --color-accent:             #7c5cfc;  /* 待我审批（已定稿） */
+  --color-accent-bg:          #f0ebff;
+  --color-neutral:            #6b7785;  /* 抄送我的 · 灰蓝标签字 */
+  --color-neutral-bg:         #eef0f4;
+  --color-avatar-bg:          #185fa5;  /* 首字头像底（白字） */
+
+
+  /* ======================================================================
+     4. 结构层 Structure
+     间距用 4 基数；字号只留 7 档。不要在这些档位之外随手写 px。
+     ====================================================================== */
+
+  /* ---- 圆角：只有四档 ---- */
+  --radius-xs:                4px;      /* 小标签、色块、勾选框 */
+  --radius-sm:                8px;      /* 图标底块、输入框、小卡片 */
+  --radius-md:                14px;     /* 卡片、弹窗、分节容器 */
+  --radius-pill:              999px;    /* 胶囊标签、开关、圆角按钮 */
+
+  /* ---- 描边 ---- */
+  --stroke-icon:              2px;      /* 图标描边（24 栅格，round 线帽）。
+                                           注意：描边居中绘制，两块图形间隙必须 ≥ 2 倍描边，
+                                           否则描边互相咬合、接缝出现双倍粗细 */
+
+  /* ---- 间距：4 基数，只入册 7 档（跳过 28，非标间距不入册） ---- */
+  --space-1:                  4px;
+  --space-2:                  8px;
+  --space-3:                  12px;
+  --space-4:                  16px;
+  --space-5:                  20px;
+  --space-6:                  24px;
+  --space-8:                  32px;
+
+  /* ---- 字体 ---- */
+  --font-family-base:         -apple-system, BlinkMacSystemFont, "PingFang SC",
+                              "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-family-mono:         ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---- 字号：7 档 ---- */
+  --font-size-xs:             12px;     /* 辅助、角标、表头 */
+  --font-size-sm:             13px;     /* 说明、表单辅助 */
+  --font-size-base:           14px;     /* 正文、列表主文案 */
+  --font-size-md:             15px;     /* 卡片标题 */
+  --font-size-lg:             17px;     /* 页面标题（移动端） */
+  --font-size-xl:             19px;     /* 通知图标字形、强调数字 */
+  --font-size-xxl:            20px;     /* 大标题、弹窗标题 */
+
+  --font-weight-regular:      400;
+  --font-weight-medium:       500;
+  --font-weight-semibold:     600;
+
+  --line-height-tight:        1.35;     /* 标题 */
+  --line-height-normal:       1.55;     /* 正文 */
+  --line-height-relaxed:      1.85;     /* 长说明 */
+
+  /* ---- 阴影 / 焦点 / 动效（结构层附加，组件拼装需要，同样不许硬编码） ---- */
+  --shadow-card:              0 2px 10px rgba(16, 24, 40, .04);   /* 常规卡片 */
+  --shadow-raised:            0 8px 22px rgba(16, 24, 40, .07);   /* 浮动层、底部栏 */
+  --focus-ring:               0 0 0 3px var(--color-primary-ring); /* 键盘焦点环 */
+  --duration-fast:            120ms;    /* 状态切换（Tab、hover） */
+  --ease-out:                 cubic-bezier(.22, .61, .36, 1);
+}
+
+
+/* ==========================================================================
+   5. Element Plus 桥接（阶段二启用，现在整段保持注释）
+   --------------------------------------------------------------------------
+   为什么要这一段：EP 的组件（el-button 等）读的是 --el-color-primary，
+   我们只把设计令牌写进项目，组件库内部仍然是 #409EFF —— 会出现
+   「看起来改了但没变」。另外 EP 的 11 个派生档在构建产物里已被编译成
+   rgb() 字面量，改 --el-color-primary 不会让它们跟着变，必须逐档覆盖。
+   启用方式：把下面整段从注释里拿出来，放在 tokens.css 之后加载。
+   校验方式：改完后在 DevTools 里检查 el-button--primary 的 background，
+   若是 #1f6ad8 才算接通；否则说明还有 rgb() 字面量档没覆盖到。
+
+:root {
+  --el-color-primary:          var(--color-primary);
+  --el-color-primary-light-3:  #6297e4;  /* 主色混 30% 白 */
+  --el-color-primary-light-5:  #8fb4ec;  /* 主色混 50% 白 */
+  --el-color-primary-light-7:  #bcd2f3;  /* 主色混 70% 白 */
+  --el-color-primary-light-8:  #d2e1f7;  /* 主色混 80% 白 */
+  --el-color-primary-light-9:  var(--color-primary-light);
+  --el-color-primary-dark-2:   var(--color-primary-active);
+
+  --el-color-success:          var(--color-success);
+  --el-color-warning:          var(--color-warning);
+  --el-color-danger:           var(--color-danger);
+  --el-color-error:            var(--color-danger);
+  --el-color-info:             var(--color-info);
+
+  --el-color-success-light-9:  var(--color-success-bg);
+  --el-color-warning-light-9:  var(--color-warning-bg);
+  --el-color-danger-light-9:   var(--color-danger-bg);
+  --el-color-info-light-9:     var(--color-info-bg);
+
+  --el-text-color-primary:     var(--color-text-primary);
+  --el-text-color-regular:     var(--color-text-secondary);
+  --el-text-color-secondary:   var(--color-text-tertiary);
+  --el-text-color-placeholder: var(--color-text-tertiary);
+  --el-border-color:           var(--color-border-strong);
+  --el-border-color-lighter:   var(--color-border);
+  --el-bg-color-page:          var(--color-bg-page);
+  --el-bg-color:               var(--color-bg-card);
+
+  --el-border-radius-base:     var(--radius-sm);
+  --el-border-radius-small:    var(--radius-xs);
+  --el-font-size-base:         var(--font-size-base);
+}
+   ========================================================================== */
+
+
+/* ==========================================================================
+   6. 换肤骨架（演示「只改变量」怎么写，现在整段保持注释）
+   原则：变量名一个不变，只换值。组件里不写任何 .dark / [data-theme] 选择器。
+   注意：深色主题的对比度与浅底语义色尚未评审，启用前必须过一遍无障碍检查。
+
+[data-theme="dark"] {
+  --color-bg-page:        #14171c;
+  --color-bg-card:        #1c2027;
+  --color-bg-muted:       #232830;
+  --color-border:         #2b313a;
+  --color-border-strong:  #3a414b;
+  --color-text-primary:   #e8eaed;
+  --color-text-secondary: #a8adb5;
+  --color-text-tertiary:  #6b7280;
+  --color-primary-light:  #16273d;
+  --shadow-card:          none;
+  --shadow-raised:        0 8px 22px rgba(0, 0, 0, .45);
+}
+   ========================================================================== */
