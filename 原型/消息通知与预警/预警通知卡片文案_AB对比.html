@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>预警通知卡片文案 · A / B 对比</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: var(--space-8) var(--space-6);
+    background: var(--color-bg-page);
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-title {
+    max-width: 814px;
+    margin: 0 auto var(--space-6);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+  .wrap {
+    display: flex;
+    gap: var(--space-8);
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .col { width: 375px; }
+  .col-head { margin-bottom: var(--space-3); }
+  .col-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+  .col-desc {
+    margin-top: var(--space-1);
+    font-size: var(--font-size-xs);
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+  .phone {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .list { padding: var(--space-2) 0; }
+  .ncard {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  .ncard:last-child { border-bottom: 0; }
+  .ico {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary-light);
+    color: var(--color-primary-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+  }
+  .main { flex: 1 1 auto; min-width: 0; }
+  .title {
+    font-size: var(--font-size-base);
+    line-height: 1.55;
+    color: var(--color-text-primary);
+  }
+  .amt {
+    margin-top: var(--space-2);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+  }
+  .tagrow { margin-top: var(--space-2); }
+  .tag {
+    display: inline-block;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-xs);
+    font-size: var(--font-size-xs);
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
+  }
+  .tag-danger {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+  }
+  .meta {
+    margin-top: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+  }
+  /* 方案 B：主文案最多两行，超出省略 */
+  .col-b .title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">预警通知卡片 · 文案方案对比</div>
+
+<div class="wrap">
+
+  <!-- 方案 A -->
+  <div class="col">
+    <div class="col-head">
+      <div class="col-title">方案 A · 站内简式</div>
+      <div class="col-desc">主文案只到「尚未还款」，金额放信息区第一行，还款日 / 时间放底部。</div>
+    </div>
+    <div class="phone">
+      <div class="list">
+
+        <div class="ncard">
+          <div class="ico">警</div>
+          <div class="main">
+            <div class="title">备用金申请 · 陈林尚未还款</div>
+            <div class="amt">¥1.00</div>
+            <div class="tagrow"><span class="tag">待确认还款</span></div>
+            <div class="meta">还款日 2026-11-21 · 2026-11-17 09:13</div>
+          </div>
+        </div>
+
+        <div class="ncard">
+          <div class="ico">警</div>
+          <div class="main">
+            <div class="title">备用金申请 · 陈林尚未还款</div>
+            <div class="amt">¥12,500.00</div>
+            <div class="tagrow"><span class="tag tag-danger">已逾期 2 天</span></div>
+            <div class="meta">还款日 2026-11-15 · 2026-11-16 09:13</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案 B -->
+  <div class="col col-b">
+    <div class="col-head">
+      <div class="col-title">方案 B · 站内完整文案</div>
+      <div class="col-desc">整句文案保留（金额、还款日、剩余 / 逾期天数），金额直接跟数字、不加括号与 ¥；最多两行、超出省略；信息区去掉金额行，底部只留通知时间。</div>
+    </div>
+    <div class="phone">
+      <div class="list">
+
+        <div class="ncard">
+          <div class="ico">警</div>
+          <div class="main">
+            <div class="title">【备用金申请】申请人陈林尚未还款 1.00，还款日 2026-11-21，剩余 4 天，请关注；</div>
+            <div class="tagrow"><span class="tag">待确认还款</span></div>
+            <div class="meta">2026-11-17 09:13</div>
+          </div>
+        </div>
+
+        <div class="ncard">
+          <div class="ico">警</div>
+          <div class="main">
+            <div class="title">【备用金申请】申请人陈林尚未还款 12,500.00，还款日 2026-11-15，已逾期 2 天，请关注；</div>
+            <div class="tagrow"><span class="tag tag-danger">已逾期 2 天</span></div>
+            <div class="meta">2026-11-16 09:13</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

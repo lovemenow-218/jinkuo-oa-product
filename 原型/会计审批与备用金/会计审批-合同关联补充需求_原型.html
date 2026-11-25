@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>会计审批补充需求 · 原型</title>
+<style>
+  :root{
+    --blue:#2b7fff; --txt:#1f2329; --txt2:#4e5969; --sub:#a8adb5;
+    --line:#edf0f3; --bg:#f2f4f7; --orange:#ff7a00; --green:#3aa655; --red:#f5453d;
+    --blue-bg:#e2edff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;}
+  body{background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:26px 20px 40px;}
+  .hd{max-width:1180px;margin:0 auto 22px;}
+  .hd h1{font-size:20px;margin-bottom:6px;}
+  .hd p{color:var(--txt2);font-size:13px;}
+  .hd .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+  .hd .tags span{background:#fff;border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--txt2);}
+
+  .stage{max-width:1180px;margin:0 auto;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;}
+  .col{width:560px;}
+  .col.h5{width:340px;}
+  .cap{margin-bottom:9px;}
+  .cap .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;}
+  .cap .n{background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+  .cap .d{color:var(--sub);font-size:12px;margin-top:2px;}
+
+  /* ---------- Web 端 ---------- */
+  .web{display:flex;border-radius:12px;overflow:hidden;border:1px solid var(--line);box-shadow:0 8px 22px rgba(16,24,40,.10);background:#fff;height:680px;}
+  .wsidebar{width:150px;background:#232a35;color:#c4ccd6;flex-shrink:0;padding:14px 0;font-size:12.5px;}
+  .wsidebar .logo{color:#fff;font-weight:700;font-size:14px;padding:4px 16px 14px;display:flex;align-items:center;gap:7px;}
+  .wsidebar .logo .d{width:18px;height:18px;border-radius:5px;background:var(--blue);}
+  .wsidebar .m{padding:8px 16px;color:#9aa4b0;}
+  .wsidebar .m.on{background:#2f3744;color:#fff;border-left:3px solid var(--blue);padding-left:13px;}
+  .wmain{flex:1;display:flex;flex-direction:column;position:relative;background:#f5f7fa;}
+  .wtopbar{height:48px;display:flex;align-items:center;gap:10px;padding:0 16px;background:#fff;border-bottom:1px solid var(--line);font-size:13px;}
+  .wtopbar .crumb{color:var(--txt2);}
+  .wtopbar .right{margin-left:auto;display:flex;gap:12px;align-items:center;color:var(--sub);}
+  .wtopbar .av{width:26px;height:26px;border-radius:50%;background:#e9ecf1;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt2);}
+  .wlist{position:absolute;top:48px;left:0;right:0;bottom:0;padding:14px 16px;color:#c8ced6;filter:blur(.4px);}
+  .wlist .row{background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;color:#aeb6c0;font-size:12.5px;}
+
+  .wmodal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:430px;max-height:92%;overflow:auto;background:#fff;border-radius:12px;box-shadow:0 18px 50px rgba(16,24,40,.28);padding:18px 18px 14px;}
+  .wmodal .mt{font-size:16px;font-weight:700;display:flex;align-items:center;}
+  .wmodal .mt .x{margin-left:auto;color:var(--sub);cursor:pointer;font-size:18px;}
+  .wtable{width:100%;border-collapse:collapse;margin:14px 0 4px;font-size:12.5px;}
+  .wtable th,.wtable td{border:1px solid var(--line);padding:7px 8px;text-align:left;}
+  .wtable th{background:#fafbfd;color:var(--sub);font-weight:600;}
+  .wtable td select{width:100%;border:1px solid var(--red);border-radius:5px;padding:4px 6px;color:var(--txt);}
+  .werr{height:2px;background:var(--red);margin:-2px 0 6px;border-radius:2px;}
+
+  .wfield{margin-top:11px;}
+  .wlabel{font-size:13px;margin-bottom:5px;color:var(--txt);}
+  .wlabel .req{color:var(--red);margin-right:2px;}
+  .box{border:1px solid #d9dde3;border-radius:7px;padding:9px 11px;display:flex;align-items:center;gap:8px;background:#fff;cursor:pointer;font-size:13px;color:var(--txt2);}
+  .box.has{color:var(--txt);}
+  .box .arr{margin-left:auto;color:var(--sub);}
+  .dd{position:relative;}
+  .ddmenu{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:7px;box-shadow:0 8px 20px rgba(16,24,40,.14);margin-top:3px;z-index:5;display:none;}
+  .ddmenu.show{display:block;}
+  .ddmenu div{padding:9px 11px;cursor:pointer;font-size:13px;}
+  .ddmenu div:hover{background:#f4f7ff;}
+  .wactions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;}
+  .btn{border-radius:7px;padding:8px 18px;font-size:13px;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--txt2);}
+  .btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .cond{display:none;}
+  .cond.show{display:block;}
+
+  /* ---------- H5 端 ---------- */
+  .phone{background:#fff;border-radius:26px;border:8px solid #20242b;box-shadow:0 10px 26px rgba(16,24,40,.14);overflow:hidden;height:680px;display:flex;flex-direction:column;}
+  .screen{flex:1;overflow:auto;background:#fff;}
+  .screen::-webkit-scrollbar{width:0;}
+  .hbar{display:flex;align-items:center;padding:13px 14px 10px;background:#fff;border-bottom:1px solid var(--line);}
+  .hbar .bk{font-size:20px;color:var(--txt);}
+  .hbar .ti{flex:1;text-align:center;font-size:16px;font-weight:700;margin-left:-20px;}
+  .supplier{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);}
+  .supplier .nm{font-size:14px;font-weight:600;}
+  .supplier .amt{font-size:13px;color:var(--orange);font-weight:600;}
+  .supplier select{margin-left:auto;border:1px solid #d9dde3;border-radius:6px;padding:5px 8px;font-size:13px;color:var(--txt2);}
+  .frow{padding:12px 14px;border-bottom:1px solid var(--line);}
+  .frow .fl{font-size:13px;margin-bottom:6px;}
+  .frow .fl .req{color:var(--red);margin-right:2px;}
+  .frow .picker{display:flex;align-items:center;gap:8px;background:#f4f5f7;border-radius:8px;padding:10px 12px;color:var(--sub);font-size:13px;}
+  .frow .picker.has{color:var(--txt);background:#f4f5f7;}
+  .frow .picker .arr{margin-left:auto;color:var(--sub);}
+  .radio{display:flex;gap:22px;padding:12px 14px;border-bottom:1px solid var(--line);}
+  .radio label{display:flex;align-items:center;gap:6px;font-size:14px;}
+  .radio .dot{width:16px;height:16px;border-radius:50%;border:2px solid #c9ced6;display:inline-block;}
+  .radio .dot.on{border-color:var(--blue);background:radial-gradient(circle,var(--blue) 40%,#fff 44%);}
+  .ta{width:100%;border:1px solid #e3e6ea;border-radius:8px;padding:9px 11px;font-size:13px;min-height:62px;resize:none;font-family:inherit;}
+  .upload{width:54px;height:54px;border:1px dashed #cdd3da;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:22px;}
+  .submit{position:sticky;bottom:0;background:var(--orange);color:#fff;text-align:center;padding:13px;font-size:15px;font-weight:600;cursor:pointer;}
+  .h5cond{display:none;}
+  .h5cond.show{display:block;}
+
+  /* ---------- 通用弹窗 ---------- */
+  .ov{position:fixed;inset:0;background:rgba(16,24,40,.42);display:none;align-items:center;justify-content:center;z-index:50;}
+  .ov.show{display:flex;}
+  .modal{background:#fff;border-radius:14px;width:460px;max-width:92vw;max-height:84vh;display:flex;flex-direction:column;overflow:hidden;}
+  .modal .mh{display:flex;align-items:center;padding:15px 18px;border-bottom:1px solid var(--line);font-size:16px;font-weight:700;}
+  .modal .mh .x{margin-left:auto;color:var(--sub);cursor:pointer;font-size:19px;}
+  .modal .mb{overflow:auto;padding:10px 14px;}
+  .modal .mf{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line);justify-content:flex-end;background:#fff;}
+
+  /* 合同关联卡片 */
+  .ccard{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px;cursor:pointer;position:relative;}
+  .ccard .ln{font-size:13px;color:var(--txt2);margin-bottom:3px;}
+  .ccard .ln b{color:var(--txt);font-weight:600;margin-right:6px;}
+  .ccard.on{border-color:var(--blue);box-shadow:inset 3px 0 0 var(--blue);}
+
+  /* 银行账户卡片 */
+  .bentry{display:flex;align-items:center;gap:9px;padding:11px 14px;cursor:pointer;}
+  .bentry .plus{width:30px;height:30px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;}
+  .bcard{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px;cursor:pointer;position:relative;}
+  .bcard .ln{font-size:13px;color:var(--txt2);margin-bottom:2px;}
+  .bcard .ln b{color:var(--txt);font-weight:600;margin-right:6px;}
+  .bcard .edit{position:absolute;top:10px;right:11px;color:var(--sub);font-size:12px;border:1px solid var(--line);border-radius:6px;padding:3px 8px;}
+  .bcard.on{border-color:var(--blue);box-shadow:inset 3px 0 0 var(--blue);}
+  .addform .af{margin-bottom:11px;}
+  .addform .af .l{font-size:13px;margin-bottom:5px;}
+  .addform .af .l .req{color:var(--red);margin-right:2px;}
+  .addform .af input,.addform .af select,.addform .af textarea{width:100%;border:1px solid #d9dde3;border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;}
+
+  .legend{max-width:1180px;margin:24px auto 0;background:#fff;border-radius:10px;padding:18px 22px;border:1px solid var(--line);}
+  .legend h3{font-size:14px;margin-bottom:10px;}
+  .legend table{width:100%;border-collapse:collapse;font-size:13px;}
+  .legend th,.legend td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  .legend th{color:var(--sub);font-size:12px;font-weight:600;background:#fafbfd;}
+  .legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>会计审批补充需求 · 交互原型（合同关联与收款账号）</h1>
+  <p>在会计审批表单"选择帐套"上方新增【是否签订】；选"是"展开【合同关联】与【合同收款账号】（分别复用合同关联弹窗与银行账户选择弹窗），选"否"隐藏并清空。web 弹窗与 h5 审批页双端一致。</p>
+  <div class="tags">
+    <span>🖱 是否签订 = 是 → 展开合同关联 / 收款账号</span>
+    <span>🖱 合同关联 → 卡片选择弹窗</span>
+    <span>🖱 合同收款账号 → 银行账户选择弹窗</span>
+    <span>🔵 蓝条 = 选中态</span>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ========== Web 端会计审批弹窗 ========== -->
+  <div class="col">
+    <div class="cap">
+      <div class="t"><span class="n">1</span>Web 端 · 同意会计审批弹窗</div>
+      <div class="d">深色侧边栏 + 居中弹窗；新字段插入"选择帐套"上方</div>
+    </div>
+    <div class="web">
+      <div class="wsidebar">
+        <div class="logo"><span class="d"></span>金阎OA</div>
+        <div class="m">概览</div>
+        <div class="m on">审批任务</div>
+        <div class="m">仓库管理</div>
+        <div class="m">钉钉审批</div>
+        <div class="m">审批类型</div>
+        <div class="m">APP版本管理</div>
+      </div>
+      <div class="wmain">
+        <div class="wtopbar">
+          <span class="crumb">审批任务 / 我发起的</span>
+          <span class="right">🔍 💬 <span class="av">测</span></span>
+        </div>
+        <div class="wlist">
+          <div class="row">编号 29161 · 测试 / lh h-审批办理 · 陈航航</div>
+          <div class="row">编号 29160 · 测试 / 供应商审批 · 陈航航</div>
+        </div>
+        <div class="wmodal">
+          <div class="mt">同意会计审批 <span class="x" onclick="toast('关闭弹窗')">×</span></div>
+
+          <table class="wtable">
+            <tr><th>项目名称</th><th>金额</th><th>科目</th></tr>
+            <tr><td>供应商审批</td><td>111</td><td>
+              <select><option>请选择</option></select>
+            </td></tr>
+          </table>
+          <div class="werr"></div>
+
+          <!-- 是否签订 -->
+          <div class="wfield">
+            <div class="wlabel"><span class="req">*</span>是否签订</div>
+            <div class="dd" id="webSign">
+              <div class="box" onclick="toggleDD('webSign')"><span class="val">请选择</span><span class="arr">▾</span></div>
+              <div class="ddmenu">
+                <div onclick="pickSign('web','是')">是</div>
+                <div onclick="pickSign('web','否')">否</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 合同关联（条件） -->
+          <div class="wfield cond" id="webContract">
+            <div class="wlabel"><span class="req">*</span>合同关联</div>
+            <div class="box" id="webContractBox" onclick="openContract('web')"><span class="ph">请选择合同</span><span class="arr">›</span></div>
+          </div>
+
+          <!-- 合同收款账号（条件） -->
+          <div class="wfield cond" id="webBank">
+            <div class="wlabel"><span class="req">*</span>合同收款账号</div>
+            <div class="box" id="webBankBox" onclick="openBank('web')"><span class="ph">请选择收款账号</span><span class="arr">›</span></div>
+          </div>
+
+          <!-- 原有字段 -->
+          <div class="wfield">
+            <div class="wlabel"><span class="req">*</span>选择帐套</div>
+            <div class="dd" id="webSet">
+              <div class="box" onclick="toggleDD('webSet')"><span class="val">请选择帐套</span><span class="arr">▾</span></div>
+              <div class="ddmenu"><div onclick="setVal('webSet','帐套A')">帐套A</div><div onclick="setVal('webSet','帐套B')">帐套B</div></div>
+            </div>
+          </div>
+          <div class="wfield">
+            <div class="wlabel"><span class="req">*</span>选择账户</div>
+            <div class="dd" id="webAcc">
+              <div class="box" onclick="toggleDD('webAcc')"><span class="val">请选择账户</span><span class="arr">▾</span></div>
+              <div class="ddmenu"><div onclick="setVal('webAcc','基本户-工行')">基本户-工行</div><div onclick="setVal('webAcc','一般户-建行')">一般户-建行</div></div>
+            </div>
+          </div>
+          <div class="wfield">
+            <div class="wlabel">会计审批意见</div>
+            <textarea class="ta" placeholder="请输入会计审批意见"></textarea>
+          </div>
+          <div class="wfield">
+            <div class="wlabel">附件</div>
+            <div class="btn" onclick="toast('上传附件')">上传</div>
+          </div>
+
+          <div class="wactions">
+            <div class="btn" onclick="toast('取消')">取消</div>
+            <div class="btn primary" onclick="toast('确定提交会计审批')">确定</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== H5 端审批页 ========== -->
+  <div class="col h5">
+    <div class="cap">
+      <div class="t"><span class="n">2</span>H5 端 · 审批页</div>
+      <div class="d">手机端；新字段插入"选择帐套"上方（衔接原空白条区域）</div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="hbar"><span class="bk">‹</span><span class="ti">审批</span></div>
+
+      <div class="supplier">
+        <span class="nm">供应商审批</span>
+        <span class="amt">¥111</span>
+        <select><option>请选择</option></select>
+      </div>
+
+      <!-- 是否签订 -->
+      <div class="frow">
+        <div class="fl"><span class="req">*</span>是否签订</div>
+        <div class="dd" id="h5Sign">
+          <div class="picker" onclick="toggleDD('h5Sign')"><span class="ph">请选择</span><span class="arr">›</span></div>
+          <div class="ddmenu">
+            <div onclick="pickSign('h5','是')">是</div>
+            <div onclick="pickSign('h5','否')">否</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 合同关联（条件） -->
+      <div class="frow h5cond" id="h5Contract">
+        <div class="fl"><span class="req">*</span>合同关联</div>
+        <div class="picker" id="h5ContractBox" onclick="openContract('h5')"><span class="ph">请选择合同</span><span class="arr">›</span></div>
+      </div>
+
+      <!-- 合同收款账号（条件） -->
+      <div class="frow h5cond" id="h5Bank">
+        <div class="fl"><span class="req">*</span>合同收款账号</div>
+        <div class="picker" id="h5BankBox" onclick="openBank('h5')"><span class="ph">请选择收款账号</span><span class="arr">›</span></div>
+      </div>
+
+      <!-- 原有字段 -->
+      <div class="frow">
+        <div class="fl"><span class="req">*</span>选择帐套</div>
+        <div class="dd" id="h5Set">
+          <div class="picker" onclick="toggleDD('h5Set')"><span class="ph">请选择</span><span class="arr">›</span></div>
+          <div class="ddmenu"><div onclick="setVal('h5Set','帐套A','ph')">帐套A</div><div onclick="setVal('h5Set','帐套B','ph')">帐套B</div></div>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fl"><span class="req">*</span>选择账户</div>
+        <div class="dd" id="h5Acc">
+          <div class="picker" onclick="toggleDD('h5Acc')"><span class="ph">请选择</span><span class="arr">›</span></div>
+          <div class="ddmenu"><div onclick="setVal('h5Acc','基本户-工行','ph')">基本户-工行</div><div onclick="setVal('h5Acc','一般户-建行','ph')">一般户-建行</div></div>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fl">处理结果</div>
+        <div class="radio">
+          <label><span class="dot on" id="h5Pass" onclick="setRadio('h5Pass','h5Rej')"></span>通过</label>
+          <label><span class="dot" id="h5Rej" onclick="setRadio('h5Rej','h5Pass')"></span>驳回</label>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fl">审批意见</div>
+        <textarea class="ta" placeholder="请输入审批意见"></textarea>
+      </div>
+      <div class="frow">
+        <div class="fl">附件</div>
+        <div class="upload" onclick="toast('上传附件')">+</div>
+      </div>
+      <div class="submit" onclick="toast('提交审批')">提交</div>
+    </div></div>
+  </div>
+
+</div>
+
+<!-- ========== 合同关联弹窗 ========== -->
+<div class="ov" id="ovContract">
+  <div class="modal">
+    <div class="mh">合同关联 <span class="x" onclick="closeContract()">×</span></div>
+    <div class="mb" id="contractList">
+      <div class="ccard" onclick="pickContract(this)"><div class="ln"><b>单行文本</b>1231313123123</div><div class="ln"><b>申请款项</b>设备采购款</div><div class="ln"><b>数字</b>120,000.00</div></div>
+      <div class="ccard" onclick="pickContract(this)"><div class="ln"><b>单行文本</b>测试</div><div class="ln"><b>申请款项</b>服务咨询费</div><div class="ln"><b>数字</b>38,000.00</div></div>
+      <div class="ccard" onclick="pickContract(this)"><div class="ln"><b>单行文本</b>测试3G</div><div class="ln"><b>申请款项</b>材料款</div><div class="ln"><b>数字</b>9,500.00</div></div>
+    </div>
+    <div class="mf">
+      <div class="btn" onclick="closeContract()">取消</div>
+      <div class="btn primary" onclick="confirmContract()">确定</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 合同收款账号弹窗 ========== -->
+<div class="ov" id="ovBank">
+  <div class="modal">
+    <div class="mh">合同收款账号 <span class="x" onclick="closeBank()">×</span></div>
+    <div class="mb">
+      <div class="bentry" onclick="openAddBank()"><span class="plus">＋</span><span>添加银行账户</span></div>
+      <div id="bankList">
+        <div class="bcard" onclick="pickBank(this)"><div class="ln"><b>卡号</b>6666666666666666666</div><div class="ln"><b>户名</b>小小名</div><div class="ln"><b>银行</b>农业银行</div><div class="ln"><b>支行</b>建设银行盛辉国际支行</div><div class="ln"><b>备注</b></div><span class="edit" onclick="event.stopPropagation();toast('编辑该账户')">编辑</span></div>
+        <div class="bcard" onclick="pickBank(this)"><div class="ln"><b>卡号</b>8888888888888888888</div><div class="ln"><b>户名</b>周明远</div><div class="ln"><b>银行</b>工商银行</div><div class="ln"><b>支行</b>天河支行</div><div class="ln"><b>备注</b>主账户</div><span class="edit" onclick="event.stopPropagation();toast('编辑该账户')">编辑</span></div>
+      </div>
+    </div>
+    <div class="mf">
+      <div class="btn" onclick="closeBank()">取消</div>
+      <div class="btn primary" onclick="confirmBank()">确定</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 添加银行账户弹窗 ========== -->
+<div class="ov" id="ovAddBank">
+  <div class="modal" style="width:420px">
+    <div class="mh">添加银行账户 <span class="x" onclick="closeAddBank()">×</span></div>
+    <div class="mb addform">
+      <div class="af"><div class="l"><span class="req">*</span>户名</div><input placeholder="请输入户名"></div>
+      <div class="af"><div class="l"><span class="req">*</span>卡号</div><input placeholder="请输入卡号"></div>
+      <div class="af"><div class="l"><span class="req">*</span>银行</div><select><option>请选择</option><option>农业银行</option><option>工商银行</option><option>建设银行</option></select></div>
+      <div class="af"><div class="l">支行</div><input placeholder="请输入支行"></div>
+      <div class="af"><div class="l">备注</div><textarea class="ta" style="min-height:48px" placeholder="请输入备注"></textarea></div>
+    </div>
+    <div class="mf">
+      <div class="btn" onclick="closeAddBank()">取消</div>
+      <div class="btn primary" onclick="submitAddBank()">提交</div>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <h3>图例与交互说明</h3>
+  <table>
+    <tr><th style="width:170px">元素</th><th style="width:200px">样式</th><th>说明</th></tr>
+    <tr><td>是否签订</td><td><span class="sw" style="background:#fff;border:1px solid #d9dde3"></span>下拉框（是/否）</td><td>必填；选"是"展开合同关联 + 合同收款账号，选"否"隐藏并清空已选值</td></tr>
+    <tr><td>合同关联</td><td><span class="sw" style="background:#e2edff"></span>卡片选择弹窗</td><td>点击打开合同关联弹窗（卡片列表：单行文本/申请款项/数字），选中蓝条高亮，确定回填</td></tr>
+    <tr><td>合同收款账号</td><td><span class="sw" style="background:#f4f5f7"></span>银行账户弹窗</td><td>点击打开银行账户选择弹窗（添加银行账户入口 + 账户卡片，可编辑/新增），选中回填</td></tr>
+    <tr><td>选中态</td><td><span class="sw" style="background:#2b7fff"></span>蓝色竖条</td><td>合同关联卡片 / 银行账户卡片选中后左侧蓝条高亮</td></tr>
+    <tr><td>字段顺序</td><td>—</td><td>是否签订 →（是）合同关联 →（是）合同收款账号 → 选择帐套 → 选择账户 → 意见 → 附件</td></tr>
+    <tr><td>双端一致</td><td>Web 弹窗 / H5 页</td><td>字段、联动、必填规则两端一致；H5 新字段衔接"选择帐套"上方空白条</td></tr>
+  </table>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let curSide = null;          // 当前打开弹窗的来源端
+  let contractPicked = null;    // 暂存合同选择
+  let bankPicked = null;        // 暂存银行选择
+
+  function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2200);}
+
+  function toggleDD(id){
+    document.querySelectorAll('.ddmenu.show').forEach(m=>{if(m.parentElement.id!==id)m.classList.remove('show');});
+    const dd=document.getElementById(id);
+    dd.querySelector('.ddmenu').classList.toggle('show');
+  }
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.dd')) document.querySelectorAll('.ddmenu.show').forEach(m=>m.classList.remove('show'));
+  });
+
+  function setVal(id,val,phClass){
+    const dd=document.getElementById(id);
+    const box=dd.querySelector('.box,.picker');
+    box.querySelector('.val,.ph').textContent=val;
+    box.classList.add('has');
+    dd.querySelector('.ddmenu').classList.remove('show');
+    toast(val+' 已选择');
+  }
+
+  function pickSign(side,val){
+    const dd=document.getElementById(side+'Sign');
+    dd.querySelector('.val,.ph').textContent=val;
+    dd.querySelector('.ddmenu').classList.remove('show');
+    const show = val==='是';
+    ['Contract','Bank'].forEach(k=>{
+      const row=document.getElementById(side+k);
+      row.classList.toggle('show',show);
+      // 切到"否"时清空已选
+      if(!show){
+        const box=document.getElementById(side+k+'Box');
+        box.classList.remove('has');
+        const span=box.querySelector('.val,.ph');
+        span.textContent = k==='Contract'?'请选择合同':'请选择收款账号';
+        span.classList.add('ph');
+      }
+    });
+    toast('是否签订 = '+val+(show?'（展开合同关联 / 收款账号）':'（隐藏并清空）'));
+  }
+
+  function setRadio(on,off){document.getElementById(on).classList.add('on');document.getElementById(off).classList.remove('on');}
+
+  // ---- 合同关联 ----
+  function openContract(side){curSide=side;contractPicked=null;document.getElementById('ovContract').classList.add('show');document.querySelectorAll('#contractList .ccard').forEach(c=>c.classList.remove('on'));}
+  function closeContract(){document.getElementById('ovContract').classList.remove('show');}
+  function pickContract(card){document.querySelectorAll('#contractList .ccard').forEach(c=>c.classList.remove('on'));card.classList.add('on');contractPicked=card;}
+  function confirmContract(){
+    if(!contractPicked){toast('请先选择一个合同');return;}
+    const t1=contractPicked.querySelector('.ln b')?contractPicked.querySelector('.ln').textContent:'';
+    const box=document.getElementById(curSide+'ContractBox');
+    box.classList.add('has');
+    const span=box.querySelector('.val,.ph');span.textContent='已关联：'+t1.replace('单行文本','');span.classList.remove('ph');
+    closeContract();toast('合同关联已回填');
+  }
+
+  // ---- 合同收款账号 ----
+  function openBank(side){curSide=side;bankPicked=null;document.getElementById('ovBank').classList.add('show');document.querySelectorAll('#bankList .bcard').forEach(c=>c.classList.remove('on'));}
+  function closeBank(){document.getElementById('ovBank').classList.remove('show');}
+  function pickBank(card){document.querySelectorAll('#bankList .bcard').forEach(c=>c.classList.remove('on'));card.classList.add('on');bankPicked=card;}
+  function confirmBank(){
+    if(!bankPicked){toast('请先选择一个收款账号');return;}
+    const no=bankPicked.querySelector('.ln b')?bankPicked.querySelectorAll('.ln')[0].textContent.replace('卡号','').trim():'';
+    const box=document.getElementById(curSide+'BankBox');
+    box.classList.add('has');
+    const span=box.querySelector('.val,.ph');span.textContent='已选账号：'+no;span.classList.remove('ph');
+    closeBank();toast('合同收款账号已回填');
+  }
+
+  // ---- 添加银行账户 ----
+  function openAddBank(){document.getElementById('ovAddBank').classList.add('show');}
+  function closeAddBank(){document.getElementById('ovAddBank').classList.remove('show');}
+  function submitAddBank(){
+    const ov=document.getElementById('ovAddBank');
+    const name=ov.querySelector('input[placeholder="请输入户名"]').value.trim();
+    const no=ov.querySelector('input[placeholder="请输入卡号"]').value.trim();
+    const bank=ov.querySelector('select').value;
+    const branch=ov.querySelector('input[placeholder="请输入支行"]').value.trim();
+    const remark=ov.querySelector('textarea').value.trim();
+    if(!name||!no||bank==='请选择'){toast('请填写必填项');return;}
+    const card=document.createElement('div');
+    card.className='bcard';
+    card.setAttribute('onclick','pickBank(this)');
+    card.innerHTML='<div class="ln"><b>卡号</b>'+no+'</div><div class="ln"><b>户名</b>'+name+'</div><div class="ln"><b>银行</b>'+bank+'</div><div class="ln"><b>支行</b>'+branch+'</div><div class="ln"><b>备注</b>'+remark+'</div><span class="edit" onclick="event.stopPropagation();toast(\'编辑该账户\')">编辑</span>';
+    document.getElementById('bankList').appendChild(card);
+    closeAddBank();
+    ov.querySelectorAll('input,textarea,select').forEach(el=>{if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';});
+    toast('新账户已加入列表，可在列表中选择');
+  }
+</script>
+</body>
+</html>

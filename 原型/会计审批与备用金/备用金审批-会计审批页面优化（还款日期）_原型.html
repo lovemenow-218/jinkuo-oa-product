@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>备用金审批-会计审批页面优化（还款日期）· 原型</title>
+<style>
+  :root{
+    --primary:#2f6bff; --primary-d:#1f4fd6; --line:#e6e8ee; --bg:#f4f6fb;
+    --txt:#1f2533; --sub:#8a93a6; --ok:#22a06b; --warn:#ff8a00; --red:#e8484f;
+    --card:#ffffff; --chip:#eef3ff; --chip-a:#dde8ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg);color:var(--txt);padding:24px}
+  .doc-title{text-align:center;font-size:18px;margin:0 0 4px}
+  .doc-sub{text-align:center;color:var(--sub);font-size:12px;margin:0 0 24px}
+  .screens{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;align-items:flex-start}
+  .screen{display:flex;flex-direction:column;align-items:center}
+  .screen-label{font-size:13px;font-weight:600;color:var(--primary);margin-bottom:10px;
+    background:var(--chip);padding:4px 12px;border-radius:20px}
+
+  /* ---------- H5 phone ---------- */
+  .phone{width:375px;height:760px;background:#fff;border-radius:28px;border:10px solid #11131a;
+    position:relative;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.18)}
+  .p-status{height:26px;display:flex;justify-content:space-between;align-items:center;
+    padding:0 16px;font-size:12px;color:#222;background:#fafbfc}
+  .p-head{height:48px;display:flex;align-items:center;justify-content:center;position:relative;
+    border-bottom:1px solid var(--line);font-size:16px;font-weight:600}
+  .p-head .back{position:absolute;left:12px;font-size:20px;color:#333}
+  .p-body{flex:1;overflow:auto;padding:14px}
+  .flow-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+  .flow-card h4{margin:0 0 8px;font-size:14px}
+  .flow-row{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin:3px 0}
+  .flow-row b{color:var(--txt);font-weight:600}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--primary)}
+  .sec-title{font-size:13px;font-weight:600;margin:14px 2px 8px;color:#33405c}
+  table.detail{width:100%;border-collapse:collapse;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table.detail th,table.detail td{border:1px solid var(--line);padding:8px 6px;text-align:left}
+  table.detail th{background:#f6f8fc;color:#5a667e;font-weight:600}
+  .sel-inline{display:inline-block;padding:3px 8px;border:1px solid var(--line);border-radius:6px;color:var(--sub);font-size:11px}
+  .field{margin:10px 0}
+  .field>label{display:block;font-size:13px;margin-bottom:6px}
+  .field .req{color:var(--red);margin-left:2px}
+  .field .control{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:13px;
+    display:flex;justify-content:space-between;align-items:center;background:#fff;cursor:pointer}
+  .field .control .val{color:var(--txt)}
+  .field .control .ph{color:var(--sub)}
+  .field .control.ipt{cursor:text}
+  textarea.control{resize:none;height:64px;line-height:1.5}
+  .upload-btn{border:1px dashed var(--line);border-radius:10px;padding:12px;text-align:center;color:var(--sub);font-size:12px;background:#fafbfc}
+  .p-foot{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:#fff}
+  .btn{flex:1;text-align:center;padding:11px 0;border-radius:10px;font-size:14px;border:1px solid var(--line);background:#fff;color:#444}
+  .btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  /* picker bottom sheet */
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;
+    box-shadow:0 -6px 24px rgba(0,0,0,.18);transform:translateY(100%);transition:.25s;z-index:30;padding:16px}
+  .sheet.show{transform:translateY(0)}
+  .sheet h5{margin:0 0 12px;font-size:14px;text-align:center}
+  .quick{display:flex;gap:10px;margin-bottom:14px}
+  .quick button{flex:1;border:1px solid var(--chip-a);background:var(--chip);color:var(--primary);
+    border-radius:10px;padding:12px 0;font-size:13px;font-weight:600;cursor:pointer}
+  .quick button:active{background:var(--chip-a)}
+  .cal-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:8px}
+  .cal-head button{border:none;background:#f0f2f7;border-radius:8px;width:28px;height:28px;font-size:14px;cursor:pointer}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal .wd{font-size:11px;color:var(--sub);text-align:center;padding:4px 0}
+  .cal .day{text-align:center;font-size:13px;padding:8px 0;border-radius:8px;cursor:pointer}
+  .cal .day:hover{background:#f0f3ff}
+  .cal .day.sel{background:var(--primary);color:#fff}
+  .cal .day.out{color:#cdd3e0}
+  .sheet-foot{display:flex;gap:10px;margin-top:14px}
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:20;display:none}
+  .mask.show{display:block}
+
+  /* ---------- Web desktop ---------- */
+  .desktop{width:560px;height:620px;background:#eef1f6;border-radius:10px;overflow:hidden;position:relative;
+    box-shadow:0 12px 30px rgba(0,0,0,.18);display:flex}
+  .side{width:54px;background:#1f2533;display:flex;flex-direction:column;align-items:center;padding-top:14px;gap:14px}
+  .side i{width:22px;height:22px;border-radius:6px;background:#39414f;display:block}
+  .side i.on{background:var(--primary)}
+  .main{flex:1;display:flex;flex-direction:column}
+  .top{height:46px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:18px;font-size:13px;color:#555}
+  .top b{color:var(--primary);font-weight:600;border-bottom:2px solid var(--primary);padding:14px 0}
+  .modal-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:rgba(20,28,45,.35);padding:20px}
+  .modal{width:480px;max-height:560px;background:#fff;border-radius:10px;overflow:auto;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .modal h3{margin:0;padding:16px 18px;border-bottom:1px solid var(--line);font-size:15px;display:flex;justify-content:space-between}
+  .modal h3 .x{color:var(--sub);cursor:pointer}
+  .modal .m-body{padding:16px 18px}
+  .web-field{margin:12px 0;position:relative}
+  .web-field>label{display:block;font-size:13px;margin-bottom:6px}
+  .web-field .req{color:var(--red);margin-left:2px}
+  .web-control{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:13px;
+    display:flex;justify-content:space-between;align-items:center;background:#fff;cursor:pointer}
+  .web-control .ph{color:var(--sub)}
+  .web-pop{position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#fff;border:1px solid var(--line);
+    border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.16);z-index:40;padding:14px;display:none}
+  .web-pop.show{display:block}
+  .web-pop .quick button{border:1px solid var(--chip-a);background:var(--chip);color:var(--primary);
+    border-radius:8px;padding:9px 0;font-size:12px;font-weight:600;cursor:pointer}
+  .m-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 18px;border-top:1px solid var(--line)}
+  .m-btn{padding:8px 18px;border-radius:7px;font-size:13px;border:1px solid var(--line);background:#fff;color:#444;cursor:pointer}
+  .m-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .sel-block{display:inline-block;padding:2px 7px;border:1px solid var(--line);border-radius:5px;color:var(--sub);font-size:11px}
+  .hint{font-size:11px;color:var(--sub);margin-top:6px}
+  .note{background:#fff8ec;border:1px solid #ffe2b0;color:#9a6a13;font-size:11px;padding:8px 10px;border-radius:8px;margin:10px 0}
+</style>
+</head>
+<body>
+  <h1 class="doc-title">备用金审批-会计审批页面优化（还款日期）· 可交互原型</h1>
+  <p class="doc-sub">在「项目明细表」下方、「选择帐套」上方新增【还款日期】日期选择器（含 一年/半年/一个月 快捷选 + 手动选择），H5 与 Web 双端一致</p>
+
+  <div class="screens">
+
+    <!-- 屏1 H5 会计审批页 -->
+    <section class="screen">
+      <div class="screen-label">屏1 · H5 备用金会计审批页</div>
+      <div class="phone" id="phone1">
+        <div class="p-status"><span>9:41</span><span>·· 5G ▱ 100%</span></div>
+        <div class="p-head"><span class="back">‹</span>会计审批</div>
+        <div class="p-body">
+          <div class="flow-card">
+            <h4>备用金审批 · 张三差旅借支</h4>
+            <div class="flow-row"><span>提交人</span><b>张三</b></div>
+            <div class="flow-row"><span>金额</span><b>¥5,000.00</b></div>
+            <div class="flow-row"><span>状态</span><span class="tag">待会计审批</span></div>
+          </div>
+
+          <div class="sec-title">项目明细</div>
+          <table class="detail">
+            <thead><tr><th>项目名称</th><th>金额</th><th>科目</th></tr></thead>
+            <tbody>
+              <tr><td>差旅借支</td><td>3,000</td><td><span class="sel-inline">请选择</span></td></tr>
+              <tr><td>招待费</td><td>2,000</td><td><span class="sel-inline">请选择</span></td></tr>
+            </tbody>
+          </table>
+
+          <!-- 新增：还款日期 -->
+          <div class="field">
+            <label>还款日期<span class="req">*</span></label>
+            <div class="control" data-trigger="p1">
+              <span class="ph" id="p1-val">请选择还款日期</span><span>▾</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>选择帐套<span class="req">*</span></label>
+            <div class="control"><span class="ph">请选择帐套</span><span>▾</span></div>
+          </div>
+          <div class="field">
+            <label>选择账户<span class="req">*</span></label>
+            <div class="control"><span class="ph">请选择账户</span><span>▾</span></div>
+          </div>
+          <div class="field">
+            <label>会计审批意见</label>
+            <textarea class="control ipt" placeholder="请输入审批意见（选填）"></textarea>
+          </div>
+          <div class="field">
+            <label>附件</label>
+            <div class="upload-btn">＋ 上传</div>
+          </div>
+        </div>
+        <div class="p-foot">
+          <div class="btn">取消</div>
+          <div class="btn primary">同意</div>
+        </div>
+
+        <div class="mask" id="p1-mask"></div>
+        <div class="sheet" id="p1-sheet">
+          <h5>选择还款日期</h5>
+          <div class="quick">
+            <button data-q="year">一年</button>
+            <button data-q="half">半年</button>
+            <button data-q="month">一个月</button>
+          </div>
+          <div class="cal-head"><button id="p1-prev">‹</button><span id="p1-ym"></span><button id="p1-next">›</button></div>
+          <div class="cal" id="p1-cal"></div>
+          <div class="sheet-foot">
+            <div class="btn" data-close="p1">取消</div>
+            <div class="btn primary" data-close="p1">确定</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 屏2 H5 日期选择器（默认展开） -->
+    <section class="screen">
+      <div class="screen-label">屏2 · H5 日期选择器（快捷选 + 手动）</div>
+      <div class="phone" id="phone2" style="border-color:#2f6bff">
+        <div class="p-status"><span>9:41</span><span>·· 5G ▱ 100%</span></div>
+        <div class="p-head"><span class="back">‹</span>会计审批</div>
+        <div class="p-body">
+          <div class="flow-card">
+            <h4>备用金审批 · 张三差旅借支</h4>
+            <div class="flow-row"><span>提交人</span><b>张三</b></div>
+            <div class="flow-row"><span>金额</span><b>¥5,000.00</b></div>
+            <div class="flow-row"><span>状态</span><span class="tag">待会计审批</span></div>
+          </div>
+          <div class="sec-title">项目明细</div>
+          <table class="detail">
+            <thead><tr><th>项目名称</th><th>金额</th><th>科目</th></tr></thead>
+            <tbody>
+              <tr><td>差旅借支</td><td>3,000</td><td><span class="sel-inline">请选择</span></td></tr>
+              <tr><td>招待费</td><td>2,000</td><td><span class="sel-inline">请选择</span></td></tr>
+            </tbody>
+          </table>
+          <div class="field">
+            <label>还款日期<span class="req">*</span></label>
+            <div class="control"><span class="val" style="color:var(--primary);font-weight:600">2027-10-29</span><span>▾</span></div>
+          </div>
+          <div class="note">已选「一年」快捷项 → 当前日期 2026-10-29 加一年。也可手动点下方日历任意日期覆盖。</div>
+        </div>
+
+        <div class="mask show" style="background:rgba(0,0,0,.25)"></div>
+        <div class="sheet show">
+          <h5>选择还款日期</h5>
+          <div class="quick">
+            <button style="background:var(--chip-a)">一年</button>
+            <button>半年</button>
+            <button>一个月</button>
+          </div>
+          <div class="cal-head"><button>‹</button><span>2026 年 10 月</span><button>›</button></div>
+          <div class="cal">
+            <div class="wd">日</div><div class="wd">一</div><div class="wd">二</div><div class="wd">三</div><div class="wd">四</div><div class="wd">五</div><div class="wd">六</div>
+            <div class="day out">28</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div>
+            <div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div>
+            <div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div>
+            <div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div>
+            <div class="day">28</div><div class="day">29</div><div class="day sel">30</div><div class="day out">31</div><div class="day out">1</div><div class="day out">2</div><div class="day out">3</div>
+          </div>
+          <div class="sheet-foot"><div class="btn">取消</div><div class="btn primary">确定</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 屏3 Web 会计审批弹窗 -->
+    <section class="screen">
+      <div class="screen-label">屏3 · Web 同意会计审批弹窗</div>
+      <div class="desktop">
+        <div class="side"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="main">
+          <div class="top"><b>待处理</b><span>我发起的</span><span>已处理</span><span>抄送</span></div>
+          <div class="modal-wrap">
+            <div class="modal">
+              <h3>同意会计审批 <span class="x">×</span></h3>
+              <div class="m-body">
+                <div class="sec-title" style="margin-top:0">项目明细</div>
+                <table class="detail">
+                  <thead><tr><th>项目名称</th><th>金额</th><th>科目</th></tr></thead>
+                  <tbody>
+                    <tr><td>差旅借支</td><td>3,000</td><td><span class="sel-block">请选择</span></td></tr>
+                    <tr><td>招待费</td><td>2,000</td><td><span class="sel-block">请选择</span></td></tr>
+                  </tbody>
+                </table>
+
+                <!-- 新增：还款日期 -->
+                <div class="web-field">
+                  <label>还款日期<span class="req">*</span></label>
+                  <div class="web-control" data-trigger="w1"><span class="ph" id="w1-val">请选择还款日期</span><span>▾</span></div>
+                  <div class="web-pop" id="w1-pop">
+                    <div class="quick">
+                      <button data-q="year">一年</button>
+                      <button data-q="half">半年</button>
+                      <button data-q="month">一个月</button>
+                    </div>
+                    <div class="cal-head"><button id="w1-prev">‹</button><span id="w1-ym"></span><button id="w1-next">›</button></div>
+                    <div class="cal" id="w1-cal"></div>
+                  </div>
+                </div>
+
+                <div class="web-field">
+                  <label>选择帐套<span class="req">*</span></label>
+                  <div class="web-control"><span class="ph">请选择帐套</span><span>▾</span></div>
+                </div>
+                <div class="web-field">
+                  <label>选择账户<span class="req">*</span></label>
+                  <div class="web-control"><span class="ph">请选择账户</span><span>▾</span></div>
+                </div>
+                <div class="web-field">
+                  <label>会计审批意见</label>
+                  <div class="web-control ipt" style="height:56px;align-items:flex-start;color:var(--sub)">请输入审批意见（选填）</div>
+                </div>
+                <div class="web-field">
+                  <label>附件</label>
+                  <div class="upload-btn">＋ 上传</div>
+                </div>
+              </div>
+              <div class="m-foot">
+                <div class="m-btn">取消</div>
+                <div class="m-btn primary">确定</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 屏4 Web 日期选择器（默认展开） -->
+    <section class="screen">
+      <div class="screen-label">屏4 · Web 日期选择器（快捷选 + 手动）</div>
+      <div class="desktop" style="outline:3px solid var(--primary);outline-offset:2px">
+        <div class="side"><i class="on"></i><i></i><i></i><i></i></div>
+        <div class="main">
+          <div class="top"><b>待处理</b><span>我发起的</span><span>已处理</span><span>抄送</span></div>
+          <div class="modal-wrap">
+            <div class="modal">
+              <h3>同意会计审批 <span class="x">×</span></h3>
+              <div class="m-body">
+                <div class="sec-title" style="margin-top:0">项目明细</div>
+                <table class="detail">
+                  <thead><tr><th>项目名称</th><th>金额</th><th>科目</th></tr></thead>
+                  <tbody>
+                    <tr><td>差旅借支</td><td>3,000</td><td><span class="sel-block">请选择</span></td></tr>
+                    <tr><td>招待费</td><td>2,000</td><td><span class="sel-block">请选择</span></td></tr>
+                  </tbody>
+                </table>
+                <div class="web-field">
+                  <label>还款日期<span class="req">*</span></label>
+                  <div class="web-control"><span style="color:var(--primary);font-weight:600">2027-04-29</span><span>▾</span></div>
+                  <div class="web-pop show">
+                    <div class="quick">
+                      <button>一年</button>
+                      <button style="background:var(--chip-a)">半年</button>
+                      <button>一个月</button>
+                    </div>
+                    <div class="cal-head"><button>‹</button><span>2026 年 10 月</span><button>›</button></div>
+                    <div class="cal">
+                      <div class="wd">日</div><div class="wd">一</div><div class="wd">二</div><div class="wd">三</div><div class="wd">四</div><div class="wd">五</div><div class="wd">六</div>
+                      <div class="day out">28</div><div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div>
+                      <div class="day">7</div><div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div>
+                      <div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div><div class="day">20</div>
+                      <div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div><div class="day">27</div>
+                      <div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day out">31</div><div class="day out">1</div><div class="day out">2</div><div class="day out">3</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="note" style="margin-left:0">已选「半年」→ 2026-10-29 加半年 = 2027-04-29。可点日历任意日期覆盖。</div>
+                <div class="web-field">
+                  <label>选择帐套<span class="req">*</span></label>
+                  <div class="web-control"><span class="ph">请选择帐套</span><span>▾</span></div>
+                </div>
+              </div>
+              <div class="m-foot"><div class="m-btn">取消</div><div class="m-btn primary">确定</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addMonths(d,n){var r=new Date(d);r.setMonth(r.getMonth()+n);return r;}
+function addYears(d,n){var r=new Date(d);r.setFullYear(r.getFullYear()+n);return r;}
+
+// Generic calendar builder
+function buildCal(calId, ymId, prevId, nextId, onPick){
+  var state={y:new Date().getFullYear(), m:new Date().getMonth()};
+  function render(){
+    var y=state.y, m=state.m;
+    document.getElementById(ymId).textContent=y+' 年 '+(m+1)+' 月';
+    var cal=document.getElementById(calId);
+    var first=new Date(y,m,1).getDay();
+    var days=new Date(y,m+1,0).getDate();
+    var prevDays=new Date(y,m,0).getDate();
+    var html='<div class="wd">日</div><div class="wd">一</div><div class="wd">二</div><div class="wd">三</div><div class="wd">四</div><div class="wd">五</div><div class="wd">六</div>';
+    for(var i=0;i<first;i++){html+='<div class="day out">'+(prevDays-first+1+i)+'</div>';}
+    for(var d=1;d<=days;d++){html+='<div class="day" data-d="'+d+'">'+d+'</div>';}
+    var total=first+days; var tail=(7-total%7)%7;
+    for(var j=1;j<=tail;j++){html+='<div class="day out">'+j+'</div>';}
+    cal.innerHTML=html;
+    cal.querySelectorAll('.day:not(.out)').forEach(function(el){
+      el.addEventListener('click',function(){
+        cal.querySelectorAll('.day').forEach(function(x){x.classList.remove('sel');});
+        el.classList.add('sel');
+        onPick(new Date(y,m,parseInt(el.dataset.d)));
+      });
+    });
+  }
+  document.getElementById(prevId).addEventListener('click',function(){state.m--;if(state.m<0){state.m=11;state.y--;}render();});
+  document.getElementById(nextId).addEventListener('click',function(){state.m++;if(state.m>11){state.m=0;state.y++;}render();});
+  render();
+}
+
+// H5 picker (phone1)
+(function(){
+  var trigger=document.querySelector('[data-trigger="p1"]');
+  var sheet=document.getElementById('p1-sheet');
+  var mask=document.getElementById('p1-mask');
+  var valEl=document.getElementById('p1-val');
+  function open(){sheet.classList.add('show');mask.classList.add('show');}
+  function close(){sheet.classList.remove('show');mask.classList.remove('show');}
+  trigger.addEventListener('click',open);
+  mask.addEventListener('click',close);
+  sheet.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',close);});
+  sheet.querySelectorAll('.quick button').forEach(function(b){
+    b.addEventListener('click',function(){
+      var t=new Date();
+      var q=b.dataset.q;
+      var r=q==='year'?addYears(t,1):q==='half'?addMonths(t,6):addMonths(t,1);
+      valEl.textContent=fmt(r);valEl.className='val';valEl.style.color='var(--primary)';valEl.style.fontWeight='600';
+    });
+  });
+  buildCal('p1-cal','p1-ym','p1-prev','p1-next',function(d){
+    valEl.textContent=fmt(d);valEl.className='val';valEl.style.color='var(--primary)';valEl.style.fontWeight='600';
+  });
+})();
+
+// Web picker (modal1)
+(function(){
+  var trigger=document.querySelector('[data-trigger="w1"]');
+  var pop=document.getElementById('w1-pop');
+  var valEl=document.getElementById('w1-val');
+  trigger.addEventListener('click',function(e){e.stopPropagation();pop.classList.toggle('show');});
+  document.addEventListener('click',function(){pop.classList.remove('show');});
+  pop.querySelectorAll('.quick button').forEach(function(b){
+    b.addEventListener('click',function(e){
+      e.stopPropagation();
+      var t=new Date();var q=b.dataset.q;
+      var r=q==='year'?addYears(t,1):q==='half'?addMonths(t,6):addMonths(t,1);
+      valEl.textContent=fmt(r);valEl.className='val';valEl.style.color='var(--primary)';valEl.style.fontWeight='600';
+    });
+  });
+  buildCal('w1-cal','w1-ym','w1-prev','w1-next',function(d){
+    valEl.textContent=fmt(d);valEl.className='val';valEl.style.color='var(--primary)';valEl.style.fontWeight='600';
+  });
+})();
+</script>
+</body>
+</html>

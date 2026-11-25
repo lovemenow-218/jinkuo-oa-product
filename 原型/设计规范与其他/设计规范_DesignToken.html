@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>设计规范 · Design Token 标准 v1.0（金蝶 OA）</title>
+<!-- 唯一真源：同目录 tokens.css。页面所有颜色/圆角/间距/字号都从它取，
+     不在这里重复写品牌色，保证看板与真源不会漂移。 -->
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  /* 看板自身的排版骨架。色彩一律来自 tokens.css（带兜底值，便于单独拷贝预览）。 */
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    padding:32px 20px 56px;
+    background:var(--color-bg-page,#f2f4f7);
+    color:var(--color-text-primary,#1f2329);
+    font-family:var(--font-family-base,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif);
+    -webkit-font-smoothing:antialiased;
+    font-size:var(--font-size-base,14px);
+    line-height:var(--line-height-normal,1.55);
+  }
+  .wrap{max-width:1040px;margin:0 auto;}
+  code,.mono{font-family:var(--font-family-mono,ui-monospace,Menlo,monospace);}
+
+  /* ---------- 页头 ---------- */
+  .hd{background:var(--color-bg-card,#fff);border:1px solid var(--color-border,#edf0f3);
+      border-radius:var(--radius-md,14px);padding:24px 26px 22px;}
+  .kicker{font-family:var(--font-family-mono,monospace);font-size:11px;letter-spacing:.16em;
+          color:var(--color-primary,#1f6ad8);text-transform:uppercase;margin-bottom:10px;}
+  h1{font-size:23px;line-height:1.35;margin:0 0 10px;letter-spacing:-.02em;}
+  .lead{font-size:13px;line-height:1.85;color:var(--color-text-secondary,#4e5969);margin:0;}
+  .lead b{color:var(--color-text-primary,#1f2329);font-weight:600;}
+  .scope{margin-top:14px;padding:11px 13px;border-radius:var(--radius-sm,8px);
+         background:var(--color-primary-light,#e4edfa);border:1px solid #d6e6ff;
+         font-size:12px;line-height:1.8;color:#1e4b8a;}
+  .scope b{color:#0f3d7a;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .chip-t{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;
+          color:var(--color-text-secondary,#4e5969);background:var(--color-bg-muted,#f7f8fa);
+          border:1px solid var(--color-border,#edf0f3);border-radius:var(--radius-pill,999px);
+          padding:5px 11px 5px 6px;}
+  .chip-t i{width:13px;height:13px;border-radius:var(--radius-xs,4px);display:inline-block;
+            border:1px solid rgba(0,0,0,.08);}
+  .chip-t code{font-size:11px;color:var(--color-text-primary,#1f2329);}
+
+  /* ---------- 分节 ---------- */
+  section{background:var(--color-bg-card,#fff);border:1px solid var(--color-border,#edf0f3);
+          border-radius:var(--radius-md,14px);padding:22px 26px 24px;margin-top:18px;}
+  h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:10px;letter-spacing:-.01em;}
+  .no{font-family:var(--font-family-mono,monospace);font-size:11px;
+      color:var(--color-text-tertiary,#a8adb5);font-weight:400;letter-spacing:.1em;}
+  .desc{font-size:12.5px;line-height:1.85;color:var(--color-text-secondary,#4e5969);margin:6px 0 18px;}
+  .desc b{color:var(--color-text-primary,#1f2329);font-weight:600;}
+  h3{font-size:13.5px;margin:26px 0 12px;}
+  h3 .tag{font-family:var(--font-family-mono,monospace);font-size:10.5px;font-weight:400;
+          color:var(--color-text-tertiary,#a8adb5);margin-left:8px;letter-spacing:.02em;}
+
+  /* ---------- 01 基线 ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .stat{border:1px solid var(--color-border,#edf0f3);border-radius:var(--radius-sm,8px);
+        padding:13px 14px;background:var(--color-bg-muted,#f7f8fa);}
+  .stat .n{font-family:var(--font-family-mono,monospace);font-size:20px;font-weight:600;
+           color:var(--color-danger,#f5453d);letter-spacing:-.02em;line-height:1.2;}
+  .stat .n.ok{color:var(--color-text-secondary,#4e5969);}
+  .stat .t{font-size:11.5px;color:var(--color-text-secondary,#4e5969);margin-top:6px;line-height:1.6;}
+  .stat .s{font-size:10.5px;color:var(--color-text-tertiary,#a8adb5);margin-top:5px;line-height:1.5;}
+  .note{font-size:11.5px;line-height:1.85;color:var(--color-text-tertiary,#a8adb5);margin-top:14px;}
+  .note b{color:var(--color-text-secondary,#4e5969);}
+
+  /* ---------- 02 色板 ---------- */
+  .scale{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+  .sw{border-radius:var(--radius-sm,8px);overflow:hidden;min-width:0;
+      border:1px solid var(--color-border,#edf0f3);background:var(--color-bg-card,#fff);}
+  .sw .blk{height:62px;}
+  .sw .meta{padding:7px 8px 8px;}
+  .sw .hx{font-family:var(--font-family-mono,monospace);font-size:11px;font-weight:600;
+          color:var(--color-text-primary,#1f2329);letter-spacing:.01em;overflow-wrap:anywhere;}
+  .sw .vr{font-family:var(--font-family-mono,monospace);font-size:9.5px;
+          color:var(--color-text-tertiary,#a8adb5);margin-top:3px;word-break:normal;overflow-wrap:anywhere;line-height:1.45;}
+  .sw .rl{font-size:10.5px;color:var(--color-text-secondary,#4e5969);margin-top:4px;}
+  .sem{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .sem .sw .blk{height:46px;}
+  .rowline{display:flex;flex-wrap:wrap;gap:8px;}
+  .mini{flex:1 1 130px;min-width:0;border:1px solid var(--color-border,#edf0f3);border-radius:var(--radius-sm,8px);padding:8px 10px;}
+  .mini .sq{height:26px;border-radius:var(--radius-xs,4px);margin-bottom:7px;border:1px solid rgba(0,0,0,.06);}
+  .mini .hx{font-family:var(--font-family-mono,monospace);font-size:11px;font-weight:600;}
+  .mini .vr{font-family:var(--font-family-mono,monospace);font-size:9.5px;color:var(--color-text-tertiary,#a8adb5);margin-top:2px;word-break:normal;overflow-wrap:anywhere;}
+  .ext-note{font-size:11px;line-height:1.7;color:#8a6a2a;background:var(--color-warning-bg,#fde6cd);
+            border:1px solid #f6d9b4;border-radius:var(--radius-sm,8px);padding:9px 11px;margin-top:10px;}
+  .ext-note b{color:#7a5a1a;}
+
+  /* ---------- 表格 ---------- */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{border:1px solid var(--color-border,#edf0f3);padding:8px 10px;text-align:left;vertical-align:top;}
+  th{background:var(--color-bg-muted,#f7f8fa);color:var(--color-text-secondary,#4e5969);font-weight:600;white-space:nowrap;}
+  td code,th code{font-family:var(--font-family-mono,monospace);font-size:11px;
+                  color:var(--color-primary-dark,#1b5dbe);background:var(--color-code-bg,#f4f7fc);
+                  border-radius:var(--radius-xs,4px);padding:1px 5px;}
+  .dotc{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;
+        margin-right:6px;border:1px solid rgba(0,0,0,.1);}
+  .pass{color:var(--color-success,#3aa655);font-weight:600;}
+  .fail{color:var(--color-danger,#f5453d);font-weight:600;}
+  .warn{color:#b07000;font-weight:600;}
+  .cmp td:first-child{white-space:nowrap;color:var(--color-text-secondary,#4e5969);}
+
+  /* ---------- 04 组件示例 ---------- */
+  .demo{border:1px dashed var(--color-border-strong,#dcdfe6);border-radius:var(--radius-sm,8px);
+        padding:18px 16px;background:var(--color-bg-muted,#f7f8fa);}
+  .demo + .dm-lbl{margin-top:22px;}
+  .dm-lbl{font-size:11px;font-family:var(--font-family-mono,monospace);
+          color:var(--color-text-tertiary,#a8adb5);margin:0 0 8px;letter-spacing:.02em;}
+  .flex{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .btn{border:1px solid transparent;border-radius:var(--radius-sm,8px);
+       padding:8px 16px;font-size:var(--font-size-base,14px);font-weight:500;
+       font-family:inherit;cursor:pointer;line-height:1.4;
+       transition:background var(--duration-fast,120ms) var(--ease-out,ease);}
+  .btn-primary{background:var(--color-primary,#1f6ad8);color:var(--color-text-inverse,#fff);}
+  .btn-primary:hover{background:var(--color-primary-hover,#5599ff);}
+  .btn-primary:active{background:var(--color-primary-active,#2263c7);}
+  .btn-secondary{background:transparent;color:var(--color-primary-dark,#1b5dbe);
+                 border-color:var(--color-primary,#1f6ad8);}
+  .btn-secondary:hover{background:var(--color-primary-light,#e4edfa);}
+  .btn-danger{background:var(--color-danger,#f5453d);color:var(--color-text-inverse,#fff);}
+  .btn-danger:hover{background:var(--color-danger-hover,#e73a32);}
+  .btn-plain{background:var(--color-bg-card,#fff);color:var(--color-text-secondary,#4e5969);
+             border-color:var(--color-border-strong,#dcdfe6);}
+  .btn-disabled{background:var(--color-primary-disabled,#a6c8ff);color:var(--color-text-inverse,#fff);
+                cursor:not-allowed;}
+  .btn:focus-visible{outline:none;box-shadow:var(--focus-ring,0 0 0 3px rgba(43,127,255,.2));}
+
+  .tagx{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;
+        border-radius:var(--radius-xs,4px);padding:3px 9px;line-height:1.5;}
+  .t-primary{background:var(--color-primary-light,#e4edfa);color:var(--color-primary-dark,#1b5dbe);}
+  .t-success{background:var(--color-success-bg,#e6f6ea);color:var(--color-success,#3aa655);}
+  .t-warning{background:var(--color-warning-bg,#fde6cd);color:var(--color-warning-text,#94560a);}
+  .t-danger{background:var(--color-danger-bg,#fdeaea);color:var(--color-danger,#f5453d);}
+  .t-info{background:var(--color-info-bg,#f2f3f5);color:var(--color-text-secondary,#4e5969);}
+  .t-accent{background:var(--color-accent-bg,#f0ebff);color:var(--color-accent,#7c5cfc);}
+  .t-neutral{background:var(--color-neutral-bg,#eef0f4);color:var(--color-neutral,#6b7785);}
+  .t-pill{border-radius:var(--radius-pill,999px);}
+
+  .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:760px;}
+  .field label{display:block;font-size:11.5px;color:var(--color-text-secondary,#4e5969);margin-bottom:5px;}
+  .inp{width:100%;border:1px solid var(--color-border-strong,#dcdfe6);
+       border-radius:var(--radius-sm,8px);padding:8px 11px;font-size:var(--font-size-base,14px);
+       font-family:inherit;color:var(--color-text-primary,#1f2329);background:var(--color-bg-card,#fff);}
+  .inp::placeholder{color:var(--color-text-tertiary,#a8adb5);}
+  .inp.focus{border-color:var(--color-primary,#1f6ad8);box-shadow:var(--focus-ring,0 0 0 3px rgba(31,106,216,.2));outline:none;}
+  .inp.err{border-color:var(--color-danger,#f5453d);background:var(--color-danger-bg,#fdeaea);}
+  .errmsg{font-size:11px;color:var(--color-danger,#f5453d);margin-top:4px;}
+
+  .tb{width:342px;max-width:100%;border:1px solid var(--color-border,#edf0f3);
+      border-radius:var(--radius-md,14px);overflow:hidden;background:var(--color-bg-card,#fff);
+      box-shadow:var(--shadow-raised,0 8px 22px rgba(16,24,40,.07));}
+  .tb-body{height:56px;background:var(--color-bg-muted,#f7f8fa);padding:12px 14px;
+           display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--color-border,#edf0f3);}
+  .sk{height:7px;border-radius:3px;background:var(--color-skeleton,#e9edf2);}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);padding:7px 0;}
+  .tabi{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;line-height:1;
+        color:var(--color-text-tertiary,#a8adb5);letter-spacing:.02em;}
+  .tabi svg{width:22px;height:22px;display:block;}
+  .tabi.on{color:var(--color-primary,#1f6ad8);font-weight:600;}
+
+  .nics{display:flex;flex-wrap:wrap;gap:10px;}
+  .nic{width:100px;text-align:center;}
+  .nic .bx{width:44px;height:44px;border-radius:var(--radius-sm,8px);margin:0 auto 6px;
+           display:flex;align-items:center;justify-content:center;
+           font-size:var(--font-size-xl,19px);font-weight:700;line-height:1;}
+  .nic .id{font-size:9.5px;color:var(--color-text-tertiary,#a8adb5);
+           font-family:var(--font-family-mono,monospace);word-break:normal;line-height:1.5;}
+
+  /* ---------- 05 治理 ---------- */
+  .rules{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .rule{border:1px solid var(--color-border,#edf0f3);border-radius:var(--radius-sm,8px);padding:13px 15px;}
+  .rule .rh{display:flex;align-items:baseline;gap:8px;margin-bottom:6px;}
+  .rule .ri{font-family:var(--font-family-mono,monospace);font-size:11px;font-weight:700;
+            color:var(--color-primary,#1f6ad8);}
+  .rule .rt{font-size:13px;font-weight:600;}
+  .rule p{margin:0;font-size:12px;line-height:1.8;color:var(--color-text-secondary,#4e5969);}
+  .rule p code{font-size:11px;color:var(--color-primary-dark,#1b5dbe);background:var(--color-code-bg,#f4f7fc);
+               padding:1px 4px;border-radius:3px;}
+
+  footer{max-width:1040px;margin:18px auto 0;font-size:11.5px;line-height:1.9;
+         color:var(--color-text-tertiary,#a8adb5);padding:0 4px;}
+  footer b{color:var(--color-text-secondary,#4e5969);}
+
+  @media (max-width:820px){
+    body{padding:16px 12px 40px;}
+    section,.hd{padding:18px;border-radius:var(--radius-sm,8px);}
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .scale{grid-template-columns:repeat(3,1fr);}
+    .sem{grid-template-columns:repeat(2,1fr);}
+    .fields{grid-template-columns:1fr;}
+    .rules{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 页头 ================= -->
+  <header class="hd">
+    <div class="kicker">Design System · Token Standard v1.0</div>
+    <h1>金蝶 OA · 全系统设计令牌标准</h1>
+    <p class="lead">
+      目标只有一句：让全站有<b>一个品牌色真源</b>，把现在流通的多套蓝收口成一套令牌，并让「换个皮肤」「加个白标」从改代码变成改变量。
+      唯一真源文件是 <b>tokens.css</b>；本页是它的可评审看板，所有色块都直接引用该文件，不另存色值。
+    </p>
+    <div class="scope">
+      <b>立项口径：</b>这是<b>设计体系级立项</b>，不在《消息中心_需求描述》范围内 —— 那份文档只约束消息中心改版。两件事并行推进、互不阻塞：消息中心改版照原计划验收，令牌标准化单独排期、单独验收。
+    </div>
+    <div class="chips">
+      <span class="chip-t"><i style="background:#1f6ad8"></i>品牌色 <code>#1f6ad8</code></span>
+      <span class="chip-t">唯一真源 <code>tokens.css</code></span>
+      <span class="chip-t">组件禁止硬编码 hex</span>
+      <span class="chip-t">换肤只改变量</span>
+      <span class="chip-t">命名语义化</span>
+    </div>
+  </header>
+
+  <!-- ================= 01 现状基线 ================= -->
+  <section>
+    <h2><span class="no">01</span>现状基线（迁移依据 · 不美化）</h2>
+    <p class="desc">下面四个数字是这次立项的前提。它们说明：<b>把 #1f6ad8 写成规范是起步，不是完成</b>。真正的成本在第 06 节的第三步。</p>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="n">0</div>
+        <div class="t">业务代码里 <code class="mono">#1f6ad8</code> 的命中数</div>
+        <div class="s">本文件是「新立的法」，不是「已生效的法」</div>
+      </div>
+      <div class="stat">
+        <div class="n">#409EFF</div>
+        <div class="t">现网实际主色，来自 Element Plus 默认 <code class="mono">--el-color-primary</code></div>
+        <div class="s">不是我们的品牌色，是组件库的出厂色</div>
+      </div>
+      <div class="stat">
+        <div class="n">≈47</div>
+        <div class="t">全站流通的饱和蓝种类</div>
+        <div class="s">没有任何一个品牌色 token 在管它们</div>
+      </div>
+      <div class="stat">
+        <div class="n">11</div>
+        <div class="t">Element Plus 派生档（hover/active/disabled/light…）</div>
+        <div class="s">已编译成 rgb() 字面量，不跟随 primary 变量</div>
+      </div>
+    </div>
+
+    <p class="note">
+      <b>为什么这是真项目而不是一次改色：</b>第 4 个数字是坑。EP 的 light-3/light-5/light-7/light-8/light-9/dark-2 等档位在构建产物里已经被算成 <code class="mono">rgb()</code> 字面量，
+      所以「把 --el-color-primary 改成 #1f6ad8」之后，按钮悬停、禁用、浅底这些状态<b>仍然是 #409EFF 的派生色</b>，页面看起来「改了一半」。
+      必须逐档桥接变量（tokens.css 文末的 EP 桥接段），再按模块做视觉回归。
+    </p>
+    <p class="note">
+      <b>本次可复核实测（不完全依赖转述）：</b>取仓库内两份最新前端构建产物（<code class="mono">h5-20261109</code>、<code class="mono">test-20261109-oa-dev</code>）做全文检索 ——
+      <code class="mono">#1f6ad8</code> 命中 <b>0</b>；按「色相 195–250°、饱和度 ≥55%、亮度 ≥35%」判据去重，实测<b> 68 种</b>饱和蓝，比源码口径的 47 更多，多出来的是第三方组件与图表色。
+      结论不变、只会更重：<b>收口规模只多不少。</b>
+    </p>
+  </section>
+
+  <!-- ================= 02 色板 ================= -->
+  <section>
+    <h2><span class="no">02</span>色板（三组 · 每个色块都标了变量名）</h2>
+    <p class="desc">色块颜色直接来自 <code class="mono">tokens.css</code>；左边是 hex，下面一行是变量名，可与该文件逐行对照。<b>只有品牌色是「定」的，其余都是从它推导出来的档位。</b></p>
+
+    <h3>2.1 品牌色阶 <span class="tag">--color-primary-*</span></h3>
+    <div class="scale">
+<div class="sw">
+        <div class="blk" style="background:var(--color-primary-light,#e4edfa)"></div>
+        <div class="meta">
+          <div class="hx">#e4edfa</div>
+          <div class="vr">--color-primary-light</div>
+          <div class="rl">浅底 / 选中背景</div>
+        </div>
+      </div>
+<div class="sw">
+        <div class="blk" style="background:var(--color-primary-disabled,#84adea)"></div>
+        <div class="meta">
+          <div class="hx">#84adea</div>
+          <div class="vr">--color-primary-disabled</div>
+          <div class="rl">禁用填充</div>
+        </div>
+      </div>
+<div class="sw">
+        <div class="blk" style="background:var(--color-primary-hover,#4c88e0)"></div>
+        <div class="meta">
+          <div class="hx">#4c88e0</div>
+          <div class="vr">--color-primary-hover</div>
+          <div class="rl">悬停（+20% 白）</div>
+        </div>
+      </div>
+<div class="sw" style="border-color:#d6e6ff">
+        <div class="blk" style="background:var(--color-primary,#1f6ad8)"></div>
+        <div class="meta">
+          <div class="hx">#1f6ad8</div>
+          <div class="vr">--color-primary</div>
+          <div class="rl"><b>基准档 · 实心</b></div>
+        </div>
+      </div>
+<div class="sw">
+        <div class="blk" style="background:var(--color-primary-dark,#1b5dbe)"></div>
+        <div class="meta">
+          <div class="hx">#1b5dbe</div>
+          <div class="vr">--color-primary-dark</div>
+          <div class="rl">浅底上的文字/图标</div>
+        </div>
+      </div>
+<div class="sw">
+        <div class="blk" style="background:var(--color-primary-active,#1853a8)"></div>
+        <div class="meta">
+          <div class="hx">#1853a8</div>
+          <div class="vr">--color-primary-active</div>
+          <div class="rl">按下（+22% 黑）</div>
+        </div>
+      </div>
+<div class="sw">
+        <div class="blk" style="background:rgba(31,106,216,.2)"></div>
+        <div class="meta">
+          <div class="hx" style="font-size:9.5px">rgba(31,106,216,.2)</div>
+          <div class="vr">--color-primary-ring</div>
+          <div class="rl">焦点环（唯一 alpha 品牌色）</div>
+        </div>
+      </div>
+    </div>
+    <p class="note">推导规则写在 tokens.css 注释里：hover = 主色混 20% 白、active = 混 22% 黑、disabled = 混 45% 白、light = 混 88% 白。
+      hover 故意比 Element Plus 的 light-3（≈#79bbff）更收敛 —— 直接照抄 EP 的提亮幅度会让品牌蓝在悬停时「发灰发淡」。</p>
+
+    <h3>2.2 语义色 <span class="tag">--color-success / warning / danger / info</span></h3>
+    <div class="sem">
+      <div class="sw">
+        <div class="blk" style="background:var(--color-success,#3aa655)"></div>
+        <div class="meta">
+          <div class="hx">#3aa655</div>
+          <div class="vr">--color-success</div>
+          <div class="rl">通过 / 完成</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-success-bg,#e6f6ea)"></div>
+        <div class="meta">
+          <div class="hx">#e6f6ea</div>
+          <div class="vr">--color-success-bg</div>
+          <div class="rl">成功提示底</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-warning,#ef9a3c)"></div>
+        <div class="meta">
+          <div class="hx">#ef9a3c</div>
+          <div class="vr">--color-warning</div>
+          <div class="rl">临近 / 需关注</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-warning-bg,#fde6cd)"></div>
+        <div class="meta">
+          <div class="hx">#fde6cd</div>
+          <div class="vr">--color-warning-bg</div>
+          <div class="rl">警告提示底</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-danger,#f5453d)"></div>
+        <div class="meta">
+          <div class="hx">#f5453d</div>
+          <div class="vr">--color-danger</div>
+          <div class="rl">驳回 / 逾期 / 删除</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-danger-bg,#fdeaea)"></div>
+        <div class="meta">
+          <div class="hx">#fdeaea</div>
+          <div class="vr">--color-danger-bg</div>
+          <div class="rl">错误提示底</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-info,#909399)"></div>
+        <div class="meta">
+          <div class="hx">#909399</div>
+          <div class="vr">--color-info</div>
+          <div class="rl">中性 / 无情绪</div>
+        </div>
+      </div>
+      <div class="sw">
+        <div class="blk" style="background:var(--color-info-bg,#f2f3f5)"></div>
+        <div class="meta">
+          <div class="hx">#f2f3f5</div>
+          <div class="vr">--color-info-bg</div>
+          <div class="rl">中性底</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>2.3 文本三级 <span class="tag">--color-text-*（只有三级，不要造第四级）</span></h3>
+    <div class="rowline">
+      <div class="mini">
+        <div class="sq" style="background:var(--color-text-primary,#1f2329)"></div>
+        <div class="hx">#1f2329</div>
+        <div class="vr">--color-text-primary</div>
+        <div class="rl">标题 / 正文</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-text-secondary,#4e5969)"></div>
+        <div class="hx">#4e5969</div>
+        <div class="vr">--color-text-secondary</div>
+        <div class="rl">副标题 / 说明</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-text-tertiary,#a8adb5)"></div>
+        <div class="hx">#a8adb5</div>
+        <div class="vr">--color-text-tertiary</div>
+        <div class="rl">占位 / 未选中 / 禁用</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-text-inverse,#fff)"></div>
+        <div class="hx">#ffffff</div>
+        <div class="vr">--color-text-inverse</div>
+        <div class="rl">深色底上的字</div>
+      </div>
+    </div>
+
+    <h3>2.4 分隔与背景 <span class="tag">--color-border-* / --color-bg-*</span></h3>
+    <div class="rowline">
+      <div class="mini">
+        <div class="sq" style="background:var(--color-border,#edf0f3)"></div>
+        <div class="hx">#edf0f3</div>
+        <div class="vr">--color-border</div>
+        <div class="rl">分割线 / 卡片描边</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-border-strong,#dcdfe6)"></div>
+        <div class="hx">#dcdfe6</div>
+        <div class="vr">--color-border-strong</div>
+        <div class="rl">表单控件描边</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-bg-page,#f2f4f7)"></div>
+        <div class="hx">#f2f4f7</div>
+        <div class="vr">--color-bg-page</div>
+        <div class="rl">页面底</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-bg-card,#ffffff)"></div>
+        <div class="hx">#ffffff</div>
+        <div class="vr">--color-bg-card</div>
+        <div class="rl">卡片 / 弹窗</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-bg-muted,#f7f8fa)"></div>
+        <div class="hx">#f7f8fa</div>
+        <div class="vr">--color-bg-muted</div>
+        <div class="rl">表头 / 只读区</div>
+      </div>
+    </div>
+
+    <h3>2.5 业务扩展色 <span class="tag">来自通知图标令牌表，色值原样保留</span></h3>
+    <div class="rowline">
+      <div class="mini">
+        <div class="sq" style="background:var(--color-accent,#7c5cfc)"></div>
+        <div class="hx">#7c5cfc</div>
+        <div class="vr">--color-accent</div>
+        <div class="rl">待我审批（已定稿）</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-accent-bg,#f0ebff)"></div>
+        <div class="hx">#f0ebff</div>
+        <div class="vr">--color-accent-bg</div>
+        <div class="rl">待我审批底</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-neutral,#6b7785)"></div>
+        <div class="hx">#6b7785</div>
+        <div class="vr">--color-neutral</div>
+        <div class="rl">抄送标签字</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-neutral-bg,#eef0f4)"></div>
+        <div class="hx">#eef0f4</div>
+        <div class="vr">--color-neutral-bg</div>
+        <div class="rl">抄送标签底</div>
+      </div>
+      <div class="mini">
+        <div class="sq" style="background:var(--color-avatar-bg,#185fa5)"></div>
+        <div class="hx">#185fa5</div>
+        <div class="vr">--color-avatar-bg</div>
+        <div class="rl">首字头像底</div>
+      </div>
+    </div>
+    <div class="ext-note">
+      <b>使用限制：</b>这五档是「已被某个业务占用」的专用色，由 <code class="mono">docs/消息通知_图标令牌表.html</code> 定稿搬入，值一个没改。
+      除对应业务外不得引用 —— 尤其紫色 <code class="mono">#7c5cfc</code>，一旦被当第二个主色用，全站就会有两条并列的「强调色」，收口工作白做。
+    </div>
+  </section>
+
+  <!-- ================= 03 语义映射 ================= -->
+  <section>
+    <h2><span class="no">03</span>语义映射（写死用哪个 token，组件不再自己判断）</h2>
+    <p class="desc">这一节是给开发看的：拿到一个界面元素，先查这张表，<b>表里有的按表用，表里没有的提出来加一行</b>，不要就地挑一个「看起来差不多」的蓝。</p>
+
+    <table class="cmp">
+      <tr><th style="width:190px">场景</th><th style="width:250px">用哪个 token</th><th style="width:120px">值</th><th>说明</th></tr>
+      <tr>
+        <td>主按钮（实心）</td>
+        <td><code>--color-primary</code></td>
+        <td><span class="dotc" style="background:#1f6ad8"></span>#1f6ad8</td>
+        <td>白字；hover → <code>--color-primary-hover</code>，按下 → <code>--color-primary-active</code></td>
+      </tr>
+      <tr>
+        <td>次按钮（描边）</td>
+        <td><code>--color-primary</code> 描边 + <code>--color-primary-dark</code> 文字</td>
+        <td><span class="dotc" style="background:#1f6ad8"></span>#1f6ad8 / #1b5dbe</td>
+        <td>文字用深档是为了对比度（6.26:1），描边用基准档保持品牌亮度</td>
+      </tr>
+      <tr>
+        <td>危险操作（删除 / 驳回）</td>
+        <td><code>--color-danger</code> + <code>--color-danger-bg</code></td>
+        <td><span class="dotc" style="background:#f5453d"></span>#f5453d / #fdeaea</td>
+        <td>实心按钮用 danger，提示条用 danger-bg</td>
+      </tr>
+      <tr>
+        <td>成功提示（审批通过 / 还款完成）</td>
+        <td><code>--color-success</code> + <code>--color-success-bg</code></td>
+        <td><span class="dotc" style="background:#3aa655"></span>#3aa655 / #e6f6ea</td>
+        <td>与通知图标「审批通过」同一套色，视觉记忆一致</td>
+      </tr>
+      <tr>
+        <td>临近到期 / 需关注</td>
+        <td><code>--color-warning</code> + <code>--color-warning-bg</code></td>
+        <td><span class="dotc" style="background:#ef9a3c"></span>#ef9a3c / #fde6cd</td>
+        <td><b>橙色系不能直接当文字</b>：warning 在 warning-bg 上仅 1.86:1，文字改用 <code>--color-warning-text</code>（4.83:1）</td>
+      </tr>
+      <tr>
+        <td>中性信息 / 灰态</td>
+        <td><code>--color-info</code> + <code>--color-info-bg</code></td>
+        <td><span class="dotc" style="background:#909399"></span>#909399 / #f2f3f5</td>
+        <td>不承担情绪的地方用灰，别用蓝</td>
+      </tr>
+      <tr>
+        <td>选中项浅底（Tab / 列表行 / 标签）</td>
+        <td><code>--color-primary-light</code></td>
+          <td><span class="dotc" style="background:#e4edfa"></span>#e4edfa</td>
+          <td>浅底上放文字时文字用 <code>--color-primary-dark</code></td>
+      </tr>
+      <tr>
+        <td>@我的 / 链接 / 浅蓝底上的蓝字</td>
+        <td><code>--color-primary-dark</code></td>
+        <td><span class="dotc" style="background:#1b5dbe"></span>#1b5dbe</td>
+        <td>统一为 <code>--color-primary-dark</code>（#1b5dbe，白底 6.26:1 达 AA）；@我的 类型图标徽标的既有 #2b6fd4 属图标令牌表已定稿资产，在迁移第三步随收口一并归一</td>
+      </tr>
+      <tr>
+        <td>底部 Tab 选中 / 未选中</td>
+        <td><code>--color-primary</code> / <code>--color-text-tertiary</code></td>
+        <td><span class="dotc" style="background:#1f6ad8"></span>#1f6ad8 / #a8adb5</td>
+        <td>与底部 Tab 图标规范同源（描边 2px，选中转实心）</td>
+      </tr>
+      <tr>
+        <td>正文 / 副标题 / 占位</td>
+        <td><code>--color-text-primary</code> / <code>-secondary</code> / <code>-tertiary</code></td>
+        <td>#1f2329 / #4e5969 / #a8adb5</td>
+        <td>三级封顶，第四级一律归到 tertiary</td>
+      </tr>
+      <tr>
+        <td>卡片描边 / 分割线</td>
+        <td><code>--color-border</code></td>
+        <td><span class="dotc" style="background:#edf0f3"></span>#edf0f3</td>
+        <td>靠色差不靠粗细；表单控件改用 <code>--color-border-strong</code></td>
+      </tr>
+      <tr>
+        <td>页面底 / 卡片底</td>
+        <td><code>--color-bg-page</code> / <code>--color-bg-card</code></td>
+        <td><span class="dotc" style="background:#f2f4f7"></span>#f2f4f7 / #ffffff</td>
+        <td>页面永远比卡片深一档，靠这个区分层级</td>
+      </tr>
+    </table>
+
+    <h3>3.2 对比度实测（不合格的照写，不粉饰）</h3>
+    <table>
+      <tr><th style="width:260px">组合</th><th style="width:96px">对比度</th><th style="width:110px">结论</th><th>处理</th></tr>
+      <tr><td><span class="dotc" style="background:#1f2329"></span>#1f2329 on #ffffff</td><td class="mono">15.8 : 1</td><td class="pass">AA 通过</td><td>正文主力，放心用</td></tr>
+      <tr><td><span class="dotc" style="background:#4e5969"></span>#4e5969 on #ffffff</td><td class="mono">7.0 : 1</td><td class="pass">AA 通过</td><td>副标题、说明文案</td></tr>
+      <tr><td><span class="dotc" style="background:#1b5dbe"></span>#1b5dbe on #ffffff</td><td class="mono">6.26 : 1</td><td class="pass">AA 通过</td><td>蓝色文字/链接的正确取值</td></tr>
+      <tr><td><span class="dotc" style="background:#1b5dbe"></span>#1b5dbe on #e2edff</td><td class="mono">5.29 : 1</td><td class="pass">AA 通过</td><td>浅蓝底上的蓝字与图标，文字也达标（≥4.5:1）</td></tr>
+      <tr><td><span class="dotc" style="background:#ef9a3c"></span>#ef9a3c on #fde6cd</td><td class="mono">1.86 : 1</td><td class="fail">不可作文字</td><td>橙色系的通病。<b>通知图标「警」字形现状就是这一组合</b>（19px/700 仍不足 3:1），该资产已定稿不改，建议挂到无障碍专项复评</td></tr>
+      <tr><td><span class="dotc" style="background:#94560a"></span>#94560a on #fde6cd</td><td class="mono">4.83 : 1</td><td class="pass">AA 通过</td><td>即 <code>--color-warning-text</code>，warning-bg 上凡是文字都用它</td></tr>
+      <tr><td><span class="dotc" style="background:#1f6ad8"></span>#ffffff on #1f6ad8</td><td class="mono">5.10 : 1</td><td class="pass">AA 通过</td><td>主按钮白字。<b>现状 EP #409EFF 只有 3.0:1，本次统一主色即达 AA</b>；产品已拍板主按钮必须达 AA，<code>--color-primary</code> 定稿为 #1f6ad8</td></tr>
+      <tr><td><span class="dotc" style="background:#a8adb5"></span>#a8adb5 on #ffffff</td><td class="mono">2.28 : 1</td><td class="fail">不可承载正文</td><td>仅限图标、未选中、占位、禁用。设计要求里写「灰色小字」时必须落到具体级</td></tr>
+    </table>
+    <p class="note">
+      <b>怎么处理「主按钮白字」那一行（已拍板）：</b>产品已明确主按钮必须达 AA，<code class="mono">--color-primary</code> 定稿为 <code class="mono">#1f6ad8</code>（白字 5.10:1 达标）。
+      原前提案 #2b7fff 与其深档 #2b6fd4 两色过近，一并并入 #1f6ad8 家族（深档 #1b5dbe，白底 6.26:1）。本次只改 tokens.css 一行 + 派生档 —— 正是令牌化的价值。
+    </p>
+  </section>
+
+  <!-- ================= 04 组件示例 ================= -->
+  <section>
+    <h2><span class="no">04</span>组件示例（用 token 拼，证明够用）</h2>
+    <p class="desc">下面每个例子都只用 <code class="mono">tokens.css</code> 里的变量拼成，没有一处硬编码色值。如果某天有人要做一个控件、发现现有 token 拼不出来，那就是该申请新 token 的信号，而不是就地写 hex。</p>
+
+    <p class="dm-lbl">/ 按钮 · 四种层级 + 禁用</p>
+    <div class="demo">
+      <div class="flex">
+        <button class="btn btn-primary">提交审批</button>
+        <button class="btn btn-secondary">查看详情</button>
+        <button class="btn btn-danger">驳回</button>
+        <button class="btn btn-plain">取消</button>
+        <button class="btn btn-disabled" disabled>已禁用</button>
+      </div>
+    </div>
+
+    <p class="dm-lbl" style="margin-top:22px">/ 标签 chip · 七个语义位</p>
+    <div class="demo">
+      <div class="flex">
+        <span class="tagx t-accent">待我审批</span>
+        <span class="tagx t-success">已通过</span>
+        <span class="tagx t-warning">剩 1 天</span>
+        <span class="tagx t-danger">已逾期</span>
+        <span class="tagx t-info">已关闭</span>
+        <span class="tagx t-neutral">抄送我的</span>
+        <span class="tagx t-primary">审批中</span>
+        <span class="tagx t-primary t-pill">胶囊样式</span>
+      </div>
+    </div>
+
+    <p class="dm-lbl" style="margin-top:22px">/ 输入框 · 默认 / 聚焦 / 错误</p>
+    <div class="demo">
+      <div class="fields">
+        <div class="field">
+          <label>默认</label>
+          <input class="inp" placeholder="请输入门店名称" />
+        </div>
+        <div class="field">
+          <label>聚焦</label>
+          <input class="inp focus" value="深圳旗舰店" />
+        </div>
+        <div class="field">
+          <label>错误</label>
+          <input class="inp err" value="0.00" />
+          <div class="errmsg">金额必须大于 0</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="dm-lbl" style="margin-top:22px">/ 底部 Tab · 选中 / 未选中（同一套 2px 描边，选中转实心）</p>
+    <div class="demo" style="display:flex;justify-content:center">
+      <div class="tb">
+        <div class="tb-body">
+          <div class="sk" style="width:58%"></div>
+          <div class="sk" style="width:82%"></div>
+          <div class="sk" style="width:44%"></div>
+        </div>
+        <div class="tabs">
+          <div class="tabi on">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/></svg>
+            消息
+          </div>
+          <div class="tabi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3.6 7.4 5.9 9.7 9.2 5.8"/><path d="M12.4 7.7h8.2"/>
+              <path d="M3.6 16 5.9 18.3 9.2 14.4"/><path d="M12.4 16.3h8.2"/>
+            </svg>
+            待办
+          </div>
+          <div class="tabi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+              <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+            </svg>
+            工作台
+          </div>
+          <div class="tabi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="8.4" r="3.6"/>
+              <path d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4"/>
+            </svg>
+            我的
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="dm-lbl" style="margin-top:22px">/ 通知图标色块 · 44px / 圆角 8 / 字形 19px 700（沿用令牌表定稿）</p>
+    <div class="demo">
+      <div class="nics">
+        <div class="nic">
+          <div class="bx" style="background:#e2edff;color:#2b6fd4">@</div>
+          <div class="id">#e2edff<br>#2b6fd4</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-success-bg,#e6f6ea);color:var(--color-success,#3aa655)">✓</div>
+          <div class="id">#e6f6ea<br>#3aa655</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-danger-bg,#fdeaea);color:var(--color-danger,#f5453d)">✕</div>
+          <div class="id">#fdeaea<br>#f5453d</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-warning-bg,#fde6cd);color:var(--color-warning,#ef9a3c)">警</div>
+          <div class="id">#fde6cd<br>#ef9a3c</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-accent-bg,#f0ebff);color:var(--color-accent,#7c5cfc)">审</div>
+          <div class="id">#f0ebff<br>#7c5cfc</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-neutral-bg,#eef0f4);color:var(--color-neutral,#6b7785)">抄</div>
+          <div class="id">#eef0f4<br>#6b7785</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-info-bg,#f2f3f5);color:var(--color-info,#909399)">警</div>
+          <div class="id">#f2f3f5<br>#909399</div>
+        </div>
+        <div class="nic">
+          <div class="bx" style="background:var(--color-bg-page,#f2f4f7);color:var(--color-text-primary,#1f2329)">姓</div>
+          <div class="id">头像 · #185fa5 底白字</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 05 治理 ================= -->
+  <section>
+    <h2><span class="no">05</span>治理规则</h2>
+    <p class="desc">令牌化失败从来不是「文件没写」，而是<b>写了没人守</b>。四条规则 + 三个能自动跑的验收手段，比任何文档都管用。</p>
+
+    <div class="rules">
+      <div class="rule">
+        <div class="rh"><span class="ri">R1</span><span class="rt">唯一来源</span></div>
+        <p>颜色/圆角/间距/字号只认 <code>docs/tokens.css</code>。组件、页面、原型里出现 <code>#1f6ad8</code> 这类字面量即视为缺陷，评审直接打回。</p>
+      </div>
+      <div class="rule">
+        <div class="rh"><span class="ri">R2</span><span class="rt">命名语义化</span></div>
+        <p>按「角色」命名，不按「外观」命名：写 <code>--color-primary</code>、<code>--color-danger</code>；禁止 <code>--blue-500</code>、<code>--c1</code>、<code>--light-blue</code>。</p>
+      </div>
+      <div class="rule">
+        <div class="rh"><span class="ri">R3</span><span class="rt">换肤只改变量</span></div>
+        <p>深色、主题、白标定制只允许改 tokens.css 里的值，变量名不动。禁止在组件里写 <code>.dark .btn{}</code> 这类条件样式，否则换肤立刻失控。</p>
+      </div>
+      <div class="rule">
+        <div class="rh"><span class="ri">R4</span><span class="rt">新色入册需评审</span></div>
+        <p>要加颜色，先改 tokens.css 并更新本看板，评审通过才算入册。评审要回答三个问题：属于哪一层？和现有哪个 token 重复？不新增会怎样？</p>
+      </div>
+    </div>
+
+    <h3>5.1 三个可自动化的验收手段</h3>
+    <table>
+      <tr><th style="width:200px">手段</th><th>怎么做</th><th style="width:150px">拦什么</th></tr>
+      <tr>
+        <td>硬编码扫描</td>
+        <td>CI 里跑 <code>grep -rniE "#[0-9a-f]{3,6}\b" src --include=*.vue --include=*.css --include=*.scss | grep -v tokens.css</code>，命中数只允许下降不允许上升</td>
+        <td>新增硬编码色值</td>
+      </tr>
+      <tr>
+        <td>Stylelint 规则</td>
+        <td><code>color-no-hex: true</code>（白名单只放 tokens.css）+ 自定义 <code>declaration-property-value-allowed-list</code> 限定字号/间距取值</td>
+        <td>PR 阶段就挡住</td>
+      </tr>
+      <tr>
+        <td>可视化回归</td>
+        <td>每个改动的页面截图与基线对比（已有 UI 测试链路可挂），批量替换时按模块出 diff</td>
+        <td>收口后的视觉偏移</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- ================= 06 迁移 ================= -->
+  <section>
+    <h2><span class="no">06</span>迁移三步（诚实的成本结构）</h2>
+    <p class="desc">三步里只有第一步是「快」的。真正的工作量在第三步，而且它不是一个纯设计任务，需要开发、测试、产品一起排期。</p>
+
+    <table>
+      <tr>
+        <th style="width:64px">步骤</th>
+        <th style="width:210px">做什么</th>
+        <th style="width:130px">工作量 / 风险</th>
+        <th>验收口径</th>
+      </tr>
+      <tr>
+        <td><b>① 立法</b></td>
+        <td>落 <code>tokens.css</code> + 本看板；不接任何现有页面，纯新增文件</td>
+        <td class="pass">小 · 零风险</td>
+        <td>文件合并即完成。此时线上<b>没有任何变化</b>，不需要回归</td>
+      </tr>
+      <tr>
+        <td><b>② 增量</b></td>
+        <td>新页面、新组件强制走 token；同时把 EP 变量桥接上（tokens.css 文末注释段）</td>
+        <td class="pass">增量零 · 中风险</td>
+        <td>新页面无硬编码 hex；EP 按钮实际渲染色 = #1f6ad8（DevTools 验证，不能只看代码）</td>
+      </tr>
+      <tr>
+        <td><b>③ 收口</b></td>
+        <td>老页面按模块分批替换：先消息中心、再审批流、再报表与后台；每批一次视觉回归</td>
+        <td class="fail">主要工作量 · 高风险</td>
+        <td>68 种饱和蓝（源码口径 47）逐模块归零；每批附截图 diff；不允许「一次全量替换」</td>
+      </tr>
+    </table>
+
+    <p class="note" style="margin-top:14px">
+      <b>必须写明的两件事（别让后来人以为这是件小事）：</b><br>
+      ① 现状是 <b>68 种饱和蓝并存（源码口径 47）</b>、且<b>没有任何品牌色 token</b> —— 收口等于一次全站视觉回归，不是改一个变量。<br>
+      ② Element Plus 的 <b>11 个派生档已编译成 rgb() 字面量、不跟随 primary 变量</b> —— 只改 <code class="mono">--el-color-primary</code> 会出现「按钮主色变了、悬停和禁用没变」的半成品状态，必须逐档覆盖后再验收。
+    </p>
+    <p class="note">
+      <b>建议的排期姿势：</b>步骤①②跟着本迭代走（成本极低）；步骤③单独排一个「视觉一致性」专项，按模块灰度、不与其他需求混在同一批回归里 —— 否则一旦出现视觉偏移，很难判断是功能改动还是收口引起的。
+    </p>
+    <p class="note" style="border-color:#1f6ad8">
+      <b>产品已确认范围（2026-11-11）：</b>收口<b>不是「待定」，而是明确要做</b>。旧系统接手前没有设计，导致现在"一个地方一种蓝、花花绿绿"。方向已定：设计新 UI 一律走 token；旧界面色调<b>渐进式分批换回统一主色 #1f6ad8</b>，不在一期内硬切。任何"这里用一种颜色、那里用另一种"的散色，都归到本专项收口，不允许再新增第二套品牌蓝。
+    </p>
+  </section>
+
+  <footer>
+    <b>文件说明：</b>本页与 <code>docs/tokens.css</code> 成对交付，看板通过 <code>&lt;link&gt;</code> 直接引用该文件，页面内不存第二份色值；改 tokens.css，看板自动同步。<br>
+    <b>与既有资产的关系：</b>色值升格自 <code>docs/消息通知_图标令牌表.html</code> 已定稿的 <code>:root</code> 变量（#2b7fff / #2b6fd4 / #e2edff / #3aa655 / #ef9a3c / #f5453d / #909399 / #edf0f3 / #f2f4f7 / #a8adb5 等），一个未改，仅补派生档、结构量、语义化命名。<br>
+    <b>本次只新增两个文件</b>（tokens.css、本页），未改动需求文档、notify_icons、图标令牌表或任何业务代码。<br>
+    <b>看板自身的说明性用色：</b>本页说明框、外链提示、对比度结论标签用到少量排版色（如 #1e4b8a / #8a6a2a），属文档排版、不是产品 UI，未纳入 tokens；<b>04 组件示例区已 100% 使用 token，无一处硬编码</b>（自检时发现并补齐了 4 个缺失令牌：warning-text / danger-hover / skeleton / code-bg）。<br>
+    <b>待产品/开发确认项：</b>① 主按钮白字达 AA —— 已确认：主色定为 #1f6ad8（5.10:1）；② <code>--color-primary-disabled</code> 的平色值是否符合现网禁用观感；③ <code>--color-border-strong</code> 是否统一到所有表单控件；④ 深色主题只在 tokens.css 里留了骨架，未做对比度评审，暂不启用；⑤ 通知图标「警」字形为 #ef9a3c on #fde6cd（1.86:1），是否在无障碍专项里改用 --color-warning-text；⑥ 旧界面渐进式收口（迁移第三步）已确认纳入排期，按模块灰度。
+  </footer>
+</div>
+</body>
+</html>

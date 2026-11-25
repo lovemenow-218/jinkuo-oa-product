@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>备用金还款预警 · 全页面原型（v2）</title>
+<style>
+  :root{
+    --primary:#1d4ed8; --primary-l:#eff4ff; --primary-b:#c7d7fe;
+    --line:#e6e8ee; --line2:#eef0f4; --sub:#8a90a0; --text:#2c3140;
+    --red:#e24b4a; --red-l:#fdeceb; --orange:#ef9f27; --orange-l:#fdf3e3;
+    --blue:#378add; --blue-l:#eaf3fc; --green:#1d9e75; --green-l:#e7f6f0;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#f4f5f8; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+       color:var(--text); padding:28px 24px 60px;}
+  .doc-title{font-size:20px; font-weight:700; text-align:center; margin-bottom:6px;}
+  .doc-sub{font-size:13px; color:var(--sub); text-align:center; margin-bottom:10px; line-height:1.7; max-width:980px;}
+  .screens{display:flex; flex-direction:column; gap:38px; align-items:center;}
+
+  .group-h{width:100%; max-width:1100px; display:flex; align-items:center; gap:14px; margin:14px 0 4px;
+           font-size:15px; font-weight:700;}
+  .group-h::before{content:""; width:4px; height:18px; background:var(--primary); border-radius:2px; flex-shrink:0;}
+  .group-h .gh-sub{font-size:12px; font-weight:400; color:var(--sub);}
+  .group-line{flex:1; height:1px; background:var(--line);}
+  .screen-label{font-size:12px; color:var(--sub); margin-bottom:10px; font-weight:600; max-width:1100px;}
+  .row{display:flex; gap:26px; flex-wrap:wrap; justify-content:center; align-items:flex-start;}
+
+  /* phone（与《消息通知优化》原型 h5 通知列表同款外观） */
+  .phone{width:322px; background:#fff; border-radius:26px; border:8px solid #20242b;
+         box-shadow:0 10px 26px rgba(16,24,40,.14); overflow:hidden; height:640px;
+         display:flex; flex-direction:column; position:relative;}
+  .screen{flex:1; overflow:auto; background:#fff; position:relative;}
+  .screen::-webkit-scrollbar{width:0;}
+  .banner{background:#fdf4dd; color:#d9a441; text-align:center; font-size:12px; padding:7px 0;}
+  .topbar{display:flex; align-items:center; gap:9px; padding:12px 14px 8px;}
+  .topbar .ttl{flex:1; font-size:17px; font-weight:700;}
+  .topbar .act{color:#2b7fff; font-size:12px; cursor:pointer; font-weight:600;}
+  .subtabs{display:flex; flex-wrap:wrap; gap:6px; padding:10px 12px; border-bottom:1px solid #edf0f3;
+           background:#fff; position:sticky; top:0; z-index:2;}
+  .subtabs::-webkit-scrollbar{height:0;}
+  .stab{padding:4px 9px; border-radius:14px; font-size:11px; color:#4e5969; background:#f4f5f7; white-space:nowrap;}
+  .stab.on{background:#2b7fff; color:#fff; font-weight:600;}
+  .listitem{display:flex; align-items:flex-start; gap:11px; padding:11px 14px; border-bottom:1px solid #f2f4f7; cursor:pointer;}
+  .listitem.done{opacity:.66;}
+  .listitem.done .meta .t1{color:#6b7280;}
+  .ico{width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+       flex-shrink:0; font-size:18px; font-weight:700;}
+  .ico.w-blue{background:#e2edff; color:#2b6fd4;}
+  .ico.w-orange{background:#fde6cd; color:#ef9a3c;}
+  .ico.w-red{background:#fdeaea; color:#f5453d;}
+  .ico.w-gray{background:#eef0f4; color:#6b7785;}
+  .meta{flex:1; min-width:0;}
+  .meta .t1{font-size:15px; font-weight:600; line-height:1.45; color:var(--text);
+            display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .meta .t1.unread{font-weight:800;}
+  .meta .t2{font-size:13px; margin-top:5px;}
+  .meta .t2 .amt{color:var(--text); font-weight:700;}
+  .meta .t3{font-size:12px; margin-top:4px; display:flex; gap:6px; align-items:center; white-space:nowrap; overflow:hidden;}
+  .meta .t3 .tag{font-size:11px; padding:1px 5px; flex-shrink:0;}
+  .meta .t4{font-size:12px; color:var(--sub); margin-top:4px; white-space:nowrap; overflow:hidden;}
+  .unreadflag{width:7px; height:7px; border-radius:50%; background:#f5453d; flex-shrink:0; margin-top:8px;}
+  .li-note{padding:10px 14px; background:#f7f9fc; border-top:1px solid #edf0f3; font-size:12px; color:#4e5969; line-height:1.65;}
+  .navbar{border-top:1px solid #edf0f3; display:flex; background:#fff; padding:7px 0 12px; flex-shrink:0;}
+  .nav{flex:1; text-align:center; color:#a8adb5; font-size:11px; cursor:pointer;}
+  .nav.on{color:#2b7fff; font-weight:600;}
+  .nav svg{display:block; margin:0 auto 3px;}
+  .cap{font-size:12px; color:var(--sub); text-align:center; margin-top:8px; max-width:340px; line-height:1.6;}
+  .tag{padding:1px 6px; border-radius:4px; font-weight:600;}
+  .t-blue{background:var(--blue-l); color:#185fa5;} .t-orange{background:var(--orange-l); color:#854f0b;}
+  .t-red{background:var(--red-l); color:#a32d2d;} .t-green{background:var(--green-l); color:#0f6e56;}
+  .t-gray{background:#f1f2f5; color:#5f5e5a;}
+  .t-pending{background:#fff4e0; color:#8a5a00; border:1px solid #f3d9a8;}
+  /* web 卡片左侧色条（w-note 专用） */
+  .w-note.n-blue{border-left-color:var(--blue);} .w-note.n-blue .ico{background:var(--blue);}
+  .w-note.n-orange{border-left-color:var(--orange);} .w-note.n-orange .ico{background:var(--orange);}
+  .w-note.n-red{border-left-color:var(--red);} .w-note.n-red .ico{background:var(--red);}
+  .w-note.n-gray{border-left-color:#b8bcc8;} .w-note.n-gray .ico{background:#b8bcc8;}
+
+  .tip{font-size:11px; color:var(--sub); background:#fafbfc; border:1px dashed var(--line);
+       border-radius:9px; padding:9px 11px; margin-bottom:11px; line-height:1.65;}
+
+  /* h5 sheet overlay（保持原有结构：字段一行一条带分隔线；内容压缩至单屏不滚动） */
+  .mask{position:absolute; inset:0; background:rgba(18,24,38,.42); z-index:30; display:flex; align-items:flex-end;}
+  .sheet{width:100%; background:#fff; border-radius:14px 14px 0 0; padding:14px 18px 18px;}
+  .sheet .grab{width:36px; height:4px; border-radius:2px; background:#dfe2ea; margin:0 auto 10px;}
+  .sheet h4{font-size:16px; margin-bottom:6px; padding-bottom:10px; border-bottom:1px solid var(--line2);
+            display:flex; justify-content:space-between; align-items:center;}
+  .sheet h4 .x{cursor:pointer; color:var(--sub); font-size:18px;}
+  .sh-sub{font-size:12px; color:var(--sub); margin-bottom:10px; line-height:1.55;}
+  .kv{display:flex; justify-content:space-between; gap:12px; padding:9px 0; border-bottom:1px solid var(--line2); font-size:13px;}
+  .kv:last-of-type{border-bottom:none;}
+  .kv .k{color:var(--sub); flex-shrink:0;}
+  .kv .v{font-weight:600; text-align:right;}
+  .st-line{display:flex; gap:8px; align-items:center; margin:10px 0 12px; padding:9px 12px;
+           border-radius:9px; font-size:12px; white-space:nowrap; overflow:hidden;}
+  .foot{display:flex; gap:9px; margin-top:14px;}
+  .btn{padding:9px 0; flex:1; text-align:center; border-radius:9px; font-size:13px; cursor:pointer; border:1px solid var(--line); background:#fff;}
+  .btn.primary{background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600;}
+  .btn.danger{background:var(--red); color:#fff; border-color:var(--red); font-weight:600;}
+
+  /* web shell */
+  .web{width:980px; height:620px; background:#fff; border-radius:12px; overflow:hidden;
+       box-shadow:0 10px 34px rgba(20,30,60,.12); display:flex; flex-direction:column; position:relative;}
+  .w-top{height:46px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center;
+         padding:0 18px; gap:16px; font-size:13px; color:#555;}
+  .w-top .brand{font-weight:700; color:var(--text); font-size:14px;}
+  .w-top .icons{margin-left:auto; display:flex; gap:16px; align-items:center; font-size:15px; color:#7b8296;}
+  .w-top .badge{font-size:12px; color:var(--text); font-weight:700; margin-left:-10px;}
+  .w-body{flex:1; display:flex; overflow:hidden;}
+  .w-side{width:150px; background:#f7f8fa; border-right:1px solid var(--line); padding:12px 0;}
+  .w-side a{display:block; padding:9px 16px; font-size:13px; color:#555; cursor:pointer;}
+  .w-side a.on{background:#fff; color:var(--primary); font-weight:700; border-right:2px solid var(--primary);}
+  .w-main{flex:1; padding:16px 20px; overflow:auto; background:#fafbfc; position:relative;}
+  .w-main h3{font-size:15px; margin-bottom:4px;}
+  .w-main .cnt{font-size:12px; color:var(--sub); margin-bottom:12px;}
+
+  .w-note{display:flex; gap:10px; padding:12px 14px; border-radius:10px; margin-bottom:9px; background:#fff;
+          border:1px solid var(--line); border-left:3px solid var(--line); cursor:pointer;}
+  .w-note .ico{width:28px; height:28px; border-radius:8px; flex-shrink:0; display:flex; align-items:center;
+               justify-content:center; font-size:13px; color:#fff; font-weight:700;}
+  .w-note .t{font-size:13px; margin-bottom:5px; line-height:1.5;}
+  .w-note .m{font-size:11px; color:var(--sub); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .w-note .m .tag{padding:1px 6px; border-radius:4px; font-weight:600;}
+  .w-note .m .amt{color:var(--text); font-weight:600;}
+  .w-note .dot{width:6px; height:6px; border-radius:50%; background:var(--red); flex-shrink:0; align-self:flex-start; margin-top:6px;}
+  .w-note.done{opacity:.6; background:#fafafa;}
+  .w-note.done .ico{background:#b8bcc8;}
+  .w-note.done .t{font-weight:400 !important;}
+
+  /* web modal */
+  .wmask{position:absolute; inset:0; background:rgba(18,24,38,.42); z-index:30; display:flex; align-items:center; justify-content:center;}
+  .wmodal{width:520px; max-height:540px; overflow:auto; background:#fff; border-radius:12px; padding:20px 22px;}
+  .wmodal h4{font-size:16px; margin-bottom:4px; display:flex; justify-content:space-between;}
+  .wmodal h4 .x{cursor:pointer; color:var(--sub); font-size:18px;}
+  .wmodal .wfoot{display:flex; gap:10px; margin-top:16px;}
+  .wmodal .wfoot .btn{padding:8px 0;}
+
+  /* warn mgmt table */
+  .fbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px;}
+  .fbar .f{padding:6px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; font-size:12px; color:#555; min-width:96px;}
+  .fbar .f.on{border-color:var(--primary); color:var(--primary); background:var(--primary-l); font-weight:600;}
+  .fbar .btn{margin-left:auto; padding:6px 14px; font-size:12px; border:1px solid var(--line); border-radius:8px; background:#fff; cursor:pointer;}
+  .fbar .btn.danger2{background:var(--red); border-color:var(--red); color:#fff; font-weight:600;}
+  table.grid{width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:12px;}
+  table.grid th{background:#f7f8fa; padding:9px 8px; text-align:left; font-weight:600; border-bottom:1px solid var(--line); white-space:nowrap;}
+  table.grid td{padding:9px 8px; border-bottom:1px solid var(--line2); white-space:nowrap;}
+  table.grid tr:hover td{background:#fafcff;}
+  table.grid .dep{color:var(--sub);}
+  .ck{width:13px; height:13px; border:1px solid #c3c8d4; border-radius:3px; display:inline-block; vertical-align:-2px;}
+  .ck.on{background:var(--primary); border-color:var(--primary); position:relative;}
+  .ck.on::after{content:"✓"; color:#fff; font-size:10px; position:absolute; left:2px; top:-2px;}
+  .ck.dis{background:#f0f1f4;}
+  .row-act{color:var(--primary); cursor:pointer;}
+  .row-act.danger{color:var(--red);}
+  .pager{display:flex; justify-content:flex-end; gap:6px; margin-top:10px; font-size:12px; color:var(--sub); align-items:center;}
+  .pager b{color:var(--text);}
+  .pg{padding:3px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer;}
+  .pg.on{background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600;}
+
+  /* drawer */
+  .drawer{position:absolute; top:0; right:0; bottom:0; width:420px; background:#fff; z-index:35;
+          box-shadow:-12px 0 30px rgba(20,30,60,.14); display:flex; flex-direction:column;}
+  .d-head{padding:16px 18px 10px; border-bottom:1px solid var(--line);}
+  .d-head h4{font-size:15px; display:flex; justify-content:space-between; align-items:center;}
+  .d-head h4 .x{cursor:pointer; color:var(--sub); font-size:18px;}
+  .d-head .dsub{font-size:11px; color:var(--sub); margin-top:4px;}
+  .d-body{flex:1; overflow:auto; padding:14px 18px;}
+  .d-sec{font-size:12px; font-weight:700; margin:12px 0 8px; color:var(--text);}
+  .tl{position:relative; padding-left:18px;}
+  .tl::before{content:""; position:absolute; left:5px; top:4px; bottom:4px; width:2px; background:var(--line);}
+  .tl-item{position:relative; padding:0 0 14px;}
+  .tl-item::before{content:""; position:absolute; left:-17px; top:4px; width:10px; height:10px; border-radius:50%;
+                   background:#fff; border:2px solid var(--blue);}
+  .tl-item.o::before{border-color:var(--orange);}
+  .tl-item.r::before{border-color:var(--red);}
+  .tl-item .tl-t{font-size:12px; font-weight:600; margin-bottom:2px;}
+  .tl-item .tl-d{font-size:11px; color:var(--sub); line-height:1.6;}
+
+  /* empty & misc */
+  .empty{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+         padding:60px 0; color:var(--sub); font-size:13px;}
+  .empty .e-ico{width:56px; height:56px; border-radius:14px; background:#f1f2f5; display:flex; align-items:center;
+                justify-content:center; font-size:24px; color:#b8bcc8;}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--sub); align-items:center; margin-top:8px;}
+  .legend .sw{width:10px; height:10px; border-radius:3px; display:inline-block; vertical-align:-1px; margin-right:4px;}
+  .map{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; max-width:1100px; width:100%;}
+  .map .mcard{background:#fff; border:1px solid var(--line); border-radius:12px; padding:14px 16px;}
+  .map .mcard h5{font-size:13px; margin-bottom:6px;}
+  .map .mcard p{font-size:11px; color:var(--sub); line-height:1.7;}
+  .map .mcard .bdg{display:inline-block; font-size:10px; padding:1px 7px; border-radius:9px; margin-bottom:6px; font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="doc-title">备用金还款预警 · 全页面原型 v2</div>
+<div class="doc-sub">
+  本版替换旧原型，覆盖预警功能全部页面：h5 通知列表（申请人 / 会计两态）→ h5 详情弹层 → web 消息中心（卡片 + 详情弹窗）→
+  web「预警管理」列表 / 详情（部门筛选、批量确认）。<br>
+  本版关键变更：① h5/web 点击卡片改为弹出详情弹层 / 弹窗，不再直接跳页；② 会计侧在详情内完成【确认已还款】；③ 已还款后进入只读回执态。
+</div>
+
+<!-- ═══════════ 屏 0 · 页面地图 ═══════════ -->
+<div class="group-h">屏 0 · 预警功能页面地图<span class="gh-sub">本次原型覆盖的全部触点</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="map">
+    <div class="mcard"><span class="bdg t-blue">h5</span><h5>① 通知列表 · 第 5 类「还款预警」</h5>
+      <p>申请人侧 / 会计侧两套列表样式（与《消息通知优化》原型通知列表同款外观）；蓝 / 橙 / 红 / 灰四态；点击行 → 详情弹层，会计侧在弹层内【确认已还款】。见屏 1。</p></div>
+    <div class="mcard"><span class="bdg t-blue">h5</span><h5>② 预警详情弹层</h5>
+      <p>半屏弹层（非页面跳转）。会计侧：【确认已还款】；申请人侧：仅信息、无操作；已还款后点击卡片：只读回执（确认人 / 确认时间）。见屏 2。</p></div>
+    <div class="mcard"><span class="bdg t-green">web</span><h5>③ 消息中心 · 还款预警卡片 + 详情弹窗</h5>
+      <p>卡片带阶段 / 档位标签；点击弹详情弹窗：会计侧提供【确认已还款】，弹窗底部「查看流程详情」。见屏 3。</p></div>
+    <div class="mcard"><span class="bdg t-green">web</span><h5>④ 预警管理 · 列表页</h5>
+      <p>下版本新建。筛选（状态 / 阶段 / 申请人 / 部门 / 时间）+ 列表（含部门列）+ 勾选批量确认。见屏 4。</p></div>
+    <div class="mcard"><span class="bdg t-green">web</span><h5>⑤ 预警管理 · 详情抽屉</h5>
+      <p>档位触发时间线（逾期按天堆叠）、当前状态与确认操作。见屏 5。</p></div>
+    <div class="mcard"><span class="bdg t-orange">公共</span><h5>⑥ 关键公共态</h5>
+      <p>确认已还款二次弹窗（终态警示）、预警管理空态、已还款终态样式。见屏 6。</p></div>
+  </div>
+  <div class="legend" style="max-width:1100px;">
+    <span><span class="sw" style="background:var(--blue)"></span>常规提醒（蓝色）</span>
+    <span><span class="sw" style="background:var(--orange)"></span>临近提醒（剩余 1 天 / 到期当天）</span>
+    <span><span class="sw" style="background:var(--red)"></span>逾期提醒（红色）</span>
+    <span><span class="sw" style="background:#b8bcc8"></span>已还款（中性灰）</span>
+  </div>
+</div>
+
+<!-- ═══════════ 屏 1 · h5 通知列表 ═══════════ -->
+<div class="group-h">屏 1 · h5 通知列表 · 第 5 类「还款预警」<span class="gh-sub">外观与《消息通知优化》原型通知列表一致 · 申请人侧 与 会计侧</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="row">
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="banner">测试环境</div>
+          <div class="topbar"><div class="ttl">通知</div><div class="act">批量已读</div></div>
+          <div class="subtabs"><div class="stab on">全部</div><div class="stab">未读</div></div>
+
+          <div class="listitem">
+            <div class="ico w-gray">✓</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】（¥5,000.00，还款日 2026-11-01）已由会计审批处理人 吴国栋 于 2026-11-04 15:32 确认还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-gray">还款完成</span></div>
+              <div class="t4"><span>还款日 2026-11-01</span><span>·</span><span>11-04 15:32</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem">
+            <div class="ico w-blue">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】将于 2027-05-03 到期，剩余 183 天，请及时还款</div>
+              <div class="t2"><span class="amt">¥8,000.00</span></div>
+              <div class="t3"><span class="tag t-blue">常规提醒</span></div>
+              <div class="t4"><span>还款日 2027-05-03</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem">
+            <div class="ico w-orange">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】今日 2026-11-04 到期，请立即还款</div>
+              <div class="t2"><span class="amt">¥3,000.00</span></div>
+              <div class="t3"><span class="tag t-orange">临近提醒</span></div>
+              <div class="t4"><span>还款日 2026-11-04</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem">
+            <div class="ico w-red">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】已于 2026-11-01 逾期 3 天，请立即还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-red">逾期提醒</span></div>
+              <div class="t4"><span>还款日 2026-11-01</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem done">
+            <div class="ico w-gray">✓</div>
+            <div class="meta">
+              <div class="t1">【备用金申请】已于 2026-10-20 还款，还款完成</div>
+              <div class="t2"><span class="amt">¥2,000.00</span></div>
+              <div class="t3"><span class="tag t-gray">已还款</span></div>
+              <div class="t4"><span>还款日 2026-10-20</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="navbar">
+          <div class="nav on"><svg width="21" height="21" viewBox="0 0 24 24" fill="#2b7fff"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z"/></svg>首页</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2z"/></svg>待办</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>工作台</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.2c-3.3 0-9.9 1.7-9.9 5v2.6h19.8v-2.6c0-3.3-6.6-5-9.9-5z"/></svg>我的</div>
+        </div>
+      </div>
+      <div class="cap">申请人侧 · 与会计侧同一套三行结构（金额 / 阶段标签 / 还款日与通知时间）；确认已还款后收到「还款完成」通知（顶部灰色 ✓ 卡片，点击进只读回执）；已还款后该笔历史提醒全部转灰</div>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <div class="banner">测试环境</div>
+          <div class="topbar"><div class="ttl">通知</div><div class="act">批量已读</div></div>
+          <div class="subtabs"><div class="stab on">全部</div><div class="stab">未读</div></div>
+
+          <div class="listitem">
+            <div class="ico w-blue">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】申请人 周明远 尚未还款</div>
+              <div class="t2"><span class="amt">¥8,000.00</span></div>
+              <div class="t3"><span class="tag t-pending">待确认还款</span></div>
+              <div class="t4"><span>还款日 2027-05-03</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem">
+            <div class="ico w-red">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】申请人 周明远 尚未还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-pending">待确认还款</span><span class="tag t-red">已逾期 3 天</span></div>
+              <div class="t4"><span>还款日 2026-11-01</span><span>·</span><span>通知于 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem">
+            <div class="ico w-red">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】申请人 周明远 尚未还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-pending">待确认还款</span><span class="tag t-red">已逾期 2 天</span></div>
+              <div class="t4"><span>还款日 2026-11-01</span><span>·</span><span>昨日 10:00</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+
+          <div class="listitem done">
+            <div class="ico w-gray">✓</div>
+            <div class="meta">
+              <div class="t1">【备用金申请】申请人 李青 尚未还款</div>
+              <div class="t2"><span class="amt">¥2,000.00</span></div>
+              <div class="t3"><span class="tag t-gray">已还款</span></div>
+              <div class="t4"><span>还款日 2026-10-20</span><span>·</span><span>10-21 10:00</span></div>
+            </div>
+          </div>
+
+        </div>
+        <div class="navbar">
+          <div class="nav on"><svg width="21" height="21" viewBox="0 0 24 24" fill="#2b7fff"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z"/></svg>首页</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2z"/></svg>待办</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>工作台</div>
+          <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.2c-3.3 0-9.9 1.7-9.9 5v2.6h19.8v-2.6c0-3.3-6.6-5-9.9-5z"/></svg>我的</div>
+        </div>
+      </div>
+      <div class="cap">会计侧（该笔单据的会计审批处理人）· 标题「{流程名称} 申请人 {姓名} 尚未还款」；信息区三行：金额 /【待确认还款】【已逾期 N 天】标记 / 还款日与通知时间；无行内按钮，点击卡片弹详情弹层（屏 2 左）内【确认已还款】；逾期按天堆叠，确认后全部行转灰</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 屏 2 · h5 详情弹层 ═══════════ -->
+<div class="group-h">屏 2 · h5 预警详情弹层<span class="gh-sub">会计侧：【确认已还款】｜申请人侧：仅信息｜已还款：只读回执（确认人 + 确认时间）</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="row">
+    <div>
+      <div class="phone">
+        <div class="screen" style="filter:blur(1px); opacity:.75;">
+          <div class="banner">测试环境</div>
+          <div class="topbar"><div class="ttl">通知</div><div class="act">批量已读</div></div>
+          <div class="subtabs"><div class="stab on">全部</div><div class="stab">未读</div></div>
+          <div class="listitem" style="pointer-events:none;">
+            <div class="ico w-red">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】申请人 周明远 尚未还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-red">已逾期 3 天</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+          <div class="listitem" style="pointer-events:none;">
+            <div class="ico w-blue">警</div>
+            <div class="meta">
+              <div class="t1">【备用金申请】申请人 李青 尚未还款</div>
+              <div class="t2"><span class="amt">¥8,000.00</span></div>
+              <div class="t3"><span class="tag t-blue">常规提醒</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mask">
+          <div class="sheet">
+            <div class="grab"></div>
+            <h4>预警详情 <span class="x">×</span></h4>
+            <div class="sh-sub">【备用金申请】申请人 周明远 尚未还款（¥5,000.00），还款日 2026-11-01，已逾期 3 天，请关注</div>
+            <div class="st-line" style="background:var(--red-l); color:#a32d2d;"><span style="font-weight:700;">● 逾期提醒</span><span>已逾期 3 天 · 还款日 2026-11-01</span></div>
+            <div class="kv"><span class="k">流程名称</span><span class="v">备用金申请</span></div>
+            <div class="kv"><span class="k">申请人</span><span class="v">周明远</span></div>
+            <div class="kv"><span class="k">所属部门</span><span class="v">财务部</span></div>
+            <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+            <div class="kv"><span class="k">通知时间</span><span class="v">2026-11-04 10:00</span></div>
+            <div class="foot">
+              <button class="btn">查看流程详情</button>
+              <button class="btn danger">确认已还款</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">会计侧弹层 · 点【确认已还款】弹屏 6 弹窗</div>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="screen" style="filter:blur(1px); opacity:.75;">
+          <div class="banner">测试环境</div>
+          <div class="topbar"><div class="ttl">通知</div><div class="act">批量已读</div></div>
+          <div class="subtabs"><div class="stab on">全部</div><div class="stab">未读</div></div>
+          <div class="listitem" style="pointer-events:none;">
+            <div class="ico w-orange">警</div>
+            <div class="meta">
+              <div class="t1 unread">【备用金申请】今日 2026-11-04 到期，请立即还款</div>
+              <div class="t2"><span class="amt">¥3,000.00</span></div>
+              <div class="t3"><span class="tag t-orange">临近提醒</span></div>
+            </div>
+            <span class="unreadflag"></span>
+          </div>
+        </div>
+        <div class="mask">
+          <div class="sheet">
+            <div class="grab"></div>
+            <h4>预警详情 <span class="x">×</span></h4>
+            <div class="sh-sub">【备用金申请】今日 2026-11-04 到期，请立即还款</div>
+            <div class="st-line" style="background:var(--orange-l); color:#854f0b;"><span style="font-weight:700;">● 临近提醒</span><span>今日到期 · 还款日 2026-11-04</span></div>
+            <div class="kv"><span class="k">流程名称</span><span class="v">备用金申请</span></div>
+            <div class="kv"><span class="k">备用金金额</span><span class="v">¥3,000.00</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-04</span></div>
+            <div class="kv"><span class="k">通知时间</span><span class="v">2026-11-04 10:00</span></div>
+            <div class="foot">
+              <button class="btn">知道了</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">申请人侧弹层 · 无确认操作，仅信息与关闭</div>
+    </div>
+
+    <div>
+      <div class="phone">
+        <div class="screen" style="filter:blur(1px); opacity:.75;">
+          <div class="banner">测试环境</div>
+          <div class="topbar"><div class="ttl">通知</div><div class="act">批量已读</div></div>
+          <div class="subtabs"><div class="stab on">全部</div><div class="stab">未读</div></div>
+          <div class="listitem done" style="pointer-events:none;">
+            <div class="ico w-gray">✓</div>
+            <div class="meta">
+              <div class="t1">【备用金申请】申请人 周明远 尚未还款</div>
+              <div class="t2"><span class="amt">¥5,000.00</span></div>
+              <div class="t3"><span class="tag t-gray">已还款</span></div>
+              <div class="t4"><span>还款日 2026-11-01</span><span>·</span><span>11-04 15:32</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="mask">
+          <div class="sheet">
+            <div class="grab"></div>
+            <h4>预警详情 · 已还款 <span class="x">×</span></h4>
+            <div class="sh-sub">【备用金申请】申请人 周明远（¥5,000.00），还款日 2026-11-01，已确认还款</div>
+            <div class="st-line" style="background:var(--green-l); color:#116649;"><span style="font-weight:700;">✓ 已还款</span></div>
+            <div class="kv"><span class="k">流程名称</span><span class="v">备用金申请</span></div>
+            <div class="kv"><span class="k">申请人</span><span class="v">周明远</span></div>
+            <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+            <div class="kv"><span class="k">还款确认人</span><span class="v">吴国栋（会计审批处理人）</span></div>
+            <div class="kv"><span class="k">还款确认时间</span><span class="v">2026-11-04 15:32</span></div>
+            <div class="foot">
+              <button class="btn">关闭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">已还款后 · 点击该笔任一预警卡片（会计侧 / 申请人侧同口径）：只读回执，展示还款确认人与确认时间，无确认入口</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 屏 3 · web 消息中心 ═══════════ -->
+<div class="group-h">屏 3 · web 消息中心 · 通知列表（申请人侧 + 会计侧，对齐 h5 屏 1）+ 会计侧详情弹窗<span class="gh-sub">web 卡片文案 / 颜色与 h5 一致；保留阶段 · 档位标签（与 h5 区别）</span></div><div class="group-line"></div>
+<div class="screens">
+  <!-- 申请人侧 web 通知列表（对齐 h5 屏 1 申请人侧） -->
+  <div class="web">
+    <div class="w-top">
+      <span class="brand">金阔 OA</span><span>首页</span><span>流程</span><span>会计审批</span>
+      <span class="icons">🔔 💬 <span class="badge">4</span> 👤</span>
+    </div>
+    <div class="w-body">
+      <div class="w-side">
+        <a>工作台</a><a class="on">消息中心</a><a>流程审批</a><a>会计审批</a><a>组织架构</a>
+      </div>
+      <div class="w-main">
+        <h3>消息中心 · 还款预警（申请人侧）</h3>
+        <div class="cnt">申请人视图 · 未读 4 条</div>
+
+        <div class="w-note n-gray unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">✓</div>
+          <div class="body">
+            <div class="t">【备用金申请】（¥5,000.00，还款日 2026-11-01）已由会计审批处理人 吴国栋 于 2026-11-04 15:32 确认还款</div>
+            <div class="m"><span class="tag t-gray">还款完成</span><span class="amt">¥5,000.00</span><span>还款日 2026-11-01</span><span>·</span><span>11-04 15:32</span></div>
+          </div>
+        </div>
+        <div class="w-note n-blue unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】将于 2027-05-03 到期，剩余 183 天，请及时还款</div>
+            <div class="m"><span class="tag t-blue">常规提醒</span><span class="amt">¥8,000.00</span><span>还款日 2027-05-03</span><span>·</span><span>通知于 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-orange unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】今日 2026-11-04 到期，请立即还款</div>
+            <div class="m"><span class="tag t-orange">临近提醒</span><span class="amt">¥3,000.00</span><span>还款日 2026-11-04</span><span>·</span><span>通知于 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-red unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】已于 2026-11-01 逾期 3 天，请立即还款</div>
+            <div class="m"><span class="tag t-red">逾期提醒</span><span class="amt">¥5,000.00</span><span>还款日 2026-11-01</span><span>·</span><span>通知于 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-gray done" style="cursor:pointer;">
+          <div class="ico">✓</div>
+          <div class="body">
+            <div class="t">【备用金申请】已于 2026-10-20 还款，还款完成</div>
+            <div class="m"><span class="tag t-gray">已还款</span><span class="amt">¥2,000.00</span><span>还款日 2026-10-20</span><span>·</span><span>通知于 10:00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- 会计侧 web 通知列表 + 详情弹窗（沿用既有） -->
+  <div class="web">
+    <div class="w-top">
+      <span class="brand">金阔 OA</span><span>首页</span><span>流程</span><span>会计审批</span>
+      <span class="icons">🔔 💬 <span class="badge">6</span> 👤</span>
+    </div>
+    <div class="w-body">
+      <div class="w-side">
+        <a>工作台</a><a class="on">消息中心</a><a>流程审批</a><a>会计审批</a><a>组织架构</a>
+      </div>
+      <div class="w-main" style="filter:blur(0);">
+        <h3>消息中心 · 还款预警</h3>
+        <div class="cnt">会计审批处理人视图 · 未读 6 条，含每日逾期提醒</div>
+
+        <div class="w-note n-red unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】申请人 周明远 尚未还款（¥5,000.00），还款日 2026-11-01，已逾期 3 天，请关注</div>
+            <div class="m"><span class="tag t-red">逾期提醒</span><span class="tag t-pending">待确认还款</span><span class="amt">¥5,000.00</span><span>还款日 2026-11-01</span><span>·</span><span>今日 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-blue unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】申请人 李青 尚未还款（¥8,000.00），还款日 2027-05-03，剩余 183 天，请关注</div>
+            <div class="m"><span class="tag t-blue">常规提醒</span><span class="tag t-pending">待确认还款</span><span>档位：还款期过半（剩余 183 天）</span><span>·</span><span>今日 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-orange unread" style="cursor:pointer;">
+          <div class="dot"></div><div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】申请人 王强 尚未还款（¥3,000.00），今日 2026-11-04 到期，请关注</div>
+            <div class="m"><span class="tag t-orange">临近提醒 · 到期当天</span><span class="tag t-pending">待确认还款</span><span>·</span><span>今日 10:00</span></div>
+          </div>
+        </div>
+        <div class="w-note n-gray done" style="cursor:pointer;">
+          <div class="ico">警</div>
+          <div class="body">
+            <div class="t">【备用金申请】申请人 赵敏 尚未还款（¥2,000.00），已确认还款</div>
+            <div class="m"><span class="tag t-gray">已还款</span><span>·</span><span>10-21 10:00</span></div>
+          </div>
+        </div>
+
+        <div class="wmask">
+          <div class="wmodal">
+            <h4>预警详情 <span class="x">×</span></h4>
+            <div class="sh-sub">【备用金申请】申请人 周明远 尚未还款（¥5,000.00），还款日 2026-11-01，已逾期 3 天，请关注</div>
+            <div class="st-line" style="background:var(--red-l); color:#a32d2d;"><span style="font-weight:700;">● 逾期提醒</span><span>已逾期 3 天</span></div>
+            <div class="kv"><span class="k">流程名称</span><span class="v">备用金申请</span></div>
+            <div class="kv"><span class="k">申请人 / 所属部门</span><span class="v">周明远 · 财务部</span></div>
+            <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+            <div class="kv"><span class="k">当前阶段</span><span class="v" style="color:var(--red);">逾期提醒 · 已逾期 3 天</span></div>
+            <div class="kv"><span class="k">通知时间</span><span class="v">2026-11-04 10:00</span></div>
+            <div class="wfoot">
+              <button class="btn">查看流程详情</button>
+              <button class="btn danger">确认已还款</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cap" style="max-width:980px;">上：申请人侧视图（无确认入口，点击卡片弹详情弹窗仅信息展示，对齐 h5 屏 2 申请人侧）；下：会计审批处理人视图（可确认已还款，详情弹窗见右）。web 卡片保留阶段 / 档位标签（与 h5 区别）；点击卡片弹详情弹窗（不直接跳页），弹窗内可「查看流程详情」；预警管理上线后弹窗内加「前往预警管理」入口</div>
+</div>
+
+<!-- ═══════════ 屏 4 · web 预警管理 列表 ═══════════ -->
+<div class="group-h">屏 4 · web「预警管理」列表页<span class="gh-sub">下版本新建 · 部门筛选 / 批量确认</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="web">
+    <div class="w-top">
+      <span class="brand">金阔 OA</span><span>首页</span><span>流程</span><span>会计审批</span>
+      <span class="icons">🔔 💬 <span class="badge">6</span> 👤</span>
+    </div>
+    <div class="w-body">
+      <div class="w-side">
+        <a>工作台</a><a>消息中心</a><a>流程审批</a><a>会计审批</a><a class="on">预警管理</a>
+      </div>
+      <div class="w-main">
+        <h3>预警管理</h3>
+        <div class="cnt">共 128 条预警 · 预警中 62 · 已逾期 9 · 已还款 57　（菜单按权限点控制，仅会计 / 管理角色可见）</div>
+
+        <div class="fbar">
+          <span class="f">状态：全部 ▾</span>
+          <span class="f on">状态：已逾期</span>
+          <span class="f">阶段：全部 ▾</span>
+          <span class="f">申请人 ▾</span>
+          <span class="f on">部门：财务部</span>
+          <span class="f">时间范围 ▾</span>
+          <span class="f" style="min-width:150px;">🔍 流程名称 / 申请人</span>
+          <span class="btn danger2">批量确认已还款 (2)</span>
+          <span class="btn">导出 ▾</span>
+        </div>
+
+        <div style="overflow-x:auto;">
+        <table class="grid" style="min-width:900px;">
+          <tr>
+            <th style="width:26px;"><span class="ck on"></span></th>
+            <th>流程名称</th><th>申请人</th><th>所属部门</th><th>金额</th>
+            <th>还款日期</th><th>剩余 / 逾期</th><th>阶段</th><th>状态</th><th>预警起始</th><th>操作</th>
+          </tr>
+          <tr>
+            <td><span class="ck on"></span></td>
+            <td>备用金申请 CK-2026-0087</td><td>周明远</td><td class="dep">财务部</td><td>¥5,000.00</td>
+            <td>2026-11-01</td><td style="color:var(--red); font-weight:700;">已逾期 3 天</td>
+            <td><span class="tag t-red">逾期</span></td><td><span class="tag t-red">已逾期</span></td><td>2026-11-02</td>
+            <td><span class="row-act">详情</span> · <span class="row-act danger">确认已还款</span></td>
+          </tr>
+          <tr>
+            <td><span class="ck on"></span></td>
+            <td>备用金申请 CK-2026-0092</td><td>李青</td><td class="dep">市场部</td><td>¥12,000.00</td>
+            <td>2026-11-02</td><td style="color:var(--red); font-weight:700;">已逾期 2 天</td>
+            <td><span class="tag t-red">逾期</span></td><td><span class="tag t-red">已逾期</span></td><td>2026-11-03</td>
+            <td><span class="row-act">详情</span> · <span class="row-act danger">确认已还款</span></td>
+          </tr>
+          <tr>
+            <td><span class="ck dis"></span></td>
+            <td>备用金申请 CK-2026-0066</td><td>王强</td><td class="dep">运营部</td><td>¥3,000.00</td>
+            <td>2026-11-04</td><td>剩余 0 天（今日到期）</td>
+            <td><span class="tag t-orange">临近</span></td><td><span class="tag t-pending">预警中</span></td><td>2026-11-04</td>
+            <td><span class="row-act">详情</span> · <span style="color:#c3c8d4;">无确认权限</span></td>
+          </tr>
+          <tr>
+            <td><span class="ck"></span></td>
+            <td>备用金申请 CK-2026-0051</td><td>赵敏</td><td class="dep">财务部</td><td>¥2,000.00</td>
+            <td>2026-10-20</td><td>—</td>
+            <td><span class="tag t-gray">已还款</span></td><td><span class="tag t-gray">已还款</span></td><td>2026-09-05</td>
+            <td><span class="row-act">详情</span> · <span style="color:#c3c8d4;">已还款</span></td>
+          </tr>
+        </table>
+        </div>
+
+        <div class="legend">
+          <span>· 无确认权限的行复选框置灰，批量仅对有权限单据生效</span>
+          <span>· 部门为申请单手填快照，筛选按「包含匹配」</span>
+        </div>
+
+        <div class="pager">共 128 条 · 每页 20 <span class="pg">‹</span><span class="pg on">1</span><span class="pg">2</span><span class="pg">3</span><span class="pg">›</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 屏 5 · web 预警管理 详情抽屉 ═══════════ -->
+<div class="group-h">屏 5 · web「预警管理」详情抽屉<span class="gh-sub">档位触发时间线 + 确认操作</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="web">
+    <div class="w-top">
+      <span class="brand">金阔 OA</span><span>首页</span><span>流程</span><span>会计审批</span>
+      <span class="icons">🔔 💬 <span class="badge">6</span> 👤</span>
+    </div>
+    <div class="w-body">
+      <div class="w-side">
+        <a>工作台</a><a>消息中心</a><a>流程审批</a><a>会计审批</a><a class="on">预警管理</a>
+      </div>
+      <div class="w-main" style="filter:blur(1px); opacity:.8;"></div>
+      <div class="drawer">
+        <div class="d-head">
+          <h4>预警详情 · CK-2026-0087 <span class="x">×</span></h4>
+          <div class="dsub">备用金申请 · 申请人 周明远 · 当前状态：已逾期</div>
+        </div>
+        <div class="d-body">
+          <div class="st-line" style="background:var(--red-l); color:#a32d2d;">
+            <span style="font-weight:700;">● 逾期中</span><span>已逾期 3 天 · 每日 10:00 持续提醒</span>
+          </div>
+
+
+          <div class="d-sec">基础信息</div>
+          <div class="kv"><span class="k">申请人 / 部门</span><span class="v">周明远 · 财务部</span></div>
+          <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+          <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+          <div class="kv"><span class="k">还款期天数 T</span><span class="v">45 天</span></div>
+          <div class="kv"><span class="k">预警起始日</span><span class="v">2026-10-20</span></div>
+          <div class="kv"><span class="k">确认状态</span><span class="v" style="color:var(--red);">未确认还款</span></div>
+
+          <div class="d-sec">预警记录时间线（共 5 条）</div>
+          <div class="tl">
+            <div class="tl-item">
+              <div class="tl-t">常规提醒 · 还款期过半（剩余 22 天）</div>
+              <div class="tl-d">2026-10-20 10:00 · 触发档位 ⌈45/2⌉=23 → 剩余 22 天（发送给申请人 + 会计处理人）</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-t">临近提醒 · 剩余 7 天</div>
+              <div class="tl-d">2026-10-25 10:00</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-t">临近提醒 · 剩余 1 天</div>
+              <div class="tl-d">2026-10-31 10:00</div>
+            </div>
+            <div class="tl-item o">
+              <div class="tl-t">临近提醒 · 到期当天（剩余 0 天）</div>
+              <div class="tl-d">2026-11-01 10:00 · 「今日到期，请立即还款」</div>
+            </div>
+            <div class="tl-item r">
+              <div class="tl-t">逾期提醒 · 已逾期 1 天</div>
+              <div class="tl-d">2026-11-02 10:00</div>
+            </div>
+            <div class="tl-item r">
+              <div class="tl-t">逾期提醒 · 已逾期 2 天</div>
+              <div class="tl-d">2026-11-03 10:00</div>
+            </div>
+            <div class="tl-item r">
+              <div class="tl-t">逾期提醒 · 已逾期 3 天</div>
+              <div class="tl-d">2026-11-04 10:00 · 今日</div>
+            </div>
+          </div>
+
+          <div class="foot" style="margin-top:18px;">
+            <button class="btn">查看流程详情</button>
+            <button class="btn danger">确认已还款</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cap" style="max-width:980px;">详情以时间线展示全部档位触发记录与逾期每日堆叠记录；确认已还款后本页进入「已还款」终态，时间线保留、按钮隐藏</div>
+</div>
+
+<!-- ═══════════ 屏 6 · 公共态 ═══════════ -->
+<div class="group-h">屏 6 · 关键公共态<span class="gh-sub">二次确认弹窗 · 批量确认 · 空态 · 已还款终态</span></div><div class="group-line"></div>
+<div class="screens">
+  <div class="row">
+    <div class="web" style="width:520px; height:420px; position:relative;">
+      <div class="w-top"><span class="brand">金阔 OA</span><span style="color:var(--sub);">预警管理</span></div>
+      <div class="wmain" style="padding:20px; filter:blur(1px); opacity:.6;">
+        <div style="height:80px; background:#f5f6f9; border-radius:8px;"></div>
+        <div style="height:80px; background:#f5f6f9; border-radius:8px; margin-top:10px;"></div>
+      </div>
+      <div class="wmask">
+        <div class="wmodal" style="width:440px;">
+          <h4>确认已还款 <span class="x">×</span></h4>
+          <div class="sh-sub">请核对以下信息，确认后该笔备用金将停止所有预警与逾期提醒，且<b style="color:var(--red);">不可撤回</b>。</div>
+          <div class="kv"><span class="k">流程名称</span><span class="v">备用金申请 CK-2026-0087</span></div>
+          <div class="kv"><span class="k">申请人 / 部门</span><span class="v">周明远 · 财务部</span></div>
+          <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+          <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+          <div class="kv"><span class="k">当前逾期天数</span><span class="v" style="color:var(--red); font-weight:700;">3 天</span></div>
+          <div class="wfoot">
+            <button class="btn">取消</button>
+            <button class="btn danger">确认已还款</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="web" style="width:520px; height:420px; position:relative;">
+      <div class="w-top"><span class="brand">金阔 OA</span><span style="color:var(--sub);">预警管理</span></div>
+      <div class="wmain" style="padding:20px;">
+        <div style="height:36px; background:#f5f6f9; border-radius:8px;"></div>
+        <div class="empty" style="padding:44px 0;">
+          <div class="e-ico">✓</div>
+          <div>筛选无结果</div>
+          <div style="font-size:11px;">当前筛选条件下没有匹配的预警单据，可调整筛选条件后重试</div>
+          <button class="btn" style="flex:none; padding:8px 22px;">清空筛选</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="web" style="width:520px; height:420px; position:relative;">
+      <div class="w-top"><span class="brand">金阔 OA</span><span style="color:var(--sub);">预警管理 · 详情</span></div>
+      <div class="wmain" style="padding:20px;">
+        <div class="st-line" style="background:var(--green-l); color:#0f6e56; margin:0 0 12px;">
+          <span style="font-weight:700;">✓ 该笔备用金已还款</span><span>确认人：吴国栋（会计） · 2026-11-04 14:32</span>
+        </div>
+        <div class="tip">终态说明：确认后不可撤回；本页隐藏【确认已还款】，时间线与历史预警记录保留；该笔单据在消息中心的全部卡片同步转灰并隐藏操作按钮；后续站外推送一并终止。</div>
+        <div class="kv"><span class="k">申请人 / 部门</span><span class="v">周明远 · 财务部</span></div>
+        <div class="kv"><span class="k">备用金金额</span><span class="v">¥5,000.00</span></div>
+        <div class="kv"><span class="k">还款日期</span><span class="v">2026-11-01</span></div>
+        <div class="kv"><span class="k">实际确认时间</span><span class="v">2026-11-04 14:32（逾期 3 天时确认）</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="cap" style="max-width:1100px;">批量确认复用同一弹窗：汇总所选多笔单据并明示逐笔生效、部分失败时给出失败清单</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>消息通知 · 图标总览原型（审核稿）</title>
+<style>
+  :root{
+    /* —— OA 图标色板（源自 Axure 搭建清单 + 消息中心需求，唯一权威 —— */
+    --blue:#2b7fff;      /* 主蓝 / 选中态 */
+    --blue-l:#2b6fd4;    /* @ 图标字 / 链接蓝 */
+    --blue-bg:#e2edff;   /* at 图标底 / 选中项蓝条 */
+    --green:#3aa655;     /* 通过图标 */
+    --pass-bg:#e6f6ea;   /* 通过图标底 */
+    --red:#f5453d;       /* 未读红点 / 驳回图标 / 角标 */
+    --reject-bg:#fdeaea; /* 驳回图标底 */
+    --orange:#ef9a3c;    /* person 图标字 */
+    --orange-bg:#fde6cd; /* person / 临近·到期 图标底 */
+    --cc-t:#6b7785;      /* 抄送图标字 */
+    --cc-bg:#eef0f4;     /* 抄送图标底 */
+    --gray:#909399;      /* 中性灰（已还款） */
+    --gray-bg:#f2f3f5;   /* 中性灰底 */
+    --avatar:#185FA5;    /* 首字头像底（消息中心需求 L11） */
+    /* —— 待研发确认：提议值 —— */
+    --purple:#7c5cfc;    /* 待我审批「审」字（需求仅写"紫色"） */
+    --purple-bg:#f0ebff; /* 待我审批底 */
+
+    --txt:#1f2329; --txt2:#4e5969; --sub:#a8adb5;
+    --line:#edf0f3; --bg:#f2f4f7;
+    --chip:44px;
+    --primary:#2b7fff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px;margin:0 auto;padding:28px 22px 80px;}
+  header.top{background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:22px 24px;box-shadow:0 2px 10px rgba(16,24,40,.04);}
+  header.top h1{margin:0 0 6px;font-size:20px;font-weight:700;}
+  header.top p{margin:4px 0;font-size:13px;color:var(--txt2);line-height:1.6;}
+  .tag{display:inline-block;background:var(--blue-bg);color:var(--blue-l);
+    font-size:12px;font-weight:600;padding:2px 9px;border-radius:7px;margin-right:6px;}
+  .sec{background:#fff;border:1px solid var(--line);border-radius:14px;
+    padding:20px 24px;margin-top:18px;box-shadow:0 2px 10px rgba(16,24,40,.04);}
+  .sec-h{font-size:16px;font-weight:700;margin:0 0 4px;
+    border-left:3px solid var(--primary);padding-left:10px;}
+  .sec-sub{font-size:12.5px;color:var(--sub);margin:0 0 16px;padding-left:13px;}
+  .board{display:flex;flex-wrap:wrap;gap:18px 22px;}
+  .cell{width:104px;display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .ico{width:var(--chip);height:var(--chip);border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:700;line-height:1;}
+  .cell .name{font-size:13px;font-weight:600;color:var(--txt);text-align:center;}
+  .cell .type{font-size:11px;color:var(--sub);}
+  .cell .hex{font-size:10.5px;color:var(--txt2);text-align:center;line-height:1.5;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}
+  .note{font-size:12px;color:var(--txt2);background:var(--bg);
+    border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-top:14px;line-height:1.6;}
+  .note b{color:var(--txt);}
+  /* 缺陷42 切换 */
+  .switchrow{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .switchrow label{font-size:13px;font-weight:600;cursor:pointer;user-select:none;}
+  .switchrow .state{font-size:12px;color:var(--sub);}
+  .warn-wrap.fixed .ico{background:var(--reject-bg)!important;color:var(--red)!important;}
+  /* 列表卡片对照 */
+  .listmock{display:flex;gap:22px;flex-wrap:wrap;}
+  .phone{flex:0 0 359px;background:#fff;border:1px solid var(--line);
+    border-radius:18px;overflow:hidden;}
+  .phone .bar{height:30px;background:var(--bg);display:flex;align-items:center;
+    justify-content:center;font-size:11px;color:var(--sub);}
+  .li{display:flex;align-items:center;gap:12px;padding:11px 14px;
+    border-bottom:1px solid var(--line);position:relative;}
+  .li .ico{width:44px;height:44px;flex:0 0 44px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;}
+  .li .body{flex:1 1 auto;min-width:0;}
+  .li .t1{font-size:15px;color:var(--txt);line-height:1.35;}
+  .li .t1.unread{font-weight:800;}
+  .li .t2{font-size:12px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .li .dot{position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    width:7px;height:7px;border-radius:50%;background:var(--red);}
+  .cmp-cap{font-size:12px;color:var(--sub);margin:0 0 8px;}
+  /* 其他图标 */
+  .other .cell{width:120px;}
+  .bell{position:relative;width:34px;height:34px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;background:#eaf2ff;color:var(--txt2);font-size:18px;}
+  .bell .b{position:absolute;top:-6px;right:-6px;min-width:16px;height:16px;
+    padding:0 4px;border-radius:9px;background:var(--red);color:#fff;
+    font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
+  .store-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--red);color:#fff;font-size:11px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:var(--avatar);
+    color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+  /* 真机上下文 */
+  .device{width:402px;background:#fff;border-radius:53px;border:8px solid #20242b;
+    overflow:hidden;position:relative;margin:0 auto;}
+  .device .notch{position:absolute;top:11px;left:50%;transform:translateX(-50%);
+    width:126px;height:37px;background:#000;border-radius:20px;z-index:5;}
+  .device .status{height:62px;display:flex;align-items:flex-end;justify-content:center;
+    font-size:12px;color:var(--sub);padding-bottom:6px;}
+  .device .dtitle{font-size:17px;font-weight:700;text-align:center;padding:6px 0 10px;}
+  .device .dlist{height:700px;overflow:auto;background:var(--bg);padding-bottom:20px;}
+  .dtoken{background:#fff;font-size:12px;color:var(--sub);padding:6px 14px;}
+  /* 令牌表 */
+  table.tokens{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;}
+  table.tokens th,table.tokens td{border:1px solid var(--line);padding:7px 10px;text-align:left;}
+  table.tokens th{background:var(--bg);color:var(--txt2);font-weight:600;}
+  table.tokens td code{font-family:ui-monospace,Menlo,monospace;color:var(--blue-l);}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(0,0,0,.08);}
+  footer{font-size:12px;color:var(--sub);margin-top:24px;line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>消息通知 · 图标总览原型（审核稿）</h1>
+    <p><span class="tag">用途</span>所有消息通知图标集中呈现，供审核后"切图给开发"。覆盖六类通知类型图标、还款预警五阶段色（缺陷 42 修复目标）、未读/已读通用态、体系内其他图标。</p>
+    <p><span class="tag">设备基准</span>iPhone 16 Pro 402×874pt（消息中心需求）；列表卡片尺寸沿用 Axure 搭建清单（ico 44×44 / 圆角 8 / 字 19px 粗）。</p>
+    <p><span class="tag">色板来源</span>Axure 搭建清单 + 消息中心需求 L11（头像 #185FA5）+ 预警用例 D03（五阶段 蓝/橙/橙/红/灰）。</p>
+  </header>
+
+  <!-- ============ 一、六类通知类型图标 ============ -->
+  <section class="sec">
+    <h2 class="sec-h">一 · 六类通知类型图标（列表卡片左侧）</h2>
+    <p class="sec-sub">圆角方块 8px、44×44、字 19px 粗；底/字见各卡。消息中心需求 L79：六类"类型图标一律沿用既有口径，本次不改动、不重新定义"。</p>
+    <div class="board">
+      <div class="cell">
+        <div class="ico" style="background:var(--blue-bg);color:var(--blue-l)">@</div>
+        <div class="name">@我的</div><div class="type">mention</div>
+        <div class="hex">底 #e2edff<br>字 #2b6fd4</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--pass-bg);color:var(--green)">✓</div>
+        <div class="name">审批通过</div><div class="type">approved</div>
+        <div class="hex">底 #e6f6ea<br>字 #3aa655</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--reject-bg);color:var(--red)">✕</div>
+        <div class="name">审批驳回</div><div class="type">rejected</div>
+        <div class="hex">底 #fdeaea<br>字 #f5453d</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--cc-bg);color:var(--cc-t)">抄</div>
+        <div class="name">抄送我的</div><div class="type">cc</div>
+        <div class="hex">底 #eef0f4<br>字 #6b7785</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--purple-bg);color:var(--purple)">审</div>
+        <div class="name">待我审批</div><div class="type">flow_task</div>
+        <div class="hex">底 #f0ebff<br>字 #7c5cfc</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--blue-bg);color:var(--blue)">警</div>
+        <div class="name">还款预警</div><div class="type">repayment_warning</div>
+        <div class="hex">底 #e2edff<br>字 #2b7fff</div>
+      </div>
+    </div>
+    <div class="note">
+      <b>还款完成 repayment_done</b>（预警类子通知，不单列第七类，需求 L80）：沿用「警」字，按 D03 <b>repaid</b> 终态渲染为 <b>中性灰</b>——底 #f2f3f5 / 字 #909399。确认已还款后该单据全部卡片转灰、停止催提醒。<br>
+      <b>待我审批紫色已确认</b>：#7c5cfc / 底 #f0ebff（需求仅写"紫色『审』字图标"，Axure 清单未含 flow_task，本次补全确认）。
+    </div>
+  </section>
+
+  <!-- ============ 二、还款预警五阶段色（缺陷42） ============ -->
+  <section class="sec">
+    <h2 class="sec-h">二 · 还款预警「警」五阶段色（缺陷 42 修复目标）</h2>
+    <p class="sec-sub">设计口径 D03：常规/剩1天/到期当天/逾期/已还款 → 蓝/橙/橙/红/中性灰。实测缺陷 42：h5/web 当前恒为红色「警」，五阶段色未落地。</p>
+    <div class="switchrow">
+      <input type="checkbox" id="sw" onchange="document.getElementById('warnWrap').classList.toggle('fixed',!this.checked)">
+      <label for="sw">显示设计五阶段色（取消勾选 = 当前恒红现状）</label>
+      <span class="state" id="st">设计（目标）</span>
+    </div>
+    <div class="board" id="warnWrap">
+      <div class="cell">
+        <div class="ico" style="background:var(--blue-bg);color:var(--blue)">警</div>
+        <div class="name">常规</div><div class="type">normal</div>
+        <div class="hex">底 #e2edff<br>字 #2b7fff</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--orange-bg);color:var(--orange)">警</div>
+        <div class="name">临近（剩1天）</div><div class="type">near</div>
+        <div class="hex">底 #fde6cd<br>字 #ef9a3c</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--orange-bg);color:var(--orange)">警</div>
+        <div class="name">到期当天</div><div class="type">due(0天)</div>
+        <div class="hex">底 #fde6cd<br>字 #ef9a3c</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--reject-bg);color:var(--red)">警</div>
+        <div class="name">逾期</div><div class="type">overdue</div>
+        <div class="hex">底 #fdeaea<br>字 #f5453d</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--gray-bg);color:var(--gray)">警</div>
+        <div class="name">已还款</div><div class="type">repaid</div>
+        <div class="hex">底 #f2f3f5<br>字 #909399</div>
+      </div>
+    </div>
+    <div class="note" style="margin-top:18px">
+      <b>已还款图标 · 已定 A</b>：中性灰「警」（底 #f2f3f5 / 字 #909399）。理由：符合需求"全部卡片转灰"、不与审批通过绿勾撞型；正向"已解决"信号由卡片「已还款」文字标签承担。备选 B（绿色打勾）因与审批通过图标撞型、且偏离"转灰"原文，未采纳。
+      <div class="board" style="margin-top:12px">
+        <div class="cell"><div class="ico" style="background:var(--gray-bg);color:var(--gray)">警</div>
+          <div class="name">已还款 · 中性灰「警」</div><div class="type">repayment_done / repaid</div>
+          <div class="hex">底 #f2f3f5<br>字 #909399 · 已定稿</div></div>
+      </div>
+    </div>
+    <div class="note">
+      <b>测试通知（test）</b>为「发送预警」按钮手动触发的临时通道，<b>本期不纳入图标定稿</b>（用户定：不管临时的）。其通知 type 仍为 repayment_warning、stage_label="测试通知"，图标随上述五阶段色走，不单独配色。
+    </div>
+  </section>
+
+  <!-- ============ 三、未读 / 已读 通用态 ============ -->
+  <section class="sec">
+    <h2 class="sec-h">三 · 未读 / 已读 通用态（六类统一，列表级）</h2>
+    <p class="sec-sub">未读：标题加粗（800）+ 左侧红点 #f5453d（7×7）；已读：常规字重、无红点。被读后不移除，仅消未读标记。</p>
+    <div class="listmock">
+      <div class="phone">
+        <div class="bar">通知列表 · 未读态</div>
+        <div class="li"><div class="ico" style="background:var(--blue-bg);color:var(--blue-l)">@</div>
+          <div class="body"><div class="t1 unread">王敏在报销流程@了你</div><div class="t2">2026-10-16 11:05:33</div></div>
+          <div class="dot"></div></div>
+        <div class="li"><div class="ico" style="background:var(--pass-bg);color:var(--green)">✓</div>
+          <div class="body"><div class="t1 unread">测试 审批已通过</div><div class="t2">2026-10-16 15:21:24</div></div>
+          <div class="dot"></div></div>
+        <div class="li"><div class="ico" style="background:var(--purple-bg);color:var(--purple)">审</div>
+          <div class="body"><div class="t1 unread">陈林航提交了采购申请，请处理</div><div class="t2">2026-10-15 09:30:11</div></div>
+          <div class="dot"></div></div>
+      </div>
+      <div class="phone">
+        <div class="bar">通知列表 · 已读态</div>
+        <div class="li"><div class="ico" style="background:var(--blue-bg);color:var(--blue-l)">@</div>
+          <div class="body"><div class="t1">王敏在报销流程@了你</div><div class="t2">2026-10-16 11:05:33</div></div></div>
+        <div class="li"><div class="ico" style="background:var(--reject-bg);color:var(--red)">✕</div>
+          <div class="body"><div class="t1">采购申请 审批已驳回</div><div class="t2">2026-10-15 09:30:11</div></div></div>
+        <div class="li"><div class="ico" style="background:var(--cc-bg);color:var(--cc-t)">抄</div>
+          <div class="body"><div class="t1">陈林航抄送出差报销给你</div><div class="t2">2026-10-14 18:02:33</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 四、体系内其他图标 ============ -->
+  <section class="sec other">
+    <h2 class="sec-h">四 · 体系内其他图标 / 角标（非类型图标）</h2>
+    <p class="sec-sub">门店角标、首字头像、person（首页流程推送）。这些不属于六类通知类型图标，避免与类型图标混淆。铃铛图标本期不纳入。</p>
+    <div class="board">
+      <div class="cell">
+        <div class="store-badge">12</div>
+        <div class="name">门店未读角标</div>
+        <div class="hex">= 该门店未读数<br>0 不显示</div>
+      </div>
+      <div class="cell">
+        <div class="avatar">陈</div>
+        <div class="name">首字头像</div>
+        <div class="hex">圆形 #185FA5 底白字<br>当前登录人</div>
+      </div>
+      <div class="cell">
+        <div class="ico" style="background:var(--orange-bg);color:var(--orange)">陈</div>
+        <div class="name">person（非六类）</div>
+        <div class="hex">底 #fde6cd<br>字 #ef9a3c</div>
+      </div>
+    </div>
+    <div class="note">
+      <b>person 图标定位</b>：它是<b>首页"流程提交"推送列表</b>的图标（姓氏首字），<b>不属于消息中心六类通知</b>。消息中心门店页内混排的仍是上面六类类型图标，不要把 person 当作第七类或混入六类。
+    </div>
+  </section>
+
+  <!-- ============ 五、决策记录（对应上一轮"五"各条） ============ -->
+  <section class="sec">
+    <h2 class="sec-h">五 · 缺口处理决策记录</h2>
+    <table class="tokens">
+      <tr><th style="width:90px">原条目</th><th style="width:200px">问题</th><th>本次处理</th></tr>
+      <tr><td>五-1</td><td>待我审批图标缺 hex（需求仅写"紫色"）</td><td>补提议值 <span class="sw" style="background:var(--purple)"></span><code>#7c5cfc</code> / 底 <code>#f0ebff</code>，标注"待研发确认"</td></tr>
+      <tr><td>五-2</td><td>测试通知 test 色未明确</td><td><b>不管临时的</b>：本期不纳入定稿，仅留说明一行</td></tr>
+      <tr><td>五-3</td><td>还款完成 repayment_done 未单列</td><td><b>已定</b>：沿用「警」+ 中性灰 <span class="sw" style="background:var(--gray)"></span><code>#909399</code>/底<code>#f2f3f5</code>（= D03 repaid 终态），不单列第七类</td></tr>
+      <tr><td>五-4</td><td>缺陷 42：预警图标恒红、不随状态变色</td><td><b>就是做这个</b>：本原型给出五阶段正确配色 + "当前恒红 vs 设计五色"切换，作为修复目标交给开发</td></tr>
+      <tr><td>五-5</td><td>person 图标定位易混淆</td><td>标明为"首页流程推送"图标，非消息中心六类</td></tr>
+    </table>
+  </section>
+
+  <!-- ============ 六、真机上下文（iPhone 16 Pro） ============ -->
+  <section class="sec">
+    <h2 class="sec-h">六 · 真机上下文（iPhone 16 Pro 402×874）</h2>
+    <p class="sec-sub">把六类图标 + 预警阶段色放进真实列表中供审核。</p>
+    <div class="device">
+      <div class="notch"></div>
+      <div class="status">9:41</div>
+      <div class="dtitle">通知</div>
+      <div class="dlist">
+        <div class="dtoken">@我的 · 未读</div>
+        <div class="li"><div class="ico" style="background:var(--blue-bg);color:var(--blue-l)">@</div>
+          <div class="body"><div class="t1 unread">王敏在报销流程@了你：报销金额超标请核对</div><div class="t2">2026-10-16 11:05:33</div></div><div class="dot"></div></div>
+        <div class="dtoken">审批通过</div>
+        <div class="li"><div class="ico" style="background:var(--pass-bg);color:var(--green)">✓</div>
+          <div class="body"><div class="t1">测试 审批已通过</div><div class="t2">2026-10-16 15:21:24</div></div></div>
+        <div class="dtoken">审批驳回</div>
+        <div class="li"><div class="ico" style="background:var(--reject-bg);color:var(--red)">✕</div>
+          <div class="body"><div class="t1 unread">采购申请 审批已驳回</div><div class="t2">2026-10-15 09:30:11</div></div><div class="dot"></div></div>
+        <div class="dtoken">抄送我的</div>
+        <div class="li"><div class="ico" style="background:var(--cc-bg);color:var(--cc-t)">抄</div>
+          <div class="body"><div class="t1">陈林航抄送出差报销给你</div><div class="t2">2026-10-14 18:02:33</div></div></div>
+        <div class="dtoken">待我审批</div>
+        <div class="li"><div class="ico" style="background:var(--purple-bg);color:var(--purple)">审</div>
+          <div class="body"><div class="t1 unread">陈林航提交了采购申请，请处理</div><div class="t2">2026-10-15 09:30:11</div></div><div class="dot"></div></div>
+        <div class="dtoken">还款预警 · 五阶段色</div>
+        <div class="li"><div class="ico" style="background:var(--blue-bg);color:var(--blue)">警</div>
+          <div class="body"><div class="t1">还款预警 · 常规（剩 30 天）</div><div class="t2">2026-11-10 10:00</div></div></div>
+        <div class="li"><div class="ico" style="background:var(--orange-bg);color:var(--orange)">警</div>
+          <div class="body"><div class="t1 unread">还款预警 · 临近（剩 1 天）</div><div class="t2">2026-11-10 10:00</div></div><div class="dot"></div></div>
+        <div class="li"><div class="ico" style="background:var(--reject-bg);color:var(--red)">警</div>
+          <div class="body"><div class="t1 unread">还款预警 · 逾期 1 天</div><div class="t2">2026-11-10 10:00</div></div><div class="dot"></div></div>
+        <div class="li"><div class="ico" style="background:var(--gray-bg);color:var(--gray)">警</div>
+          <div class="body"><div class="t1">还款完成（已还款）</div><div class="t2">2026-11-09 18:00</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 七、交付开发的设计令牌表 ============ -->
+  <section class="sec">
+    <h2 class="sec-h">七 · 交付开发的设计令牌表（切图依据）</h2>
+    <p class="sec-sub">开发可直接 copy 以下色值；图标形态：44×44 圆角 8px 方块、字 19px/700 居中。</p>
+    <table class="tokens">
+      <tr><th>图标</th><th>type / stage</th><th>字形</th><th>底色</th><th>字色</th><th>状态</th></tr>
+      <tr><td>@我的</td><td>mention</td><td>@</td><td><span class="sw" style="background:#e2edff"></span>#e2edff</td><td><span class="sw" style="background:#2b6fd4"></span>#2b6fd4</td><td>定稿</td></tr>
+      <tr><td>审批通过</td><td>approved</td><td>✓</td><td><span class="sw" style="background:#e6f6ea"></span>#e6f6ea</td><td><span class="sw" style="background:#3aa655"></span>#3aa655</td><td>定稿</td></tr>
+      <tr><td>审批驳回</td><td>rejected</td><td>✕</td><td><span class="sw" style="background:#fdeaea"></span>#fdeaea</td><td><span class="sw" style="background:#f5453d"></span>#f5453d</td><td>定稿</td></tr>
+      <tr><td>抄送我的</td><td>cc</td><td>抄</td><td><span class="sw" style="background:#eef0f4"></span>#eef0f4</td><td><span class="sw" style="background:#6b7785"></span>#6b7785</td><td>定稿</td></tr>
+      <tr><td>待我审批</td><td>flow_task</td><td>审</td><td><span class="sw" style="background:#f0ebff"></span>#f0ebff</td><td><span class="sw" style="background:#7c5cfc"></span>#7c5cfc</td><td>定稿</td></tr>
+      <tr><td>还款预警·常规</td><td>repayment_warning/normal</td><td>警</td><td><span class="sw" style="background:#e2edff"></span>#e2edff</td><td><span class="sw" style="background:#2b7fff"></span>#2b7fff</td><td>定稿（修复42）</td></tr>
+      <tr><td>还款预警·临近</td><td>near</td><td>警</td><td><span class="sw" style="background:#fde6cd"></span>#fde6cd</td><td><span class="sw" style="background:#ef9a3c"></span>#ef9a3c</td><td>定稿（修复42）</td></tr>
+      <tr><td>还款预警·到期</td><td>due(0天)</td><td>警</td><td><span class="sw" style="background:#fde6cd"></span>#fde6cd</td><td><span class="sw" style="background:#ef9a3c"></span>#ef9a3c</td><td>定稿（修复42）</td></tr>
+      <tr><td>还款预警·逾期</td><td>overdue</td><td>警</td><td><span class="sw" style="background:#fdeaea"></span>#fdeaea</td><td><span class="sw" style="background:#f5453d"></span>#f5453d</td><td>定稿（修复42）</td></tr>
+      <tr><td>还款完成</td><td>repayment_done/repaid</td><td>警</td><td><span class="sw" style="background:#f2f3f5"></span>#f2f3f5</td><td><span class="sw" style="background:#909399"></span>#909399</td><td>定稿（A）</td></tr>
+      <tr><td>未读红点</td><td>（列表级）</td><td>●</td><td colspan="2"><span class="sw" style="background:#f5453d"></span>#f5453d · 7×7 圆</td><td>定稿</td></tr>
+      <tr><td>首字头像</td><td>（登录人）</td><td>姓</td><td><span class="sw" style="background:#185FA5"></span>#185FA5 底白字</td><td>圆形 34px</td><td>定稿</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    已审核定稿：① 待我审批紫色 #7c5cfc（已确认定稿）；② 还款完成 = 中性灰「警」(A)；③ 还款预警五阶段色即缺陷 42 修复目标（当前恒红→五阶段色）；④ 测试通知不纳入；⑤ 铃铛图标不纳入。本稿第七节令牌表 + 独立交付件 <code>消息通知_图标令牌表.html</code> 即为"切图给开发"依据（色值 + 形态 + 尺寸）。
+  </footer>
+
+</div>
+<script>
+  // 缺陷42 切换：默认显示设计五阶段色；取消勾选 = 当前恒红现状
+  document.getElementById('sw').checked = true;
+  document.getElementById('sw').addEventListener('change',function(){
+    var w=document.getElementById('warnWrap'), st=document.getElementById('st');
+    if(this.checked){ w.classList.remove('fixed'); st.textContent='设计（目标）'; }
+    else { w.classList.add('fixed'); st.textContent='当前（恒红·缺陷42）'; }
+  });
+</script>
+</body>
+</html>

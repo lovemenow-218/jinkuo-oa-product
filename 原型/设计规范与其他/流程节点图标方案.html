@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OA流程节点 · 图标方案</title>
+<style>
+  :root{
+    --bg:#f3f4f6; --card:#fff; --radius:12px;
+    --shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04);
+    --brand:#2f6bff; --brand-deep:#1d54e0;
+    --orange:#ff7d00; --orange-deep:#e06b00;
+    --green:#00b42a; --gray:#6b7785; --gray-line:#c9ced6; --line:#eceef2;
+    --t1:#1d2129; --t2:#4e5969; --t3:#86909c;
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:linear-gradient(135deg,#eef1f6,#f6f8fb);
+    color:var(--t1);padding:32px 20px;display:flex;gap:36px;justify-content:center;
+    align-items:flex-start;flex-wrap:wrap}
+
+  /* ===== 手机外框 ===== */
+  .phone{width:390px;flex:0 0 390px;background:var(--bg);border-radius:28px;
+    box-shadow:0 20px 50px rgba(16,24,40,.18);overflow:hidden;border:1px solid #dfe3ea;position:relative}
+  .navbar{height:52px;background:var(--card);display:flex;align-items:center;justify-content:center;
+    position:relative;border-bottom:1px solid var(--line);font-size:17px;font-weight:600}
+  .navbar .back{position:absolute;left:14px;font-size:22px;font-weight:400}
+  .content{padding:16px 14px 40px}
+
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+  .card h3{font-size:15px;margin-bottom:12px}
+
+  /* ===== 时间轴 ===== */
+  .timeline{position:relative;padding-left:40px}
+  .timeline::before{content:"";position:absolute;left:19px;top:14px;bottom:14px;width:2px;background:#e3e6ea}
+  .node{position:relative;padding:10px 0}
+  .node:not(:last-child){min-height:64px}
+  /* 节点图标徽章（核心交付物）*/
+  .ic{position:absolute;left:-40px;top:10px;width:30px;height:30px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;z-index:2}
+  .ic.green{background:var(--green)}
+  .ic.ob{background:#fff;border:2px solid var(--brand);color:var(--brand)}      /* 审批 outline */
+  .ic.sb{background:var(--brand)}                                              /* 会计审批 solid */
+  .ic.oo{background:#fff;border:2px solid var(--orange);color:var(--orange)}   /* 办理 outline */
+  .ic.so{background:var(--orange)}                                             /* 出纳办理 solid */
+  .ic.sg{background:var(--gray)}                                               /* 评论 solid */
+  .ic.og{background:#fff;border:2px solid var(--gray-line);color:var(--gray)}   /* 抄送 outline */
+  .ic.cur{box-shadow:0 0 0 4px rgba(47,107,255,.18)}                           /* 当前节点光晕 */
+
+  .node .title{font-size:14px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:6px}
+  .node .who{font-size:13px;color:var(--t2);margin-top:3px}
+  .node .stat{font-size:12px;color:var(--t3);margin-top:2px}
+  .node .stat.ok{color:var(--green)}
+  .tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:6px;background:#eef0f3;color:var(--t2)}
+  .tag.cs{background:#eaf1ff;color:var(--brand)}   /* 会签 */
+  .tag.os{background:#fff3e8;color:var(--orange)}  /* 或签 */
+
+  /* ===== 图标规范面板 ===== */
+  .panel{width:400px;flex:1 1 380px;max-width:480px}
+  .panel h2{font-size:20px;margin-bottom:4px}
+  .panel .lead{color:var(--t2);font-size:14px;line-height:1.6;margin-bottom:18px}
+  .card-note{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:18px 20px;margin-bottom:14px}
+  .card-note h4{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card-note h4 .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+  .tag.good{background:#e8ffea;color:var(--green)}
+  .tag.warn{background:#fff3e8;color:var(--orange)}
+  .spec{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+  .spec:first-of-type{border-top:none}
+  .mini{width:26px;height:26px;border-radius:50%;flex:0 0 26px;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;color:#fff}
+  .spec .name{flex:0 0 92px;font-weight:600;color:var(--t1)}
+  .spec .desc{flex:1;color:var(--t2);font-size:12.5px;line-height:1.45}
+  .foot{font-size:12px;color:var(--t3);margin-top:10px;line-height:1.6}
+  .q{background:#fff7e8;border:1px solid #ffe2b0;border-radius:10px;padding:12px 14px;font-size:13px;color:#7a5a13;line-height:1.6;margin-top:4px}
+  .q b{color:#9a6b00}
+</style>
+</head>
+<body>
+
+  <!-- ===== 手机原型：流程时间轴 ===== -->
+  <div class="phone">
+    <div class="navbar"><span class="back">‹</span><span>OA详情</span></div>
+    <div class="content">
+      <div class="card">
+        <h3>流程</h3>
+        <div class="timeline">
+
+          <div class="node">
+            <div class="ic green">✓</div>
+            <div class="title">提交</div>
+            <div class="who">周明远</div>
+            <div class="stat ok">✓ 已提交 · 2026-10-28 09:33</div>
+          </div>
+
+          <div class="node">
+            <div class="ic sb">财</div>
+            <div class="title">会计审批 <span class="tag cs">3人会签</span></div>
+            <div class="who">王敏 · 财务</div>
+            <div class="stat ok">✓ 已同意 · 2026-10-28 10:12</div>
+          </div>
+
+          <div class="node">
+            <div class="ic so cur">出</div>
+            <div class="title">出纳办理 <span class="tag os">或签</span></div>
+            <div class="who">李强 · 出纳</div>
+            <div class="stat">待处理 · 当前节点</div>
+          </div>
+
+          <div class="node">
+            <div class="ic og">抄</div>
+            <div class="title">抄送</div>
+            <div class="who">赵磊 等 3 人</div>
+            <div class="stat">已抄送</div>
+          </div>
+
+          <div class="node">
+            <div class="ic sg">评</div>
+            <div class="title">评论</div>
+            <div class="who">周明远</div>
+            <div class="stat ok">✓ 已评论 · 2026-10-28 11:05</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 图标规范 + 节点清单 ===== -->
+  <div class="panel">
+    <h2>流程节点 · 图标方案</h2>
+    <p class="lead">沿用现有「字母徽章 + 彩色环」体系：<b>实心=特殊/专业节点，描边=通用节点</b>。这样 会计审批 / 出纳办理 一眼可辨，又和既有 审/办/抄 风格统一，改动极小。</p>
+
+    <div class="card-note">
+      <h4>① 已确认的节点种类与图标</h4>
+
+      <div class="spec"><span class="mini" style="background:var(--green)">✓</span><span class="name">提交</span><span class="desc">绿实心✓ · 流程发起（原有）</span></div>
+      <div class="spec"><span class="mini ob">审</span><span class="name">审批/审核</span><span class="desc">蓝描边「审」· 通用审批（原有）</span></div>
+      <div class="spec"><span class="mini sb">财</span><span class="name">会计审批</span><span class="desc">蓝<b>实心</b>「财」· <b>特殊节点</b>（须配出纳办理）</span></div>
+      <div class="spec"><span class="mini oo">办</span><span class="name">办理</span><span class="desc">橙描边「办」· 通用办理（原有）</span></div>
+      <div class="spec"><span class="mini so">出</span><span class="name">出纳办理</span><span class="desc">橙<b>实心</b>「出」· <b>特殊节点</b></span></div>
+      <div class="spec"><span class="mini sg">评</span><span class="name">评论</span><span class="desc">灰实心「评」· 评论节点（原有）</span></div>
+      <div class="spec"><span class="mini og">抄</span><span class="name">抄送</span><span class="desc">灰描边「抄」· 抄送人（原有）</span></div>
+
+      <div class="foot">
+        会签 / 或签 <b>不作独立节点</b>，而是挂在「审批/办理」上的多人模式标签（蓝「会签」/橙「或签」小标签，见原型第 2、3 节点）。<br>
+        转交 已于 2026-10-20 产品下线，<b>不设计图标</b>。
+      </div>
+    </div>
+
+    <div class="card-note">
+      <h4>② 设计规则 <span class="tag good">规范</span></h4>
+      <div class="spec" style="border:none"><span class="desc" style="flex:1">
+        • <b>形状</b>：直径 30px 圆形徽章，与现有时间轴圆点同尺寸，不动布局。<br>
+        • <b>语义</b>：实心=专业/特殊节点（财、出），描边=通用节点（审、办、抄）；状态用✓/待处理文字表达，不与类型混色。<br>
+        • <b>配色</b>：蓝=#2f6bff（审批系）、橙=#ff7d00（办理系）、绿=#00b42a（提交）、灰=#6b7785（评论/抄送），与整站一致。<br>
+        • <b>当前节点</b>：加 4px 同色光晕（原型第 3 节点）。<br>
+        • <b>可访问性</b>：图标+汉字双编码，不依赖颜色 alone；触控/可视尺寸≥30px。
+      </span></div>
+    </div>
+
+    <div class="q">
+      <b>需你确认：</b>节点<b>显示名是服务端按流程模板下发的</b>（前端 bundle 里搜不到「会计审批/出纳办理」字样），我能确认的特殊节点是 <b>会计审批、出纳办理</b> 两个。若还有其它特殊节点（如财务审批、付款办理、合同审批等），请告诉我节点名，我补对应图标（建议统一用「实心+单字」：财/出/付/合…）。
+    </div>
+  </div>
+
+</body>
+</html>

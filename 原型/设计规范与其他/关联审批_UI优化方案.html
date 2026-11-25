@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OA详情 · 关联审批轻量优化（最小改动）</title>
+<style>
+  :root{
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+
+    --brand:#2f6bff;
+    --brand-soft:#eaf1ff;
+
+    --t1:#1d2129;   /* 主文本 */
+    --t2:#4e5969;   /* 标签（AA 对比度≈7:1，优于原浅灰）*/
+    --t3:#86909c;   /* 辅助 */
+    --line:#eceef2;
+
+    --ok:#00b42a;   --ok-soft:#e8ffea;
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:var(--font);background:linear-gradient(135deg,#eef1f6,#f6f8fb);
+    color:var(--t1);padding:32px 20px;display:flex;gap:36px;justify-content:center;
+    align-items:flex-start;flex-wrap:wrap;
+  }
+
+  /* ===== 手机外框（与现状一致，未改）===== */
+  .phone{width:390px;flex:0 0 390px;background:var(--bg);border-radius:28px;
+    box-shadow:0 20px 50px rgba(16,24,40,.18);overflow:hidden;border:1px solid #dfe3ea;position:relative}
+  .navbar{height:52px;background:var(--card);display:flex;align-items:center;justify-content:center;
+    position:relative;border-bottom:1px solid var(--line);font-size:17px;font-weight:600}
+  .navbar .back{position:absolute;left:14px;font-size:22px;font-weight:400}
+  .navbar .more{position:absolute;right:16px;font-size:20px;color:var(--t3)}
+  .content{padding:12px 12px 96px;min-height:760px}
+
+  .summary{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:16px;margin-bottom:12px}
+  .summary h3{font-size:16px;margin-bottom:10px}
+  .summary .row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px}
+  .summary .row .k{color:var(--t2)}
+  .summary .row .v{color:var(--t1);font-weight:500}
+
+  /* ===== 关联审批：保留平铺列表结构，仅轻量优化 ===== */
+  .section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:14px 14px 6px;margin-bottom:12px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;
+    padding-bottom:10px;border-bottom:1px solid var(--line)}
+  .sec-head .title{font-size:16px;font-weight:600;color:var(--t1)}
+  .sec-head .tag{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;
+    background:var(--ok-soft);color:var(--ok)}
+
+  /* 字段行：标签+值同行，固定标签列，细分隔线 */
+  .frow{display:grid;grid-template-columns:96px 1fr;gap:12px;
+    padding:11px 0;border-bottom:1px solid var(--line);align-items:start}
+  .frow:last-child{border-bottom:none}
+  .frow .fk{font-size:13px;color:var(--t2);line-height:20px}
+  .frow .fv{font-size:14px;color:var(--t1);font-weight:500;line-height:20px;word-break:break-all}
+  .frow .fv.money{color:var(--brand);font-weight:600}
+
+  /* 图片缩略图（规范尺寸）*/
+  .thumbs{display:flex;gap:8px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .thumb{width:56px;height:56px;border-radius:var(--radius-sm);overflow:hidden;
+    border:1px solid var(--line);background:#f2f3f5;flex:0 0 56px}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* 附件 chip */
+  .attach{display:flex;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .attach .ic{font-size:16px}
+  .attach .nm{flex:1;font-size:13px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .attach .act{font-size:12px;color:var(--brand);font-weight:500;padding:2px 6px}
+
+  /* 查看关联审批：独立成行、右对齐、加间距 */
+  .view-link{display:flex;justify-content:flex-end;align-items:center;
+    padding:12px 0 8px;font-size:14px;color:var(--brand);font-weight:600}
+
+  .actionbar{position:absolute;left:0;right:0;bottom:0;height:60px;background:var(--card);
+    border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;
+    box-shadow:0 -2px 10px rgba(16,24,40,.04)}
+  .actionbar .ab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--t2)}
+  .actionbar .ab .ai{font-size:18px}
+
+  .mark{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--brand);
+    color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(47,107,255,.4);z-index:5}
+
+  /* ===== 右侧说明面板 ===== */
+  .panel{width:380px;flex:1 1 360px;max-width:460px}
+  .panel h2{font-size:20px;margin-bottom:4px}
+  .panel .lead{color:var(--t2);font-size:14px;line-height:1.6;margin-bottom:18px}
+  .card-note{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:18px 20px;margin-bottom:14px}
+  .card-note h4{font-size:15px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .card-note h4 .tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px}
+  .tag.good{background:var(--ok-soft);color:var(--ok)}
+  .tag.keep{background:#eef0f3;color:var(--t2)}
+  .note-item{display:flex;gap:10px;padding:8px 0;border-top:1px dashed var(--line);
+    font-size:13.5px;line-height:1.55}
+  .note-item:first-of-type{border-top:none}
+  .note-item .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--brand-soft);
+    color:var(--brand);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .note-item b{color:var(--t1)}
+  .footer-note{font-size:12px;color:var(--t3);margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+
+  <!-- ============ 手机原型（最小改动版）============ -->
+  <div class="phone">
+    <div class="navbar">
+      <span class="back">‹</span>
+      <span>OA详情</span>
+      <span class="more">⋯</span>
+    </div>
+
+    <div class="content">
+
+      <!-- 用印申请摘要（原样保留） -->
+      <div class="summary">
+        <h3>用印申请 · 测试</h3>
+        <div class="row"><span class="k">用印部门</span><span class="v">综合部</span></div>
+        <div class="row"><span class="k">经办人</span><span class="v">白小兵</span></div>
+        <div class="row"><span class="k">文件类别</span><span class="v">合同类</span></div>
+        <div class="row"><span class="k">加盖印章</span><span class="v">合同专用章</span></div>
+      </div>
+
+      <!-- 关联审批：结构未变，仅做轻量排版优化 -->
+      <div class="section">
+        <span class="mark" style="top:-8px;right:-8px">1</span>
+        <div class="sec-head">
+          <span class="title">关联审批</span>
+          <span class="tag">已提交</span>
+        </div>
+
+        <div class="frow"><span class="fk">合同名称</span><span class="fv">某某供应商采购合同（2026）</span></div>
+        <div class="frow"><span class="fk">付款条款说明</span><span class="fv">货到验收后 30 日内电汇支付</span></div>
+        <div class="frow"><span class="fk">合同签订日期</span><span class="fv">2026-10-20</span></div>
+        <div class="frow"><span class="fk">甲方主体</span><span class="fv">XX 科技有限公司</span></div>
+        <div class="frow"><span class="fk">乙方主体</span><span class="fv">YY 制造有限公司</span></div>
+        <div class="frow"><span class="fk">用章类型</span><span class="fv">合同专用章</span></div>
+
+        <div class="thumbs">
+          <div class="thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='56' height='56' fill='%23e8edf3'/><text x='28' y='33' font-size='11' fill='%2386909c' text-anchor='middle'>证件照</text></svg>"></div>
+          <div class="thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='56' height='56' fill='%23e8edf3'/><text x='28' y='33' font-size='11' fill='%2386909c' text-anchor='middle'>合同扫描</text></svg>"></div>
+          <div class="thumb"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56'><rect width='56' height='56' fill='%23e8edf3'/><text x='28' y='33' font-size='11' fill='%2386909c' text-anchor='middle'>签章页</text></svg>"></div>
+        </div>
+
+        <div class="attach">
+          <span class="ic">📎</span>
+          <span class="nm">反洗钱承诺书.docx</span>
+          <span class="act">复制</span>
+          <span class="act">打开</span>
+        </div>
+
+        <div class="frow"><span class="fk">备注</span><span class="fv" style="font-weight:400;color:var(--t2)">年度框架协议，分批次履约</span></div>
+        <div class="frow"><span class="fk">合同总金额</span><span class="fv money">¥128,000.00</span></div>
+
+        <div class="view-link">查看关联审批 ›</div>
+      </div>
+
+    </div>
+
+    <div class="actionbar">
+      <div class="ab"><span class="ai">💬</span>评论</div>
+      <div class="ab"><span class="ai">✅</span>审批</div>
+      <div class="ab"><span class="ai">⋮</span>更多操作</div>
+    </div>
+  </div>
+
+  <!-- ============ 说明面板 ============ -->
+  <div class="panel">
+    <h2>关联审批 · 轻量优化（最小改动）</h2>
+    <p class="lead">按"不要改动太大"的诉求，<b>保留原平铺列表结构与整页卡片风格</b>，只修掉"看起来乱、挤、被截断"的几个点。下方为改动清单，未提及的部分一律原样保留。</p>
+
+    <div class="card-note">
+      <h4>① 本次改动（仅 5 处）<span class="tag good">改动</span></h4>
+      <div class="note-item"><span class="n">1</span><div><b>标签与值同行对齐：</b>原「合同名称：」换行才显示值，改为「标签(固定 96px 列) + 值」单行栅格，值左对齐，整列对齐、阅读动线顺了。</div></div>
+      <div class="note-item"><span class="n">2</span><div><b>行间细分隔线：</b>每条字段下方加 1px 浅灰线，字段界限清晰，不再"挤成一团"。</div></div>
+      <div class="note-item"><span class="n">3</span><div><b>图片/附件规范化：</b>图片统一 56×56 圆角缩略图；附件保持「复制/打开」但改为蓝色可点文字，辨识度提升。</div></div>
+      <div class="note-item"><span class="n">4</span><div><b>「查看关联审批」独立成行：</b>原为贴着值"3"的弱链接，现右对齐独立一行、加间距，明确是行动点而非字段。</div></div>
+      <div class="note-item"><span class="n">5</span><div><b>区块底部留白：</b>内容区底部预留 96px 给固定操作栏，末尾不再被截断；区块标题右侧加「已提交」状态标签，与流程区绿色✓呼应。</div></div>
+    </div>
+
+    <div class="card-note">
+      <h4>② 刻意保留（未改）<span class="tag keep">保留</span></h4>
+      <div class="note-item"><span class="n">·</span><div>整体仍是<b>白卡片 + 平铺字段</b>的结构，没拆成多个子卡片，列表顺序、字段、文案全部不变。</div></div>
+      <div class="note-item"><span class="n">·</span><div>页面其它区块（用印申请摘要、流程、底部操作栏）与原界面一致，<b>零改动</b>。</div></div>
+      <div class="note-item"><span class="n">·</span><div>色彩仍沿用现有蓝链接 + 浅灰底，未引入新主色或深色模式。</div></div>
+      <div class="footer-note">实现成本极低：主要是把「label/value 两行」合并为「单行栅格」+ 加分隔线 + 底部 padding，前端改 CSS 即可，无需改数据结构。</div>
+    </div>
+  </div>
+
+</body>
+</html>

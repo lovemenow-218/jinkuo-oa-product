@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>web 消息通知 原型（未读强化版）</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #333; }
+  .screen { width: 1100px; margin: 18px auto; background: #fff; border: 1px solid #e3e6eb; border-radius: 8px; overflow: hidden; }
+  .screen-tag { background: #1d4ed8; color: #fff; font-size: 12px; padding: 4px 10px; display: inline-block; }
+
+  /* 顶部导航栏 */
+  .topbar { height: 52px; background: #fff; border-bottom: 1px solid #e3e6eb; display: flex; align-items: center; padding: 0 16px; }
+  .logo { width: 22px; height: 22px; background: #1d4ed8; border-radius: 5px; color: #fff; font-weight: 700; font-size: 13px; text-align: center; line-height: 22px; margin-right: 8px; }
+  .brand { font-weight: 600; font-size: 15px; color: #1f2d3d; margin-right: 20px; }
+  .menu-ico { color: #8a94a6; margin-right: 14px; font-size: 16px; }
+  .crumb { color: #8a94a6; font-size: 13px; margin-right: auto; }
+  .top-icons { display: flex; align-items: center; gap: 16px; }
+  .ico { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #5b6577; font-size: 17px; cursor: pointer; position: relative; }
+  .ico:hover { background: #f0f2f5; }
+  .badge { position: absolute; top: -6px; right: -8px; background: #f5222d; color: #fff; font-size: 11px; font-weight: 700; min-width: 17px; height: 17px; line-height: 17px; text-align: center; border-radius: 9px; padding: 0 4px; border: 1.5px solid #fff; }
+  .uname { font-size: 13px; color: #5b6577; }
+  .tag { font-size: 11px; background: #eef2ff; color: #1d4ed8; padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+
+  /* 消息中心 */
+  .mc-head { padding: 16px 20px 0; display: flex; align-items: center; }
+  .mc-title { font-size: 17px; font-weight: 600; }
+  .tabs { display: flex; gap: 18px; margin: 14px 20px 0; border-bottom: 1px solid #eef0f3; }
+  .tab { padding: 8px 2px; font-size: 14px; color: #5b6577; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: #1d4ed8; border-bottom-color: #1d4ed8; font-weight: 600; }
+  .mc-bar { display: flex; align-items: center; padding: 12px 20px; }
+  .batch { margin-left: auto; font-size: 13px; color: #1d4ed8; cursor: pointer; border: 1px solid #c7d2fe; padding: 5px 12px; border-radius: 6px; background: #fff; }
+  .batch:hover { background: #eef2ff; }
+
+  .list { padding: 4px 20px 20px; }
+  .item { display: flex; gap: 12px; padding: 14px 12px; border-radius: 8px; cursor: pointer; position: relative; transition: background .15s; }
+  .item:hover { background: #f7f9fc; }
+
+  /* ===== 未读强化样式（主方案 A） ===== */
+  .item.unread { background: #f5f8ff; }
+  .item.unread::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px; background: #2563eb; border-radius: 0 3px 3px 0; }
+  .item.unread .main { font-weight: 600; color: #1f2d3d; }
+  .item.unread .sub { color: #6b7785; }
+  /* 图标右上角未读红点（类微信） */
+  .type-ico { position: relative; }
+  .item.unread .type-ico::after { content: ""; position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; background: #f5222d; border: 2px solid #fff; border-radius: 50%; }
+
+  .type-ico { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+  .t-at { background: #eef2ff; }
+  .t-pass { background: #e7f7ee; }
+  .t-reject { background: #fdeaea; }
+  .t-cc { background: #eef0f4; color: #6b7785; }
+  .t-approve { background: #efe6ff; }
+  .body { flex: 1; min-width: 0; }
+  .main { font-size: 14px; color: #1f2d3d; line-height: 1.5; }
+  .sub { font-size: 12px; color: #9aa3b2; margin-top: 3px; }
+  .empty { text-align: center; color: #9aa3b2; padding: 60px 0; font-size: 14px; }
+
+  /* 流程详情跳转示意 */
+  .flow-head { padding: 14px 20px; border-bottom: 1px solid #eef0f3; font-weight: 600; }
+  .flow-note { padding: 8px 20px; font-size: 12px; color: #1d4ed8; background: #eef2ff; }
+  .flow-body { padding: 16px 20px; }
+  .flow-row { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px dashed #eef0f3; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .d-done { background: #22c55e; } .d-doing { background: #1d4ed8; } .d-wait { background: #cbd5e1; }
+  .fwho { font-size: 13px; font-weight: 600; } .fstatus { font-size: 12px; color: #9aa3b2; }
+  .highlight { background: #fff7cc; border-radius: 4px; padding: 2px 6px; }
+
+  /* ===== 未读样式候选对比屏 ===== */
+  .cmp-head { padding: 16px 20px 0; font-size: 17px; font-weight: 600; }
+  .cmp-note { padding: 8px 20px 0; font-size: 13px; color: #9aa3b2; }
+  .cmp-grid { display: flex; gap: 16px; padding: 18px 20px 22px; }
+  .cmp-col { flex: 1; border: 1px solid #e3e6eb; border-radius: 8px; overflow: hidden; }
+  .cmp-cap { padding: 10px 12px; font-size: 13px; font-weight: 600; background: #f7f9fc; border-bottom: 1px solid #e3e6eb; }
+  .cmp-cap small { display:block; font-weight: 400; color: #9aa3b2; font-size: 12px; margin-top: 3px; }
+  .cmp-row { display: flex; gap: 10px; padding: 11px 10px; position: relative; }
+  .ci { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; position: relative; }
+  .cmp-row .body { font-size: 13px; }
+
+  /* 候选 B：仅红点 + 加粗 */
+  .cB.unread { }
+  .cB.unread .main { font-weight: 600; }
+  .cB.unread .ci::after { content:""; position:absolute; top:-3px; right:-3px; width:9px; height:9px; background:#f5222d; border:2px solid #fff; border-radius:50%; }
+  /* 候选 C：强背景 + 蓝竖条 + 红点 */
+  .cC.unread { background: #eef4ff; }
+  .cC.unread::before { content:""; position:absolute; left:0; top:8px; bottom:8px; width:4px; background:#2563eb; border-radius:0 3px 3px 0; }
+  .cC.unread .main { font-weight: 600; }
+  .cC.unread .ci::after { content:""; position:absolute; top:-3px; right:-3px; width:9px; height:9px; background:#f5222d; border:2px solid #fff; border-radius:50%; }
+</style>
+</head>
+<body>
+
+<!-- 屏1：web 顶部导航栏（对话气泡图标 + 红色未读角标） -->
+<div class="screen" id="screen1">
+  <div class="screen-tag">屏1 · web 顶部导航栏</div>
+  <div class="topbar">
+    <div class="logo">X</div>
+    <div class="brand">金阔OA</div>
+    <span class="menu-ico">☰</span>
+    <span class="menu-ico">⟳</span>
+    <span class="crumb">概览 / 实时库存查询</span>
+    <div class="top-icons">
+      <div class="ico" onclick="document.getElementById('screen2').scrollIntoView({behavior:'smooth'})">💬<span class="badge" id="badge1">4</span></div>
+      <div class="ico">✉</div>
+      <div class="ico">📌</div>
+      <span class="uname">测试-小白兵<span class="tag">企管理员</span></span>
+      <div class="ico">⛶</div>
+      <div class="ico">?</div>
+    </div>
+  </div>
+  <div style="padding:14px 20px;color:#9aa3b2;font-size:13px;">
+    说明：最左侧「💬 对话气泡」图标为消息入口，原无功能，现激活。图标右上角<span style="color:#f5222d;font-weight:600;">红色数字角标</span>为未读计数，有新消息自动刷新。点击该图标 → 跳转独立消息中心（屏2）。<br>
+    <span style="color:#1d4ed8;">口径：消息中心承载五类通知（@ 我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批）。其中「待我审批」在流程流转到当前处理人时提醒；该单据同时进入【审批任务 - 待我处理】列表——待办是可操作清单，消息是事件提醒，两处并存属预期。</span>
+  </div>
+</div>
+
+<!-- 屏2：消息中心（五类通知列表 + 筛选 + 批量已读）· 未读强化版 -->
+<div class="screen" id="screen2">
+  <div class="screen-tag">屏2 · 消息中心（独立页） · 五类通知 · 未读强化版</div>
+  <div class="mc-head"><div class="mc-title">消息中心</div></div>
+  <div class="tabs">
+    <div class="tab active" id="tab-all" onclick="filter('all')">全部</div>
+    <div class="tab" id="tab-unread" onclick="filter('unread')">未读</div>
+  </div>
+  <div class="mc-bar">
+    <span style="font-size:13px;color:#9aa3b2;" id="cnt">共 5 条，未读 4</span>
+    <button class="batch" onclick="batchRead()">批量已读</button>
+  </div>
+  <div class="list" id="list">
+    <div class="item unread" data-type="approve" onclick="read(this)">
+      <div class="type-ico t-approve">审</div>
+      <div class="body">
+        <div class="main">【周明远】提交了【备用金申请-2026-10】，请处理</div>
+        <div class="sub">备用金申请-2026-10 · 10-30 09:32</div>
+      </div>
+    </div>
+    <div class="item unread" data-type="at" onclick="read(this)">
+      <div class="type-ico t-at">@</div>
+      <div class="body">
+        <div class="main">【张明】在【备用金申请-2026-10】流程@了你：这笔报销的发票抬头需要确认一下</div>
+        <div class="sub">备用金申请-2026-10 · 10-29 09:12</div>
+      </div>
+    </div>
+    <div class="item unread" data-type="pass" onclick="read(this)">
+      <div class="type-ico t-pass">✓</div>
+      <div class="body">
+        <div class="main">【差旅申请-2026-11】的【部门经理审批】已由【李华】审批通过</div>
+        <div class="sub">差旅申请-2026-11 · 10-29 08:40</div>
+      </div>
+    </div>
+    <div class="item unread" data-type="reject" onclick="read(this)">
+      <div class="type-ico t-reject">✕</div>
+      <div class="body">
+        <div class="main">【采购付款-2026-10-08】的【会计审批】已被【王芳】驳回</div>
+        <div class="sub">采购付款-2026-10-08 · 10-28 17:25</div>
+      </div>
+    </div>
+    <div class="item" data-type="cc" onclick="read(this)">
+      <div class="type-ico t-cc">抄</div>
+      <div class="body">
+        <div class="main">【合同续签-2026-Q4】已抄送给你，可查看审批进度</div>
+        <div class="sub">合同续签-2026-Q4 · 10-28 14:03</div>
+      </div>
+    </div>
+  </div>
+  <div class="empty" id="empty" style="display:none;">暂无未读消息</div>
+</div>
+
+<!-- 屏3：点击单条 → 跳转流程详情（示意） -->
+<div class="screen" id="screen3">
+  <div class="screen-tag">屏3 · 点击通知后跳转流程详情（示意）</div>
+  <div class="flow-head">备用金申请-2026-10</div>
+  <div class="flow-note">来自消息中心「@ 我的」通知跳转，定位到评论位置</div>
+  <div class="flow-body">
+    <div class="flow-row"><span class="dot d-done"></span><div><div class="fwho">发起 · 测试-小白兵</div><div class="fstatus">已提交</div></div></div>
+    <div class="flow-row"><span class="dot d-done"></span><div><div class="fwho">部门经理审批 · 李华</div><div class="fstatus">已通过</div></div></div>
+    <div class="flow-row"><span class="dot d-doing"></span><div><div class="fwho">会计审批 · 王芳</div><div class="fstatus">审批中</div></div></div>
+    <div class="flow-row"><span class="dot d-wait"></span><div><div class="fwho">评论区</div><div class="fstatus"><span class="highlight">张明 @你：这笔报销的发票抬头需要确认一下</span></div></div></div>
+  </div>
+</div>
+
+<!-- 屏4：空状态（无未读 / 全部已读） -->
+<div class="screen" id="screen4">
+  <div class="screen-tag">屏4 · 空状态（未读筛选无结果）</div>
+  <div class="mc-head"><div class="mc-title">消息中心</div></div>
+  <div class="tabs">
+    <div class="tab" onclick="filter('all')">全部</div>
+    <div class="tab active">未读</div>
+  </div>
+  <div class="mc-bar">
+    <span style="font-size:13px;color:#9aa3b2;">共 4 条，未读 0</span>
+    <button class="batch">批量已读</button>
+  </div>
+  <div class="empty">暂无未读消息</div>
+</div>
+
+<!-- 屏5：未读样式候选对比（供拍板） -->
+<div class="screen" id="screen5">
+  <div class="screen-tag">屏5 · 未读样式候选对比</div>
+  <div class="cmp-head">未读样式候选对比</div>
+  <div class="cmp-note">三条通知均为「【周明远】提交了【备用金申请-2026-10】，请处理」的未读态示意。挑定后我同步到需求文档/飞书。</div>
+  <div class="cmp-grid">
+    <div class="cmp-col">
+      <div class="cmp-cap">方案 A（主版 · 推荐）<small>浅蓝底 + 蓝竖条 + 图标红点 + 标题加粗</small></div>
+      <div class="cmp-row unread" style="background:#f5f8ff;">
+        <div class="ci t-approve" style="background:#efe6ff;">审<span style="position:absolute;top:-3px;right:-3px;width:10px;height:10px;background:#f5222d;border:2px solid #fff;border-radius:50%;"></span></div>
+        <div class="body"><div class="main" style="font-weight:600;">【周明远】提交了【备用金申请-2026-10】，请处理</div><div class="sub">备用金申请-2026-10 · 10-30 09:32</div></div>
+      </div>
+      <div class="cmp-row" style="border-top:1px solid #eef0f3;">
+        <div class="ci t-at" style="background:#eef2ff;">@</div>
+        <div class="body"><div class="main">【张明】在【备用金申请-2026-10】流程@了你</div><div class="sub">已读态（白底、无红点、标题常规）</div></div>
+      </div>
+    </div>
+    <div class="cmp-col">
+      <div class="cmp-cap">方案 B（轻量）<small>仅图标红点 + 标题加粗，无背景</small></div>
+      <div class="cmp-row unread cB">
+        <div class="ci t-approve" style="background:#efe6ff;">审<span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:#f5222d;border:2px solid #fff;border-radius:50%;"></span></div>
+        <div class="body"><div class="main" style="font-weight:600;">【周明远】提交了【备用金申请-2026-10】，请处理</div><div class="sub">备用金申请-2026-10 · 10-30 09:32</div></div>
+      </div>
+      <div class="cmp-row" style="border-top:1px solid #eef0f3;">
+        <div class="ci t-at" style="background:#eef2ff;">@</div>
+        <div class="body"><div class="main">【张明】在【备用金申请-2026-10】流程@了你</div><div class="sub">已读态（白底、无红点、标题常规）</div></div>
+      </div>
+    </div>
+    <div class="cmp-col">
+      <div class="cmp-cap">方案 C（强背景）<small>更深蓝底 + 蓝竖条 + 图标红点 + 加粗</small></div>
+      <div class="cmp-row unread cC" style="background:#eef4ff;">
+        <div class="ci t-approve" style="background:#efe6ff;">审<span style="position:absolute;top:-3px;right:-3px;width:9px;height:9px;background:#f5222d;border:2px solid #fff;border-radius:50%;"></span></div>
+        <div class="body"><div class="main" style="font-weight:600;">【周明远】提交了【备用金申请-2026-10】，请处理</div><div class="sub">备用金申请-2026-10 · 10-30 09:32</div></div>
+      </div>
+      <div class="cmp-row" style="border-top:1px solid #eef0f3;">
+        <div class="ci t-at" style="background:#eef2ff;">@</div>
+        <div class="body"><div class="main">【张明】在【备用金申请-2026-10】流程@了你</div><div class="sub">已读态（白底、无红点、标题常规）</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateBadge(){
+    var n = document.querySelectorAll('#list .item.unread').length;
+    var b = document.getElementById('badge1');
+    b.textContent = n;
+    b.style.display = n > 0 ? 'block' : 'none';
+    document.getElementById('cnt').textContent = '共 ' + document.querySelectorAll('#list .item').length + ' 条，未读 ' + n;
+  }
+  function read(el){
+    el.classList.remove('unread');
+    updateBadge();
+    // 原型示意：实际跳转流程详情（屏3）
+  }
+  function batchRead(){
+    document.querySelectorAll('#list .item.unread').forEach(function(e){ e.classList.remove('unread'); });
+    updateBadge();
+  }
+  function filter(type){
+    document.getElementById('tab-all').classList.toggle('active', type==='all');
+    document.getElementById('tab-unread').classList.toggle('active', type==='unread');
+    var empty = document.getElementById('empty');
+    var items = document.querySelectorAll('#list .item');
+    var shown = 0;
+    items.forEach(function(e){
+      var show = (type==='all') || e.classList.contains('unread');
+      e.style.display = show ? '' : 'none';
+      if(show) shown++;
+    });
+    empty.style.display = (type==='unread' && shown===0) ? 'block' : 'none';
+  }
+  updateBadge();
+</script>
+</body>
+</html>

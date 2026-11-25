@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信息推送（站外推送）· 原型</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #eef1f5;
+    color: #1f2329;
+    padding: 28px 16px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .sub { font-size: 13px; color: #6b7280; margin-bottom: 18px; }
+
+  /* 决策图例 */
+  .legend {
+    width: 380px;
+    background: #fff;
+    border: 1px solid #e3e6eb;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+  .legend b { color: #2f6fed; }
+  .legend .row { display: flex; gap: 6px; }
+  .legend .k { color: #6b7280; min-width: 76px; }
+
+  /* 手机 */
+  .phone {
+    width: 380px;
+    background: #fff;
+    border: 10px solid #1c1c1e;
+    border-radius: 40px;
+    box-shadow: 0 18px 40px rgba(20,30,50,.18);
+    overflow: hidden;
+  }
+  .statusbar {
+    height: 30px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f2329;
+  }
+  .statusbar .icons { letter-spacing: 1px; color: #1f2329; }
+  .shade-head {
+    background: linear-gradient(180deg,#f4f6f9,#eef1f5);
+    padding: 6px 16px 10px;
+    font-size: 20px;
+    font-weight: 700;
+    border-bottom: 1px solid #e7eaee;
+  }
+  .shade-head small { font-size: 12px; font-weight: 500; color: #8a8f98; margin-left: 8px; }
+  .list { padding: 10px 10px 16px; background: #eef1f5; }
+
+  /* 通知卡片（= 手机系统通知真实形态：图标 + 应用名 + 时间 + 正文，无彩色色条/彩色标签） */
+  .notif {
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 12px 11px;
+    margin-bottom: 9px;
+    box-shadow: 0 1px 3px rgba(20,30,50,.10);
+    display: flex;
+    gap: 10px;
+  }
+  .icon {
+    width: 38px; height: 38px; border-radius: 9px;
+    background: linear-gradient(135deg,#3b5bdb,#5c7cfa);
+    color: #fff; font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .body { flex: 1; min-width: 0; }
+  .approw {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: #6b7280; margin-bottom: 3px;
+  }
+  .approw .name { color: #1f2329; font-weight: 600; }
+  .approw .time { margin-left: auto; }
+  /* 系统通知无自定义彩色标签；仅以中性灰小字标注通知类别（系统可显示中性渠道名） */
+  .tag {
+    font-size: 10.5px; padding: 1px 6px; border-radius: 6px;
+    background: #eef1f5; color: #6b7280; font-weight: 600;
+  }
+  .msg { font-size: 13.5px; line-height: 1.45; color: #1f2329; word-break: break-word; }
+  .msg .hl { font-weight: 600; }
+
+  .cap {
+    width: 380px; margin-top: 18px; font-size: 12px; color: #6b7280;
+    line-height: 1.7; background: #fff; border: 1px solid #e3e6eb;
+    border-radius: 10px; padding: 10px 13px;
+  }
+  .cap b { color: #1f2329; }
+  .pg-h { font-size: 15px; font-weight: 700; margin: 28px 0 12px; width: 380px; }
+  .pg-h small { font-size: 11.5px; font-weight: 500; color: #8a8f98; display: block; margin-top: 4px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+  <h1>信息推送（站外推送）· 原型</h1>
+  <div class="sub">站外 = App 系统通知（手机系统通知）｜ 文案直接复用站内消息中心</div>
+
+  <div class="legend">
+    <div class="row"><span class="k">通道形态</span><span><b>App 系统通知</b>（手机系统通知），不提供微信模板 / 短信</span></div>
+    <div class="row"><span class="k">分类型开关</span><span><b>不做</b>，六类通知统一接入，沿用系统免打扰</span></div>
+    <div class="row"><span class="k">推送文案</span><span><b>复用站内</b>文案，不重定义</span></div>
+    <div class="row"><span class="k">幂等 / 去重</span><span><b>沿用通道能力</b>；逾期每日文案随天数递增，内容天然不同</span></div>
+    <div class="row"><span class="k">敏感信息</span><span>仅推文案，<b>不携带敏感字段</b></span></div>
+  </div>
+
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:24</span>
+      <span class="icons">●●● ▮ 100%</span>
+    </div>
+    <div class="shade-head">通知 <small>今天</small></div>
+    <div class="list">
+
+      <!-- 其他类：待我审批（说明六类统一接入） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">待我审批</span>
+            <span class="time">9:24</span>
+          </div>
+          <div class="msg">【张伟】提交了【差旅费报销】，请处理</div>
+        </div>
+      </div>
+
+      <!-- 还款预警 · 常规提醒（申请人） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款预警 · 常规</span>
+            <span class="time">9:20</span>
+          </div>
+          <div class="msg">【备用金申请】将于 <span class="hl">2027-05-03</span> 到期，剩余 <span class="hl">183</span> 天，请及时还款</div>
+        </div>
+      </div>
+
+      <!-- 还款预警 · 临近提醒（申请人） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款预警 · 临近</span>
+            <span class="time">9:18</span>
+          </div>
+          <div class="msg">【备用金申请】将于 <span class="hl">2026-11-07</span> 到期，剩余 <span class="hl">3</span> 天，请尽快还款</div>
+        </div>
+      </div>
+
+      <!-- 还款预警 · 逾期提醒（申请人） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款预警 · 逾期</span>
+            <span class="time">9:15</span>
+          </div>
+          <div class="msg">【备用金申请】已于 <span class="hl">2026-11-01</span> 逾期 <span class="hl">3</span> 天，请立即还款</div>
+        </div>
+      </div>
+
+      <!-- 还款预警 · 逾期提醒（会计审批处理人） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款预警 · 逾期 · 会计侧</span>
+            <span class="time">9:15</span>
+          </div>
+          <div class="msg">【备用金申请】申请人 <span class="hl">周明远</span> 尚未还款（<span class="hl">¥5,000.00</span>），还款日 2026-11-01，已逾期 <span class="hl">3</span> 天，请关注</div>
+        </div>
+      </div>
+
+      <!-- 还款完成（申请人） -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款完成</span>
+            <span class="time">昨天</span>
+          </div>
+          <div class="msg">【备用金申请】（¥5,000.00，还款日 2026-11-01）已由会计审批处理人 <span class="hl">吴国栋</span> 于 2026-11-04 15:32 确认还款</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="pg-h">六类通知完整清单 · 每类一条示例<small>非还款预警五类文案为示意，以站内消息中心实际为准（本需求不重定义）；@我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批 / 还款预警 六类均接入 App 系统通知</small></div>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:24</span>
+      <span class="icons">●●● ▮ 100%</span>
+    </div>
+    <div class="shade-head">通知 <small>今天</small></div>
+    <div class="list">
+
+      <!-- @我的 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">@我的</span>
+            <span class="time">9:30</span>
+          </div>
+          <div class="msg">【王芳】在【Q4 预算评审】中 @ 了你，请查看</div>
+        </div>
+      </div>
+
+      <!-- 审批通过 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">审批通过</span>
+            <span class="time">9:28</span>
+          </div>
+          <div class="msg">您提交的【差旅费报销 <span class="hl">¥1,200.00</span>】已通过审批</div>
+        </div>
+      </div>
+
+      <!-- 审批驳回 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">审批驳回</span>
+            <span class="time">9:26</span>
+          </div>
+          <div class="msg">您提交的【差旅费报销 <span class="hl">¥1,200.00</span>】被【王芳】驳回：金额超出标准</div>
+        </div>
+      </div>
+
+      <!-- 抄送我的 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">抄送我的</span>
+            <span class="time">9:25</span>
+          </div>
+          <div class="msg">【李强】抄送你【采购合同审批】</div>
+        </div>
+      </div>
+
+      <!-- 待我审批 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">待我审批</span>
+            <span class="time">9:24</span>
+          </div>
+          <div class="msg">【张伟】提交了【差旅费报销 <span class="hl">¥1,200.00</span>】，请处理</div>
+        </div>
+      </div>
+
+      <!-- 还款预警 -->
+      <div class="notif">
+        <div class="icon">金</div>
+        <div class="body">
+          <div class="approw">
+            <span class="name">金阔OA</span>
+            <span class="tag">还款预警 · 常规</span>
+            <span class="time">9:20</span>
+          </div>
+          <div class="msg">【备用金申请】将于 <span class="hl">2027-05-03</span> 到期，剩余 <span class="hl">183</span> 天，请及时还款</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cap">
+    <b>原型说明：</b><br>
+    1. 站外形态 = 手机<b>系统通知（App 系统通知）</b>，出现在锁屏 / 通知栏；本原型展示通知栏下拉态。<br>
+    2. 文案与站内消息中心<b>完全一致</b>（含还款预警常规 / 临近 / 逾期 / 已还款各档，申请人侧与会计侧两条不同文案），不另写一版。<br>
+    3. 点击通知 → 打开 App 并定位到对应通知 / 流程详情；打开后站内对应通知置为已读，跨端同步。<br>
+    4. 站外通知<b>仅推送文案</b>，不携带敏感信息。<br>
+    5. 六类通知统一接入（@我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批 / 还款预警），不提供按类开关。<br>
+    6. <b>外观约束：</b>系统通知只能呈现应用图标（图标本身可彩色）、应用名、时间、正文文本，<b>没有彩色左边条、也没有彩色分类标签</b>。阶段（常规 / 临近 / 逾期）由正文文案自带（如「剩余 183 天」「已逾期 3 天」），不靠颜色区分；站内消息中心的蓝 / 橙 / 红 / 绿配色仅用于站内卡片，不会出现在手机系统通知里。<br>
+    7. <b>两页分工：</b>上方第一台手机展示还款预警的多种阶段与申请人侧 / 会计侧文案差异；第二台手机为<b>六类通知完整清单</b>（@我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批 / 还款预警 各一条），六类均已接入 App 系统通知、均在原型中呈现。
+  </div>
+
+</body>
+</html>

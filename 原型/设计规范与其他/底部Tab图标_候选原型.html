@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>底部 Tab 栏 · 四枚图标候选方案（视觉评审）</title>
+<style>
+  :root{
+    --blue:#2b7fff;        /* 选中：品牌蓝 */
+    --gray:#a8adb5;        /* 未选中：灰 */
+    --blue-bg:#eef4ff;
+    --ink:#1f2329;
+    --ink2:#4e5969;
+    --sub:#8f959e;
+    --line:#e9ecef;
+    --bg:#f0f2f5;
+    --card:#fff;
+    --warn:#fa5151;
+    --warn-bg:#fff1f0;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;padding:32px 20px 56px;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  /* ---------- 页头 ---------- */
+  .hd{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px 22px;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--blue);text-transform:uppercase;margin-bottom:10px;}
+  h1{font-size:23px;line-height:1.35;margin:0 0 10px;letter-spacing:-.2px;}
+  .lead{font-size:13px;line-height:1.85;color:var(--ink2);margin:0;}
+  .lead b{color:var(--ink);font-weight:600;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .chip{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink2);
+        background:#f7f8fa;border:1px solid var(--line);border-radius:999px;padding:5px 11px 5px 6px;}
+  .chip code{font-family:var(--mono);font-size:11px;color:var(--ink);}
+  .dot{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(0,0,0,.08);}
+
+  /* ---------- 分节 ---------- */
+  section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px 24px;margin-top:18px;}
+  h2{font-size:16px;margin:0 0 4px;display:flex;align-items:center;gap:10px;letter-spacing:-.1px;}
+  .no{font-family:var(--mono);font-size:11px;color:var(--gray);font-weight:500;letter-spacing:.1em;}
+  .desc{font-size:12.5px;line-height:1.85;color:var(--ink2);margin:6px 0 18px;}
+  .desc b{color:var(--ink);font-weight:600;}
+  h3{font-size:13.5px;margin:26px 0 10px;color:var(--ink);}
+
+  /* ---------- 01 现行参考 ---------- */
+  .refrow{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;}
+  .ref-note{flex:1 1 320px;min-width:280px;}
+  .nlist{margin:0;padding:0;list-style:none;}
+  .nlist li{font-size:12.5px;line-height:1.8;color:var(--ink2);padding-left:20px;position:relative;margin-bottom:7px;}
+  .nlist li:before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--warn);}
+  .nlist li b{color:var(--ink);}
+  .callout{margin-top:14px;background:var(--warn-bg);border:1px solid #ffd9d6;border-radius:10px;padding:11px 13px;
+           font-size:12px;line-height:1.75;color:#b02a25;}
+  .callout b{color:#8f1f1b;}
+
+  /* ---------- Tab 栏样机 ---------- */
+  .mock{width:342px;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;
+        box-shadow:0 8px 22px rgba(16,24,40,.07);flex:0 0 auto;}
+  .mock-body{height:74px;background:#fafbfc;padding:15px 16px;display:flex;flex-direction:column;gap:9px;border-bottom:1px solid #f4f6f8;}
+  .sk{height:8px;border-radius:4px;background:#eceff3;}
+  .tabbar{display:grid;grid-template-columns:repeat(4,1fr);padding:7px 0 7px;background:#fff;}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;line-height:1;
+       color:var(--gray);letter-spacing:.2px;position:relative;padding-top:2px;}
+  .tab svg{width:22px;height:22px;display:block;}
+  .tab.on{color:var(--blue);font-weight:600;}
+  .tab.flag{outline:1.5px dashed var(--warn);outline-offset:4px;border-radius:6px;}
+  .flagtag{position:absolute;top:-19px;left:50%;transform:translateX(-50%);white-space:nowrap;
+           font-size:10px;font-weight:600;color:#fff;background:var(--warn);border-radius:5px;padding:2px 6px;}
+  .mockcap{font-size:11px;color:var(--sub);margin-top:8px;text-align:center;}
+
+  /* ---------- 图标卡片 ---------- */
+  .icons{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px;align-items:start;}
+  .icard{border:1px solid var(--line);border-radius:12px;padding:14px 8px 12px;text-align:center;background:#fff;}
+  .icard .nm{font-size:12.5px;font-weight:600;color:var(--ink);}
+  .icard .sl{font-family:var(--mono);font-size:10px;color:var(--gray);margin:3px 0 12px;letter-spacing:.02em;}
+  .pair{display:flex;justify-content:center;align-items:flex-start;gap:16px;}
+  .st{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:10px;color:var(--gray);letter-spacing:.02em;}
+  .st svg{width:34px;height:34px;display:block;}
+  .st.off{color:#a8adb5;}
+  .st.on{color:#2b7fff;}
+  .st.on span{color:#2b7fff;font-weight:600;}
+
+  /* ---------- 理由 ---------- */
+  .why{margin-top:16px;background:#f8fafc;border:1px solid #eef1f5;border-radius:12px;padding:14px 16px;}
+  .why h4{font-size:12px;margin:0 0 8px;color:var(--blue);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase;}
+  .why ol{margin:0;padding-left:18px;}
+  .why li{font-size:12.5px;line-height:1.85;color:var(--ink2);margin-bottom:4px;}
+  .why li b{color:var(--ink);font-weight:600;}
+
+  /* ---------- 方案标题 ---------- */
+  .set{border-top:1px dashed #e5e9ee;margin-top:26px;padding-top:20px;}
+  .set:first-of-type{border-top:none;margin-top:6px;padding-top:0;}
+  .sethd{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+  .setname{font-size:15px;font-weight:700;letter-spacing:-.1px;}
+  .tag{font-size:10.5px;font-weight:600;border-radius:6px;padding:3px 8px;letter-spacing:.02em;}
+  .tag.pick{background:var(--blue-bg);color:var(--blue);}
+  .tag.alt{background:#f3f4f7;color:#6b7280;}
+  .tag.ok{background:#e6f6ea;color:#3aa655;}
+  .final-banner{margin:10px 0 16px;padding:10px 14px;border:1px solid #3aa655;border-radius:10px;background:#e6f6ea;color:#1f3a26;font-size:12.5px;line-height:1.6;}
+  .final-banner b{color:#2f7d4a;}
+  .setdesc{font-size:12.5px;color:var(--ink2);line-height:1.8;margin:0 0 16px;}
+
+  /* ---------- 规格表 ---------- */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top;}
+  th{background:#f7f8fa;color:var(--ink2);font-weight:600;white-space:nowrap;}
+  td code,th code{font-family:var(--mono);font-size:11.5px;color:#1f5fbf;background:#f4f7fc;border-radius:4px;padding:1px 5px;}
+  .cmp td:first-child{color:var(--ink2);background:#fcfcfd;white-space:nowrap;}
+  .cmp th{text-align:center;}
+  .cmp td{text-align:center;}
+  .cmp td:first-child{text-align:left;}
+
+  /* ---------- 24 栅格标定 ---------- */
+  .gstage{display:flex;gap:18px;flex-wrap:wrap;margin-top:6px;}
+  .gcell{text-align:center;}
+  .gsvg{width:96px;height:96px;border:1px solid #dfe4ea;border-radius:8px;background:#fff;
+        background-image:
+          repeating-linear-gradient(90deg,#eef1f5 0 1px,transparent 1px 16px),
+          repeating-linear-gradient(0deg,#eef1f5 0 1px,transparent 1px 16px);}
+  .gsvg svg{width:96px;height:96px;display:block;}
+  .glabel{font-size:10.5px;color:var(--sub);margin-top:6px;font-family:var(--mono);}
+
+  /* ---------- 排除项 ---------- */
+  .rej{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px;}
+  .rej div{border:1px solid #f0e2e0;background:#fffafa;border-radius:10px;padding:11px 12px;font-size:11.5px;line-height:1.7;color:#7c5b57;}
+  .rej b{display:block;color:#b02a25;font-size:12px;margin-bottom:3px;}
+
+  /* ---------- 建议 ---------- */
+  .rec{background:var(--blue-bg);border:1px solid #d6e6ff;border-radius:12px;padding:16px 18px;}
+  .rec p{font-size:12.5px;line-height:1.9;color:#1e4b8a;margin:0 0 8px;}
+  .rec p:last-child{margin-bottom:0;}
+  .rec b{color:#0f3d7a;}
+  .soft{font-size:11.5px;color:var(--sub);line-height:1.9;margin-top:14px;}
+
+  footer{max-width:1000px;margin:18px auto 0;font-size:11.5px;color:var(--sub);line-height:1.9;padding:0 4px;}
+  footer b{color:var(--ink2);}
+
+  @media (max-width:760px){
+    body{padding:16px 12px 40px;}
+    section,.hd{padding:18px;border-radius:12px;}
+    .icons{grid-template-columns:repeat(2,1fr);}
+    .rej{grid-template-columns:1fr;}
+    .mock{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= 页头 ================= -->
+  <header class="hd">
+    <div class="kicker">Visual Spec · Candidates for Review</div>
+    <h1>金蝶 OA · 底部 Tab 栏 四枚图标重做（候选方案）</h1>
+    <p class="lead">
+      消息中心改版后，Tab 1 由「首页」更名为<b>「消息」</b>，但图标仍是原首页的房子 —— 房子配「消息」二字，语义错位。产品已拍板四枚图标整体刷新。
+      本页给出 <b>3 套完整候选 + 1 个消息位对比变体</b>，每枚均含未选中 / 选中两态，全部为 24 栅格手绘内联矢量，开发可逐条还原。
+    </p>
+    <div class="chips">
+      <span class="chip"><i class="dot" style="background:#a8adb5"></i>未选中 <code>#a8adb5</code></span>
+      <span class="chip"><i class="dot" style="background:#2b7fff"></i>选中 <code>#2b7fff</code></span>
+      <span class="chip">画布 <code>24×24</code></span>
+      <span class="chip">描边 <code>2px</code> round</span>
+      <span class="chip">栏内显示 <code>22px</code>（21–24）</span>
+    </div>
+  </header>
+
+  <!-- ================= 01 现行参考 ================= -->
+  <section>
+    <h2><span class="no">01</span>现行参考：问题现场</h2>
+    <p class="desc">下面是现状的复刻示意（其余三枚为现状占位，本次一并重做）。错位点不在「好不好看」，而在<b>图标说的和文字说的不是一件事</b>。</p>
+
+    <div class="refrow">
+      <div>
+        <div class="mock">
+          <div class="mock-body">
+            <div class="sk" style="width:62%"></div>
+            <div class="sk" style="width:84%"></div>
+            <div class="sk" style="width:46%"></div>
+          </div>
+          <div class="tabbar">
+            <!-- 现状：房子图标 + 「消息」文字 -->
+            <div class="tab on flag">
+              <span class="flagtag">房子 ≠ 消息</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M4 10.6 12 3.6l8 7V19a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 19Z"/>
+                <path d="M9.8 20.8v-6.2h4.4v6.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              消息
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.6 7.4 5.9 9.7 9.2 5.8"/><path d="M12.4 7.7h8.2"/>
+                <path d="M3.6 16 5.9 18.3 9.2 14.4"/><path d="M12.4 16.3h8.2"/>
+              </svg>
+              待办
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+                <rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+                <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+                <rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+              </svg>
+              工作台
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8.4" r="3.6"/>
+                <path d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4"/>
+              </svg>
+              我的
+            </div>
+          </div>
+        </div>
+        <div class="mockcap">现状示意 · 红框处为语义错位</div>
+      </div>
+
+      <div class="ref-note">
+        <ul class="nlist">
+          <li><b>语义错位：</b>房子＝「回到首页 / 家」，气泡＝「有人在对我说话」。消息中心的实际内容是 @我、审批结果、还款预警，都属「对话」语义，房子一进来就把人带错方向。</li>
+          <li><b>一次改字、不改图，成本最高：</b>文字变了图标没变，用户第一眼会以为「首页还在」，进二级页才发现首页已取消，产生一次空点击。</li>
+          <li><b>四枚风格不齐：</b>现有四枚并非同一批绘制，描边粗细与圆角半径各自为政，同一个栏里视觉重量不一致，选中态只剩「变蓝」一个信号。</li>
+        </ul>
+        <div class="callout">
+          <b>本次仅解决三件事：</b>① 消息位换成「对话」语义；② 四枚统一 2px 描边 / 同一套圆角语言 / 同视觉重量；③ 未选中走线性、选中走实心，让选中态在描边层面也成立（不只靠颜色，弱视与高亮屏下也读得出）。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 02 共同规格 ================= -->
+  <section>
+    <h2><span class="no">02</span>共同规格（已锁定，三套候选与信封变体均遵守）</h2>
+    <p class="desc">以下数值是三套候选与信封变体的公共约束，也是评审通过后交给前端/切图的唯一口径。四枚图标的差异只允许出现在<b>形体语言</b>上，不允许出现在规格上。</p>
+
+    <table>
+      <tr><th style="width:118px">项</th><th style="width:210px">值</th><th>说明</th></tr>
+      <tr><td>画布</td><td><code>viewBox="0 0 24 24"</code></td><td>与导出切图同栅格；不缩放、不裁切</td></tr>
+      <tr><td>描边</td><td><code>stroke-width:2</code></td><td>四枚完全一致；<code>stroke-linecap / linejoin: round</code></td></tr>
+      <tr><td>显示尺寸</td><td>栏内 <code>22px</code>（允许 21–24）</td><td>22px 时描边折算 <code>1.83px</code>；21px 时 <code>1.75px</code>，@2x 仍 ≥3 物理像素，不虚</td></tr>
+      <tr><td>未选中色</td><td><code>#a8adb5</code></td><td>线性描边、无填充（点状装饰除外，见下）</td></tr>
+      <tr><td>选中色</td><td><code>#2b7fff</code></td><td>闭合形体实心填充；细节线加粗至 <code>3.2</code> 或不描边靠白镂空</td></tr>
+      <tr><td>视觉重心</td><td>字形落在 <code>3.2 – 20.8</code>（16pt 区）</td><td>四枚同视觉面积，避免「工作台看着比我的大一号」</td></tr>
+      <tr><td>技术约定</td><td><code>currentColor</code> + fill/stroke 切换</td><td>一套 SVG 出两态，前端只切 class，不维护双份资源；点状装饰（仅方案 C 气泡三点）用 <code>fill</code></td></tr>
+    </table>
+
+    <h3>24 栅格标定（以方案 A 为例，96px 放大 4 倍，淡线＝1 单位）</h3>
+    <div class="gstage">
+      <div class="gcell">
+        <div class="gsvg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a8adb5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/>
+          </svg>
+        </div>
+        <div class="glabel">消息 · 4.4–21.0</div>
+      </div>
+      <div class="gcell">
+        <div class="gsvg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a8adb5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3.6 7.4 5.9 9.7 9.2 5.8"/><path d="M12.4 7.7h8.2"/>
+            <path d="M3.6 16 5.9 18.3 9.2 14.4"/><path d="M12.4 16.3h8.2"/>
+          </svg>
+        </div>
+        <div class="glabel">待办 · 5.8–18.3</div>
+      </div>
+      <div class="gcell">
+        <div class="gsvg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a8adb5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+            <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+          </svg>
+        </div>
+        <div class="glabel">工作台 · 3.2–20.8</div>
+      </div>
+      <div class="gcell">
+        <div class="gsvg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a8adb5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="8.4" r="3.6"/>
+            <path d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4"/>
+          </svg>
+        </div>
+        <div class="glabel">我的 · 4.8–20.6</div>
+      </div>
+    </div>
+
+    <h3>三条已排除的方向（不再作为候选）</h3>
+    <div class="rej">
+      <div><b>铃铛</b>已被消息首页右上角的「通知入口」占用，且该规范本期不改。Tab 再用铃铛会和通知入口撞型，用户会以为两个入口是同一功能。</div>
+      <div><b>3×3 九宫格</b>在 2px 描边 + 21px 显示下算不过来：三格 4.8 + 两隙 2.2，单格内孔只剩 0.8–1.2 单位，@2x 会糊成九个实心点。故三套均取 2×2，只在方块大小与间隙上做差异。</div>
+      <div><b>房子 / 首页</b>语义错位本身即本次要修的问题，不保留为任何候选。</div>
+    </div>
+  </section>
+
+  <!-- ================= 03 候选方案 ================= -->
+  <section>
+    <h2><span class="no">03</span>候选方案（每套四枚，套内风格严格一致）</h2>
+    <p class="desc">三套的差别集中在三个可控变量上：<b>圆角语言</b>（松／紧／大）、<b>待办的结构</b>（勾＋线／勾选框＋线／任务卡＋勾）、<b>字形饱满度</b>（17.6 ／17.8 ／19 单位）。每枚图标先给两态并排，再给 22px 实机样机。</p>
+
+    <!-- ---------- 方案 A ---------- -->
+    <div class="set">
+      <div class="sethd">
+        <span class="setname">方案 A · 圆润对话</span>
+        <span class="tag ok">✅ 已定稿 · 产品选定</span>
+      </div>
+      <p class="setdesc">大圆角、负空间最宽、盲装饰最少的现代移动端语言。四枚之间以「圆角半径分档」保持统一而不呆板：气泡 4.5、宫格 2.5、人物 3.6。</p>
+      <div class="final-banner"><b>✅ 已定稿（2026-11-11 · 产品选定）</b>　本方案作为金阔 OA 底部 Tab 图标<b>唯一交付标准</b>。方案 B、C 与信封变体<b>未采纳</b>，仅留作对比。颜色不写死：选中态取 <code>--color-primary</code>（#1f6ad8），未选中态取 <code>--color-text-tertiary</code>（#a8adb5），随设计令牌统一走，禁止各 Tab 各自硬编码色值。</div>
+
+      <div class="icons">
+        <!-- A1 消息 -->
+        <div class="icard">
+          <div class="nm">消息</div>
+          <div class="sl">speech-bubble</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- A2 待办 -->
+        <div class="icard">
+          <div class="nm">待办</div>
+          <div class="sl">checklist · 2 rows</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.6 7.4 5.9 9.7 9.2 5.8"/><path d="M12.4 7.7h8.2"/>
+                <path d="M3.6 16 5.9 18.3 9.2 14.4"/><path d="M12.4 16.3h8.2"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path stroke-width="2.6" d="M3.9 7.5 6 9.6 9.1 6.1"/><path stroke-width="3.2" d="M12.6 7.8h7.8"/>
+                <path stroke-width="2.6" d="M3.9 16.1 6 18.2 9.1 14.7"/><path stroke-width="3.2" d="M12.6 16.4h7.8"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- A3 工作台 -->
+        <div class="icard">
+          <div class="nm">工作台</div>
+          <div class="sl">apps-grid · 2×2</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+                <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5" fill="currentColor"/><rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5" fill="currentColor"/>
+                <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5" fill="currentColor"/><rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5" fill="currentColor"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- A4 我的 -->
+        <div class="icard">
+          <div class="nm">我的</div>
+          <div class="sl">person</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8.4" r="3.6"/>
+                <path d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8.4" r="3.6" fill="currentColor"/>
+                <path fill="currentColor" d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4Z"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;display:flex;flex-direction:column;align-items:center">
+        <div class="mock">
+          <div class="mock-body">
+            <div class="sk" style="width:58%"></div>
+            <div class="sk" style="width:80%"></div>
+            <div class="sk" style="width:42%"></div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/></svg>
+              消息
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.6 7.4 5.9 9.7 9.2 5.8"/><path d="M12.4 7.7h8.2"/>
+                <path d="M3.6 16 5.9 18.3 9.2 14.4"/><path d="M12.4 16.3h8.2"/>
+              </svg>
+              待办
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.2" y="3.2" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="3.2" width="7.2" height="7.2" rx="2.5"/>
+                <rect x="3.2" y="13.6" width="7.2" height="7.2" rx="2.5"/><rect x="13.6" y="13.6" width="7.2" height="7.2" rx="2.5"/>
+              </svg>
+              工作台
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8.4" r="3.6"/>
+                <path d="M4.6 20.6c0-4 3.3-6.4 7.4-6.4s7.4 2.4 7.4 6.4"/>
+              </svg>
+              我的
+            </div>
+          </div>
+        </div>
+        <div class="mockcap">22px 实机样机 · 消息选中</div>
+      </div>
+
+      <div class="why">
+        <h4>设计理由</h4>
+        <ol>
+          <li><b>隐喻取最短路径：</b>气泡直指「有人在对我说话」，与消息中心的真实内容（@我 / 审批结果 / 还款预警）同源；待办用两行「勾＋线」表达清单条目，工作台用四格等大方块表达可自定义的应用位，人物用头＋肩的通用剪影。</li>
+          <li><b>描边处理：</b>统一 2px、round 线帽线接，气泡内部<b>刻意不放装饰线</b> —— 2px 描边下，气泡内再塞两条文本线会让 21px 显示时横向笔画挤到 3 条，负空间被吃掉，灰态尤其糊。这是为小尺寸做的减法。</li>
+          <li><b>家族一致性：</b>圆角比例与消息页现有的圆角方块图标族（44px / 圆角 8px ≈ 18%）同源；选中态直接是灰态几何的实心版，两态形状完全重合，切换时不产生位移抖动。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ---------- 方案 B ---------- -->
+    <div class="set">
+      <div class="sethd">
+        <span class="setname">方案 B · 方正文档</span>
+        <span class="tag alt">未采纳 · 仅供对比</span>
+      </div>
+      <p class="setdesc">圆角收到 1.0–2.4，气泡带直角折边尾巴与一条文本线，宫格四块近方、间隙收到安全下限（3.0）。整体更像「办公工具」而不像「社交 App」。</p>
+
+      <div class="icons">
+        <!-- B1 消息 -->
+        <div class="icard">
+          <div class="nm">消息</div>
+          <div class="sl">speech-bubble · 方角</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5.8 4.6H18.2A2.4 2.4 0 0 1 20.6 7V14.8A2.4 2.4 0 0 1 18.2 17.2H11.8L8.2 20.8V17.2H5.8A2.4 2.4 0 0 1 3.4 14.8V7A2.4 2.4 0 0 1 5.8 4.6Z"/>
+                <path d="M7.6 10.9h8.8"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M5.8 4.6H18.2A2.4 2.4 0 0 1 20.6 7V14.8A2.4 2.4 0 0 1 18.2 17.2H11.8L8.2 20.8V17.2H5.8A2.4 2.4 0 0 1 3.4 14.8V7A2.4 2.4 0 0 1 5.8 4.6Z"/>
+                <path d="M7.6 10.9h8.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- B2 待办 -->
+        <div class="icard">
+          <div class="nm">待办</div>
+          <div class="sl">checkbox + lines</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="9.6" height="9.6" rx="1.6"/>
+                <path d="M6.2 8.2 7.9 9.9 10.6 6.2"/>
+                <path d="M3.6 15.8h17"/><path d="M3.6 20h11.6"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="9.6" height="9.6" rx="1.6" fill="currentColor"/>
+                <path d="M6.4 8.2 8 9.8 10.6 6.4" stroke="#fff" stroke-width="2.2"/>
+                <path stroke-width="2.8" d="M3.8 15.8h16.6"/><path stroke-width="2.8" d="M3.8 20h11.4"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- B3 工作台 -->
+        <div class="icard">
+          <div class="nm">工作台</div>
+          <div class="sl">apps-grid · 紧贴</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.1" y="3.1" width="7.4" height="7.4" rx="1.0"/><rect x="13.5" y="3.1" width="7.4" height="7.4" rx="1.0"/>
+                <rect x="3.1" y="13.5" width="7.4" height="7.4" rx="1.0"/><rect x="13.5" y="13.5" width="7.4" height="7.4" rx="1.0"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.1" y="3.1" width="7.4" height="7.4" rx="1.0" fill="currentColor"/><rect x="13.5" y="3.1" width="7.4" height="7.4" rx="1.0" fill="currentColor"/>
+                <rect x="3.1" y="13.5" width="7.4" height="7.4" rx="1.0" fill="currentColor"/><rect x="13.5" y="13.5" width="7.4" height="7.4" rx="1.0" fill="currentColor"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- B4 我的 -->
+        <div class="icard">
+          <div class="nm">我的</div>
+          <div class="sl">person · 折角肩</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8.2" r="3.5"/>
+                <path d="M5 20.6v-1.4l2.6-3.6h8.8l2.6 3.6v1.4"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8.2" r="3.5" fill="currentColor"/>
+                <path fill="currentColor" d="M5 20.6v-1.4l2.6-3.6h8.8l2.6 3.6v1.4Z"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;display:flex;flex-direction:column;align-items:center">
+        <div class="mock">
+          <div class="mock-body">
+            <div class="sk" style="width:58%"></div>
+            <div class="sk" style="width:80%"></div>
+            <div class="sk" style="width:42%"></div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M5.8 4.6H18.2A2.4 2.4 0 0 1 20.6 7V14.8A2.4 2.4 0 0 1 18.2 17.2H11.8L8.2 20.8V17.2H5.8A2.4 2.4 0 0 1 3.4 14.8V7A2.4 2.4 0 0 1 5.8 4.6Z"/>
+                <path d="M7.6 10.9h8.8" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              消息
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="9.6" height="9.6" rx="1.6"/>
+                <path d="M6.2 8.2 7.9 9.9 10.6 6.2"/>
+                <path d="M3.6 15.8h17"/><path d="M3.6 20h11.6"/>
+              </svg>
+              待办
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.1" y="3.1" width="7.4" height="7.4" rx="1.0"/><rect x="13.5" y="3.1" width="7.4" height="7.4" rx="1.0"/>
+                <rect x="3.1" y="13.5" width="7.4" height="7.4" rx="1.0"/><rect x="13.5" y="13.5" width="7.4" height="7.4" rx="1.0"/>
+              </svg>
+              工作台
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8.2" r="3.5"/>
+                <path d="M5 20.6v-1.4l2.6-3.6h8.8l2.6 3.6v1.4"/>
+              </svg>
+              我的
+            </div>
+          </div>
+        </div>
+        <div class="mockcap">22px 实机样机 · 消息选中</div>
+      </div>
+
+      <div class="why">
+        <h4>设计理由</h4>
+        <ol>
+          <li><b>待办说得最直白：</b>「大勾选框＋两条待填线」是表单里的既有心智，用户不用推理就知道「这里有东西等我勾」。相比两行小勾，它对不熟悉 Tab 的新用户更友好。</li>
+          <li><b>描边处理：</b>仍是 2px、round 线帽，但圆角收到 1.2–2.4，方角带来「工具感」；选中态用几何实心 + 白色镂空（气泡文本线与勾选框内的勾），实心对比比 A 更强。</li>
+          <li><b>风险与代价：</b>气泡内保留了一条文本线，21px 灰态下横向笔画会有 3 条（上边、文本线、下边），负空间比 A 紧；宫格四块的间隙 3.0 已是最紧的安全值：2px 描边居中，间隙一旦小于 2 单位，两块描边就会互相咬合、接缝处出现双倍粗细（像「窗格」而不是「应用」），再紧会读出错误语义。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ---------- 方案 C ---------- -->
+    <div class="set">
+      <div class="sethd">
+        <span class="setname">方案 C · 饱满实心</span>
+        <span class="tag alt">未采纳 · 仅供对比</span>
+      </div>
+      <p class="setdesc">字形区放大到 2.5–21.5（比 A 大 1.4 单位），圆角回到 2.2–5.8。待办改用「任务卡」结构，选中态整块实心、勾变白，三套里选中对比最强。</p>
+
+      <div class="icons">
+        <!-- C1 消息 -->
+        <div class="icard">
+          <div class="nm">消息</div>
+          <div class="sl">bubble · 胶囊 + 三点</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8.7 5H15.3A5.8 5.8 0 0 1 21.1 10.8 5.8 5.8 0 0 1 15.3 16.6H12.6L8.4 20.8 8.7 16.6A5.8 5.8 0 0 1 2.9 10.8 5.8 5.8 0 0 1 8.7 5Z"/>
+                <circle cx="8.2" cy="10.8" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="12" cy="10.8" r="1.2" fill="currentColor" stroke="none"/>
+                <circle cx="15.8" cy="10.8" r="1.2" fill="currentColor" stroke="none"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M8.7 5H15.3A5.8 5.8 0 0 1 21.1 10.8 5.8 5.8 0 0 1 15.3 16.6H12.6L8.4 20.8 8.7 16.6A5.8 5.8 0 0 1 2.9 10.8 5.8 5.8 0 0 1 8.7 5Z"/>
+                <circle cx="8.2" cy="10.8" r="1.2" fill="#fff"/>
+                <circle cx="12" cy="10.8" r="1.2" fill="#fff"/>
+                <circle cx="15.8" cy="10.8" r="1.2" fill="#fff"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- C2 待办 -->
+        <div class="icard">
+          <div class="nm">待办</div>
+          <div class="sl">task-card · 框 + 勾</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6"/>
+                <path d="M7.5 12 10.6 15.1 16.6 9.1"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6" fill="currentColor"/>
+                <path d="M7.5 12 10.6 15.1 16.6 9.1" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- C3 工作台 -->
+        <div class="icard">
+          <div class="nm">工作台</div>
+          <div class="sl">apps-grid · 大格</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.6" y="2.6" width="8.0" height="8.0" rx="2.2"/><rect x="13.4" y="2.6" width="8.0" height="8.0" rx="2.2"/>
+                <rect x="2.6" y="13.4" width="8.0" height="8.0" rx="2.2"/><rect x="13.4" y="13.4" width="8.0" height="8.0" rx="2.2"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2.6" y="2.6" width="8.0" height="8.0" rx="2.2" fill="currentColor"/><rect x="13.4" y="2.6" width="8.0" height="8.0" rx="2.2" fill="currentColor"/>
+                <rect x="2.6" y="13.4" width="8.0" height="8.0" rx="2.2" fill="currentColor"/><rect x="13.4" y="13.4" width="8.0" height="8.0" rx="2.2" fill="currentColor"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- C4 我的 -->
+        <div class="icard">
+          <div class="nm">我的</div>
+          <div class="sl">person · 宽肩</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20.8c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" fill="currentColor"/>
+                <path fill="currentColor" d="M4 20.8c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2Z"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;display:flex;flex-direction:column;align-items:center">
+        <div class="mock">
+          <div class="mock-body">
+            <div class="sk" style="width:58%"></div>
+            <div class="sk" style="width:80%"></div>
+            <div class="sk" style="width:42%"></div>
+          </div>
+          <div class="tabbar">
+            <div class="tab on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M8.7 5H15.3A5.8 5.8 0 0 1 21.1 10.8 5.8 5.8 0 0 1 15.3 16.6H12.6L8.4 20.8 8.7 16.6A5.8 5.8 0 0 1 2.9 10.8 5.8 5.8 0 0 1 8.7 5Z"/>
+                <circle cx="8.2" cy="10.8" r="1.2" fill="#fff"/>
+                <circle cx="12" cy="10.8" r="1.2" fill="#fff"/>
+                <circle cx="15.8" cy="10.8" r="1.2" fill="#fff"/>
+              </svg>
+              消息
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6"/>
+                <path d="M7.5 12 10.6 15.1 16.6 9.1"/>
+              </svg>
+              待办
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.6" y="2.6" width="8.0" height="8.0" rx="2.2"/><rect x="13.4" y="2.6" width="8.0" height="8.0" rx="2.2"/>
+                <rect x="2.6" y="13.4" width="8.0" height="8.0" rx="2.2"/><rect x="13.4" y="13.4" width="8.0" height="8.0" rx="2.2"/>
+              </svg>
+              工作台
+            </div>
+            <div class="tab">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 20.8c0-4.4 3.6-7.2 8-7.2s8 2.8 8 7.2"/>
+              </svg>
+              我的
+            </div>
+          </div>
+        </div>
+        <div class="mockcap">22px 实机样机 · 消息选中</div>
+      </div>
+
+      <div class="why">
+        <h4>设计理由</h4>
+        <ol>
+          <li><b>隐喻更活泼：</b>胶囊气泡 + 三个省略号点表达「多轮对话 / 有人在打字」，比单条气泡更有生命力；待办用「任务卡」（圆角框 + 大勾）表达「一件事一个卡」，与消息中心里卡片式列表的视觉记忆一致。</li>
+          <li><b>描边处理：</b>字形区放大到 2.5–21.5，同一 2px 描边下视觉重量最重；选中态统一走「闭合形体实心 + 细节白色镂空」，是三套里最不会被误读成未选中态的一支。</li>
+          <li><b>代价：</b>字形偏满，21px 时四枚之间的呼吸感不如 A；三点半径 1.2 单位（22px 显示时直径约 2.2px），灰态下可能糊成一个小横斑，需实测。另外胶囊气泡 + 三点在部分 Android 机型上会与系统短信图标近似。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ---------- 消息位备选：信封 ---------- -->
+    <div class="set">
+      <div class="sethd">
+        <span class="setname">03.4 消息位对比变体 · 信封</span>
+        <span class="tag alt">仅消息位替换</span>
+      </div>
+      <p class="setdesc">按约定另做一款信封，供与气泡直接对比。几何沿用方案 A 的语言（同一描边、同一圆角档位），只换隐喻，便于单变量比较。</p>
+
+      <div class="icons" style="grid-template-columns:repeat(4,1fr)">
+        <div class="icard">
+          <div class="nm">消息 · 气泡（主选）</div>
+          <div class="sl">A1 speech-bubble</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.9 4.4H16.1A4.5 4.5 0 0 1 20.6 8.9V12.9A4.5 4.5 0 0 1 16.1 17.4H12L8.9 21 7.9 17.4A4.5 4.5 0 0 1 3.4 12.9V8.9A4.5 4.5 0 0 1 7.9 4.4Z"/></svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+        <div class="icard" style="border-color:#e3ebf7;background:#fcfdff">
+          <div class="nm">消息 · 信封</div>
+          <div class="sl">E1 envelope</div>
+          <div class="pair">
+            <div class="st off">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3.2" y="5" width="17.6" height="14" rx="3"/>
+                <path d="M3.9 6.5 12 12.6 20.1 6.5"/>
+              </svg>
+              <span>未选中</span>
+            </div>
+            <div class="st on">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.2" y="5" width="17.6" height="14" rx="3" fill="currentColor"/>
+                <path d="M3.9 6.5 12 12.6 20.1 6.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span>选中</span>
+            </div>
+          </div>
+        </div>
+        <div class="icard" style="grid-column:span 2;text-align:left;padding:14px 16px">
+          <div class="nm" style="margin-bottom:6px">为什么信封不做主选</div>
+          <ul class="nlist" style="margin:0">
+            <li style="font-size:12px">语义偏窄：信封＝「别人寄给我的信」，用户会读成<b>邮件模块</b>；而这里装的是 @我、审批结果、预警，不是邮件。</li>
+            <li style="font-size:12px">形状撞车：信封是「大矩形 + 折线」，与方案 B/C 的<b>方框待办</b>同为大方块，四枚放在一起会让「消息」和「待办」互相削弱。</li>
+            <li style="font-size:12px">保留用途：若后续把消息中心拆成「消息 / 邮件」双入口，信封正好做<b>邮件位专用</b>图标，不浪费。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 04 差异速览 ================= -->
+  <section>
+    <h2><span class="no">04</span>三套差异速览（评审时对照用）</h2>
+    <p class="desc">同一行横向比，差别是可控的、可量化的，不是「感觉不一样」。</p>
+    <table class="cmp">
+      <tr>
+        <th style="width:132px">维度</th>
+        <th>方案 A · 圆润对话</th>
+        <th>方案 B · 方正文档</th>
+        <th>方案 C · 饱满实心</th>
+      </tr>
+      <tr><td>整体气质</td><td>圆润、亲和、现代移动端</td><td>方正、规整、工具感</td><td>饱满、活泼、信息流感</td></tr>
+      <tr><td>圆角语言</td><td>分档 2.5 / 3.6 / 4.5</td><td>收紧 1.0 / 1.6 / 2.4</td><td>放大 2.2 / 4.6 / 5.8（胶囊）</td></tr>
+      <tr><td>字形区</td><td>3.2 – 20.8（17.6）</td><td>3.1 – 20.9（17.8）</td><td>2.5 – 21.5（19.0）</td></tr>
+      <tr><td>消息（隐喻 / 处理）</td><td>气泡，无内部装饰</td><td>气泡，小圆角＋直角折边尾＋1 条文本线</td><td>胶囊气泡＋三点，尾巴更短</td></tr>
+      <tr><td>待办（结构）</td><td>两行「勾＋线」</td><td>大勾选框＋勾＋两条待填线</td><td>任务卡：圆角框＋大勾</td></tr>
+      <tr><td>工作台（宫格）</td><td>4×7.2，间隙 3.2，r 2.5</td><td>4×7.4，间隙 3.0，r 1.0</td><td>4×8.0，间隙 2.8，r 2.2</td></tr>
+      <tr><td>我的（肩线）</td><td>圆肩，跨度 14.8</td><td>折角梯肩，跨度 14.0</td><td>宽圆肩，跨度 16.0</td></tr>
+      <tr><td>选中态实心度</td><td>中（形体实心 + 细节加粗）</td><td>中高（实心 + 白色镂空）</td><td>最高（整块实心 + 白镂空）</td></tr>
+      <tr><td>21–22px 可读性风险</td><td>低：负空间最宽</td><td>中：气泡文本线吃掉负空间</td><td>中：三点偏小、字形偏满</td></tr>
+      <tr><td>前端落地成本</td><td>低</td><td>低</td><td>低</td></tr>
+      <tr><td>一句话</td><td>最稳、最不容易错</td><td>「待办」最直白，整体最像工具</td><td>选中感最强，个性最鲜明</td></tr>
+    </table>
+    <p class="soft">落地成本三套平手：都是 24 栅格单色矢量、都用 <code>currentColor</code> 出两态，前端换的是 class 不是资源；差别只在细节线的加粗方式（A/C 靠 stroke-width，B 靠白色镂空）。</p>
+  </section>
+
+  <!-- ================= 05 建议 ================= -->
+  <section>
+    <h2><span class="no">05</span>视觉建议（产品已选定方案 A）</h2>
+    <p class="desc">下方为视觉设计负责人的倾向与理由；产品已于 2026-11-11 选定<b>方案 A · 圆润对话</b>，已定稿（见各方案标签与顶部横幅）。</p>
+
+    <div class="rec">
+      <p><b>✅ 已选定方案 A · 圆润对话（消息位仍用气泡，不换信封）。</b></p>
+      <p>① <b>语义最短路径</b>：气泡是所有「消息」心智里最短的一条，房子→气泡的错位在这一步被彻底修掉；信封会引入「邮件」的二次歧义，等于换了一个新的错位。</p>
+      <p>② <b>小尺寸活得最久</b>：A 的负空间最宽（气泡内不放装饰线），21px 灰态下笔画不粘连；B 的气泡文本线、C 的三点在 22px 下有糊的风险，而 Tab 是全局最高频、最不该出问题的控件。</p>
+      <p>③ <b>可扩展性最好</b>：气泡右上留出的角落适合挂未读角标；四枚的圆角比例与消息页现有圆角方块图标族同源，长期视觉一致性成本最低。</p>
+      <p style="margin-bottom:0"><b>可选折中：</b>如果评审认为「待办」必须一眼认出，可以取 <b>A 的消息 / 工作台 / 我的 ＋ B 的待办</b>。三套共享同一规格（2px 描边、字形区 17.6–17.8、round 线接），跨套混搭不会破风格 —— 但需产品明确同意「跨套混搭」，否则我建议整套走 A。</p>
+    </div>
+
+    <p class="soft">
+      <b>评审通过后的下一步（不在本次范围）：</b>① 定套 → 出 @1x/@2x/@3x 切图与 SVG 资源（24 栅格、无描边外扩）；② 与体验同学对齐选中态切换是否要 120ms 过渡；③ 与前端确认 <code>currentColor</code> 取色方式，确保深色/高亮屏下灰态 <code>#a8adb5</code> 仍达 3:1 非文本对比；④ 未读角标位置（红点 <code>#f5453d</code>，7×7）在气泡右上角的偏移量需单独标注。
+    </p>
+  </section>
+
+  <footer>
+    <b>文件说明：</b>本页为视觉候选评审件，只含图标几何与视觉规范，不含可用性结论、不含业务代码，未改动仓库中任何其他文件（含 <code>消息中心_需求描述.md</code>、<code>消息通知_图标令牌表.html</code>、<code>notify_icons/</code>）。<br>
+    <b>资产约束：</b>全部图标为 24×24 内联手绘矢量（无 emoji、无外部图片、无图标库 CDN），可直接从页面源码复制 <code>&lt;svg&gt;</code> 使用。未选中态为 <code>stroke</code> 描边 + <code>fill:none</code>，选中态为 <code>fill:currentColor</code>（细节用 <code>#fff</code> 镂空）。
+  </footer>
+</div>
+</body>
+</html>

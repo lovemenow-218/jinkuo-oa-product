@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>消息中心 · 原型设计（App 侧）</title>
+<style>
+  :root{
+    --bg:#f0f2f5; --card:#fff; --line:#eaecef; --txt:#1f2329; --txt2:#4e5969; --sub:#a8adb5;
+    --blue:#2b7fff; --blue-bg:#eef4ff; --red:#fa5151; --red-badge:#fa5151; --amber:#ff9f0a;
+    /* 设计基准：iPhone 16 Pro，逻辑分辨率 402×874 pt（物理 1206×2622 @3x）。
+       1pt = 1 CSS px，画框内部所有尺寸均为 1:1 pt。切换设备时由 JS 改写以下变量。 */
+    --pw:402px; --ph:874px; --sat:62px; --sab:34px; --corner:53px; --diw:126px; --dih:37px;
+    --cw:520px;   /* 宽屏（折叠展开态）内容列最大宽，避免店名与角标被拉到相隔大半屏 */
+    --gutter:0px; /* 内容列左右留白，由 JS 按机型宽度计算；窄屏为 0 */
+    --pv:.72; /* 画布预览缩放（不影响内部 pt 取值） */
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--txt);padding:24px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .lead{color:var(--txt2);font-size:13px;line-height:1.7;max-width:920px;margin:0 0 18px;}
+  .lead b{color:var(--txt);}
+  .grid{display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .frame{display:flex;flex-direction:column;align-items:center;zoom:var(--pv);}
+  .ptitle{font-size:13px;font-weight:700;color:var(--txt2);margin-bottom:8px;text-align:center;max-width:var(--pw);line-height:1.5;}
+  .spec{font-size:11px;color:var(--sub);margin-top:7px;letter-spacing:.3px;}
+  .phone{width:var(--pw);height:var(--ph);background:var(--card);border-radius:var(--corner);overflow:hidden;
+         box-shadow:0 0 0 5px #2c2c31,0 14px 40px rgba(20,30,50,.22);position:relative;display:flex;flex-direction:column;}
+  /* 状态栏 = 顶部安全区；灵动岛绝对定位在屏顶 11pt 处，时间/信号分列两侧 */
+  .statusbar{height:var(--sat);padding:0 26px;display:flex;justify-content:space-between;align-items:center;
+             font-size:15px;font-weight:700;color:var(--txt);flex-shrink:0;position:relative;}
+  .statusbar .sbt{position:relative;z-index:41;}
+  .statusbar .sbr{display:flex;align-items:center;gap:5px;position:relative;z-index:41;}
+  .statusbar .sbr svg{display:block;}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:var(--diw);height:var(--dih);
+          border-radius:calc(var(--dih)/2);background:#08080a;z-index:40;display:flex;align-items:center;
+          justify-content:flex-end;padding-right:11px;}
+  .island::after{content:"";width:9px;height:9px;border-radius:50%;background:#0d1420;box-shadow:inset 0 0 0 1.5px #1b2534;}
+  /* Home Indicator 区 = 底部安全区，不承载任何点击 */
+  .homearea{height:var(--sab);flex-shrink:0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;}
+  .homearea i{display:block;width:134px;height:5px;border-radius:3px;background:#0f1115;}
+  /* 其它机型的挖孔形态 */
+  body[data-cutout="notch"] .island{width:164px;height:30px;top:0;border-radius:0 0 18px 18px;padding:0;}
+  body[data-cutout="hole"] .island{width:13px;height:13px;top:16px;border-radius:50%;padding:0;}
+  body[data-cutout="notch"] .island::after,body[data-cutout="hole"] .island::after,
+  body[data-cutout="none"] .island{display:none;}
+  body[data-cutout="none"] .statusbar{font-size:12px;padding:0 16px;}
+  body[data-home="0"] .homearea i{display:none;}
+  .userline{display:flex;align-items:center;gap:10px;padding:12px 16px 8px;flex-shrink:0;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#185FA5;color:#fff;font-size:15px;font-weight:600;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .uname{font-size:17px;font-weight:700;}
+  .userline .spacer{flex:1;}
+  .bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+  .bell svg{width:23px;height:23px;}
+  .bell .num{position:absolute;top:-8px;right:-5px;min-width:18px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;}
+  .search{margin:4px 16px 10px;background:#f3f5f8;border-radius:8px;display:flex;align-items:center;gap:8px;padding:9px 12px;color:var(--sub);font-size:13px;flex-shrink:0;}
+  .search svg{width:16px;height:16px;flex-shrink:0;}
+  .listwrap{flex:1;overflow-y:auto;}
+  .listwrap::-webkit-scrollbar{width:0;}
+  .brand-head{display:flex;align-items:center;gap:10px;padding:9px 16px;background:#f7f9fc;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .brand-ico{width:30px;height:30px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#eef0f3;display:flex;align-items:center;justify-content:center;}
+  .brand-ico img{width:100%;height:100%;object-fit:cover;}
+  .brand-ico.ph{background:#e9eef6;color:#5a6b86;font-size:12px;font-weight:700;letter-spacing:-0.5px;line-height:1;white-space:nowrap;}
+  .brand-name{font-size:15px;font-weight:700;}
+  .brand-sub{margin-left:auto;font-size:11px;color:var(--sub);white-space:nowrap;}
+  .store{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 14px;border-bottom:1px solid var(--line);cursor:pointer;}
+  .store:active{background:#fafbfc;}
+  .meta{flex:1;min-width:0;}
+  .store .t1{font-size:16px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .store .t2{font-size:12.5px;color:var(--sub);margin-top:3px;}
+  .cnt{flex-shrink:0;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--red-badge);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .cnt.zero{background:#dfe2e7;color:#fff;}
+  .arrow{color:var(--sub);font-size:14px;flex-shrink:0;}
+  .row-end{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .tabbar{display:flex;border-top:1px solid var(--line);flex-shrink:0;}
+  .tab{flex:1;text-align:center;padding:8px 0 10px;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px;}
+  .tab svg{width:20px;height:20px;}
+  .tab.active{color:var(--blue);font-weight:700;}
+  .popup{position:absolute;top:calc(var(--sat) + 52px);right:calc(var(--gutter) + 12px);width:200px;
+         max-height:calc(var(--ph) - var(--sat) - 76px);
+         background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(20,30,50,.22);
+         border:1px solid var(--line);z-index:20;overflow:hidden;display:flex;flex-direction:column;}
+  .popup .ph,.popup .tip{flex-shrink:0;}
+  .popup .ph{font-size:13px;font-weight:700;padding:11px 14px 8px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .popup .ph .total{font-size:11px;color:var(--sub);font-weight:500;}
+  .popup .plist{max-height:240px;overflow-y:auto;min-height:0;}
+  .popup .prow{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid #f3f5f8;font-size:13px;}
+  .popup .prow:last-child{border-bottom:none;}
+  .popup .prow .pn{color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;}
+  .popup .prow .pv{color:var(--red);font-weight:700;font-size:13px;flex-shrink:0;}
+  .popup .prow .pv.none{color:var(--sub);font-weight:500;}
+  .popup .tip{font-size:10px;color:var(--sub);padding:6px 14px 10px;text-align:center;}
+  .notif-top{display:flex;align-items:center;gap:8px;padding:12px 16px 10px;border-bottom:1px solid var(--line);flex-shrink:0;}
+  .back{font-size:22px;color:var(--txt2);width:20px;line-height:1;}
+  .nt-main{flex:1;min-width:0;}
+  /* 顶部去掉「通知」二字：门店名直接占用原标题位，沿用通知页加粗标题格式；长名单行省略 */
+  .nt-title{font-size:17px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .batch{font-size:12px;color:var(--blue);flex-shrink:0;cursor:pointer;font-weight:600;}
+  .pillbar{display:flex;gap:10px;padding:8px 16px 10px;border-bottom:1px solid var(--line);flex-shrink:0;}
+  .pill{font-size:14px;font-weight:700;padding:6px 16px;border-radius:18px;background:#f1f2f4;color:var(--txt2);cursor:pointer;}
+  .pill.on{background:var(--blue);color:#fff;}
+
+  /* 通知列表：沿用《消息通知优化》通知列表既有外观；演示数据为站内六类通知混排，本次不改卡片结构与交互 */
+  .nlist{flex:1;overflow-y:auto;}
+  .nlist::-webkit-scrollbar{width:0;}
+  .listitem{display:flex;align-items:flex-start;gap:11px;padding:11px 14px;border-bottom:1px solid #f2f4f7;cursor:pointer;}
+  .listitem.done{opacity:.66;}
+  .listitem.done .meta .t1{color:#6b7280;}
+  .ico{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:700;}
+  .ico.w-blue{background:#e2edff;color:#2b6fd4;}
+  .ico.w-orange{background:#fde6cd;color:#ef9a3c;}
+  .ico.w-red{background:#fdeaea;color:#f5453d;}
+  .ico.w-gray{background:#eef0f4;color:#6b7785;}
+  .ico.w-green{background:#e6f6ea;color:#2f9e58;}
+  .ico.w-purple{background:#efe6ff;color:#7b52d1;}
+  .listitem .meta{flex:1;min-width:0;}
+  .listitem .meta .t1{font-size:15px;font-weight:600;line-height:1.45;color:var(--txt);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .listitem .meta .t1.unread{font-weight:800;}
+  .listitem .meta .t2{font-size:13px;margin-top:5px;}
+  .listitem .meta .t2 .amt{color:var(--txt);font-weight:700;}
+  .listitem .meta .t3{font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden;}
+  .listitem .meta .t4{font-size:12px;color:var(--sub);margin-top:4px;white-space:nowrap;overflow:hidden;}
+  .tag{padding:1px 6px;border-radius:4px;font-weight:600;font-size:11px;flex-shrink:0;}
+  .t-blue{background:#e2edff;color:#185fa5;} .t-orange{background:#fde6cd;color:#854f0b;}
+  .t-red{background:#fdeaea;color:#a32d2d;} .t-gray{background:#f1f2f5;color:#5f5e5a;}
+  .t-pending{background:#fff4e0;color:#8a5a00;border:1px solid #f3d9a8;}
+  .unreadflag{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:8px;}
+  .note{margin-top:22px;background:#fff;border-radius:12px;padding:16px 18px;max-width:920px;font-size:13px;color:var(--txt2);line-height:1.9;}
+  .note h3{margin:0 0 8px;font-size:14px;color:var(--txt);}
+  .note .q{background:#f7f9fc;border-left:3px solid var(--blue);border-radius:0 6px 6px 0;padding:10px 14px;margin-top:10px;}
+  .devbar{background:#fff;border:1px solid #e6e8eb;border-radius:12px;padding:14px 16px;margin:0 0 20px;max-width:1080px;}
+  .devbar .dt{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;}
+  .devbtn{font:inherit;font-size:11px;padding:6px 10px;border-radius:8px;border:1px solid #dfe2e7;background:#f8f9fb;color:var(--txt2);cursor:pointer;}
+  .devbtn.on{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700;}
+  .devinfo{margin-top:10px;font-size:12px;color:var(--txt2);line-height:1.8;}
+  .devinfo b{color:var(--txt);}
+  .note h3:not(:first-child){margin-top:18px;}
+
+  /* ── 宽屏（折叠展开 / 平板级，>520 pt）：内容列居中限宽；铃铛弹窗跟随内容列右缘 ── */
+  body[data-wide="1"] .phone > :not(.popup){width:100%;max-width:var(--cw);margin-left:auto;margin-right:auto;}
+  body[data-wide="1"] .phone > .listwrap,
+  body[data-wide="1"] .phone > .nlist{border-left:1px solid var(--line);border-right:1px solid var(--line);}
+  /* ── 小方形外屏（屏高 ≤ 500 pt，如 Pura X / Z Flip 外屏）：弹窗贴底半屏 + 紧凑行 ── */
+  body[data-tiny="1"] .popup{top:auto;bottom:calc(var(--sab) + 10px);left:10px;right:10px;width:auto;max-height:56%;}
+  body[data-tiny="1"] .popup .plist{max-height:none;flex:1 1 auto;}
+  body[data-tiny="1"] .brand-head{padding:6px 14px;}
+  body[data-tiny="1"] .store{padding:6px 14px 6px 12px;}
+  body[data-tiny="1"] .store .t2{font-size:11.5px;}
+  body[data-tiny="1"] .userline{padding:6px 14px 4px;}
+  body[data-tiny="1"] .search{margin:2px 14px 6px;padding:6px 10px;}
+  body[data-tiny="1"] .listitem{padding:8px 12px;}
+  /* ── 设备切换器：按形态分组，避免 25 个按钮糊成一片 ── */
+  .devgroup{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px;}
+  .glabel{flex:0 0 76px;font-size:11px;color:var(--sub);padding-top:8px;letter-spacing:.2px;}
+  .gbtns{display:flex;flex-wrap:wrap;gap:6px;}
+</style>
+</head>
+<body>
+<h1>消息中心 · 原型设计（App 侧）</h1>
+<div class="lead">
+  按真实页面还原的四屏原型：<b>A 消息首页（多门店）</b>、<b>B 消息汇总弹窗（点铃铛）</b>、<b>C 门店消息页（点门店进入）</b>、<b>D 单门店用户消息页</b>。
+  页面口径：顶部仍是<b>头像 + 用户名 + 铃铛</b>，仅把<b>底部 Tab「首页」改名「消息」</b>（「待办」保持）；C/D 顶部<b>去掉「通知」二字，门店名直接占用原标题位</b>；C/D 列表承载<b>站内既有六类通知混排</b>（@我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批 / 还款预警），卡片、文案、图标与点击落点<b>沿用既有需求、本次不改动</b>；按钮保留「批量已读」与「全部10 / 未读5」；已读后首页数字<b>实时同步</b>；门店消息页内不提供搜索。<b>底部 Tab 按页面层级区分：C 是子页、不显示 Tab（靠返回箭头回门店列表），D 是「消息」Tab 根页、保留 Tab。</b>
+  本版按 <b>iPhone 16 Pro（402 × 874 pt）</b> 出图，含灵动岛、状态栏与 Home Indicator 安全区；用上方「设备规格」切换器可查看 6 类 25 种机型形态（含 iPhone 18 Pro 缩小灵动岛、双折 / 三折 / 阔折叠）下的兼容表现，并附小屏降级与宽屏内容列约束。
+  注：示例沿用内部评审用的真实品牌/门店名，人名用虚构（周明远 / 吴国栋 / 李青）；外发前品牌门店名需换回虚构。
+</div>
+
+<div class="devbar">
+  <div class="dt">设备规格 · 设计基准与多机型兼容预览</div>
+  <div id="devgroups"></div>
+  <div class="devinfo" id="devinfo"></div>
+</div>
+
+<div class="grid">
+
+  <div class="frame">
+    <div class="ptitle">A · 消息首页（多门店用户）<br>顶部头像+用户名不动；底部「首页」→「消息」，「待办」保持</div>
+    <div class="phone" id="phoneA">
+      <div class="statusbar">
+        <div class="island"></div>
+        <span class="sbt">9:41</span>
+        <span class="sbr">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.7 7a6.4 6.4 0 0 1 8.6 0"/><circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none"/></svg>
+          <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".6" y=".6" width="22" height="11.8" rx="3.4" stroke="currentColor" stroke-opacity=".45"/><rect x="2" y="2" width="18.5" height="9" rx="2" fill="currentColor"/><path d="M24 4.4v4.2a2.1 2.1 0 0 0 0-4.2" fill="currentColor" fill-opacity=".5"/></svg>
+        </span>
+      </div>
+      <div class="userline">
+        <div class="avatar">陈</div>
+        <div class="uname">陈嘉言</div>
+        <div class="spacer"></div>
+        <div class="bell">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#4e5969" stroke-width="1.8"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="num">99+</span>
+        </div>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a8adb5" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        搜索门店 / 品牌
+      </div>
+
+      <div class="listwrap">
+      <div class="brand-head"><div class="brand-ico ph">辰色</div><div class="brand-name">辰色酒馆</div><div class="brand-sub">8 家门店 · 共 418 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（成都339店）</div><div class="t2">2026-11-05 08:56</div></div><div class="row-end"><span class="cnt">99+</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（西安钟楼店）</div><div class="t2">2026-11-05 08:31</div></div><div class="row-end"><span class="cnt">64</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（成都339店）供应链</div><div class="t2">2026-11-05 07:18</div></div><div class="row-end"><span class="cnt">59</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（成都兰桂坊店）供应链</div><div class="t2">2026-11-05 06:42</div></div><div class="row-end"><span class="cnt">47</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（厦门明发店）供应链</div><div class="t2">2026-11-04 19:05</div></div><div class="row-end"><span class="cnt">33</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（西安小寨店）供应链</div><div class="t2">2026-11-04 14:28</div></div><div class="row-end"><span class="cnt">28</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（合肥青春九厂）供应链</div><div class="t2">2026-11-03 16:11</div></div><div class="row-end"><span class="cnt">19</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">辰色酒馆（西安钟楼店）供应链</div><div class="t2">2026-11-02 10:33</div></div><div class="row-end"><span class="cnt">12</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">群众</div><div class="brand-name">群众青年</div><div class="brand-sub">12 家门店 · 共 370 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（南昌店）</div><div class="t2">2026-11-05 09:12</div></div><div class="row-end"><span class="cnt">99</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（福州店）</div><div class="t2">2026-11-05 07:40</div></div><div class="row-end"><span class="cnt">99</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（太原店）</div><div class="t2">2026-11-04 21:18</div></div><div class="row-end"><span class="cnt">42</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（宁波店）</div><div class="t2">2026-11-04 17:02</div></div><div class="row-end"><span class="cnt">38</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（济南店）</div><div class="t2">2026-11-04 11:46</div></div><div class="row-end"><span class="cnt">27</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（南京店）</div><div class="t2">2026-11-03 20:13</div></div><div class="row-end"><span class="cnt">21</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（泉州店）</div><div class="t2">2026-11-03 15:30</div></div><div class="row-end"><span class="cnt">15</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（佛山店）</div><div class="t2">2026-11-03 09:21</div></div><div class="row-end"><span class="cnt">12</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（海口店）</div><div class="t2">2026-11-02 18:44</div></div><div class="row-end"><span class="cnt">8</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年【小卖部】</div><div class="t2">2026-11-02 13:07</div></div><div class="row-end"><span class="cnt">5</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年（郑州店）（新）</div><div class="t2">2026-11-01 11:26</div></div><div class="row-end"><span class="cnt">2</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">群众青年【郑州小卖部】</div><div class="t2">2026-11-01 10:05</div></div><div class="row-end"><span class="cnt">2</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">金阔</div><div class="brand-name">金阔</div><div class="brand-sub">6 家门店 · 共 133 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">金阔平台</div><div class="t2">2026-11-05 10:40</div></div><div class="row-end"><span class="cnt">33</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">福州金阔</div><div class="t2">2026-11-05 09:51</div></div><div class="row-end"><span class="cnt">28</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">金阔科技</div><div class="t2">2026-11-04 22:17</div></div><div class="row-end"><span class="cnt">25</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">金阔公司</div><div class="t2">2026-11-04 14:30</div></div><div class="row-end"><span class="cnt">18</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">金阔公司</div><div class="t2">2026-11-04 13:10</div></div><div class="row-end"><span class="cnt">18</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">福州晋安区金阔管理咨询合伙企业</div><div class="t2">2026-11-03 19:55</div></div><div class="row-end"><span class="cnt">11</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">拾叁</div><div class="brand-name">拾叁唐</div><div class="brand-sub">4 家门店 · 共 107 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">拾叁唐Livehouse（深圳南山店）</div><div class="t2">2026-11-05 09:40</div></div><div class="row-end"><span class="cnt">45</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">拾叁唐Live Show（花城汇店）</div><div class="t2">2026-11-05 06:22</div></div><div class="row-end"><span class="cnt">31</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">拾叁唐liveshow（太古仓库）</div><div class="t2">2026-11-03 14:03</div></div><div class="row-end"><span class="cnt">17</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">拾叁唐Livehouse（深圳南山店）美食</div><div class="t2">2026-11-02 20:48</div></div><div class="row-end"><span class="cnt">14</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">青春</div><div class="brand-name">青春九厂</div><div class="brand-sub">3 家门店 · 共 52 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">青春九厂（厦门店）</div><div class="t2">2026-11-05 11:05</div></div><div class="row-end"><span class="cnt">26</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">青春九厂（合肥店）</div><div class="t2">2026-11-04 16:39</div></div><div class="row-end"><span class="cnt">19</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">青春九厂（泉州店）</div><div class="t2">2026-11-02 12:22</div></div><div class="row-end"><span class="cnt">7</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">热辣</div><div class="brand-name">热辣摇滚</div><div class="brand-sub">3 家门店 · 共 48 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">热辣摇滚（重庆店）</div><div class="t2">2026-11-05 08:14</div></div><div class="row-end"><span class="cnt">23</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">热辣摇滚（成都339店）供应链</div><div class="t2">2026-11-04 19:27</div></div><div class="row-end"><span class="cnt">16</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">热辣摇滚（重庆店）供应链</div><div class="t2">2026-11-03 10:09</div></div><div class="row-end"><span class="cnt">9</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">梦星</div><div class="brand-name">梦星南</div><div class="brand-sub">3 家门店 · 共 48 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">贵州梦星南品牌管理有限公司</div><div class="t2">2026-11-05 11:30</div></div><div class="row-end"><span class="cnt">29</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">梦星南（新媒体A公司）</div><div class="t2">2026-11-04 15:20</div></div><div class="row-end"><span class="cnt">13</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">梦星南（新媒体B公司）</div><div class="t2">2026-11-03 13:10</div></div><div class="row-end"><span class="cnt">6</span><span class="arrow">›</span></div></div>
+
+      <div class="brand-head"><div class="brand-ico ph">第三</div><div class="brand-name">第三极</div><div class="brand-sub">2 家门店 · 共 31 条消息</div></div>
+      <div class="store"><div class="meta"><div class="t1">第三极（福州店）</div><div class="t2">2026-11-05 10:02</div></div><div class="row-end"><span class="cnt">22</span><span class="arrow">›</span></div></div>
+      <div class="store"><div class="meta"><div class="t1">第三极（龙山店）</div><div class="t2">2026-11-03 18:36</div></div><div class="row-end"><span class="cnt">9</span><span class="arrow">›</span></div></div>
+      </div>
+
+      <div class="tabbar">
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5z"/></svg>消息</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H8l-4 3z"/></svg>待办</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>工作台</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</div>
+      </div>
+          <div class="homearea"><i></i></div>
+</div>
+    <div class="spec"></div>
+  </div>
+
+  <div class="frame">
+    <div class="ptitle">B · 消息汇总弹窗（点铃铛）<br>完整首页做底；固定高滚动；仅展示不可点</div>
+    <div class="phone" id="phoneB">
+      <div class="popup">
+        <div class="ph">消息汇总 <span class="total">共 1207 条消息</span></div>
+        <div class="plist">
+          <div class="prow"><span class="pn">辰色酒馆</span><span class="pv">418</span></div>
+          <div class="prow"><span class="pn">群众青年</span><span class="pv">370</span></div>
+          <div class="prow"><span class="pn">金阔</span><span class="pv">133</span></div>
+          <div class="prow"><span class="pn">拾叁唐</span><span class="pv">107</span></div>
+          <div class="prow"><span class="pn">青春九厂</span><span class="pv">52</span></div>
+          <div class="prow"><span class="pn">热辣摇滚</span><span class="pv">48</span></div>
+          <div class="prow"><span class="pn">梦星南</span><span class="pv">48</span></div>
+          <div class="prow"><span class="pn">第三极</span><span class="pv">31</span></div>
+          <div class="prow"><span class="pn">其他品牌 A（无消息 · 滚动占位）</span><span class="pv none">0</span></div>
+          <div class="prow"><span class="pn">其他品牌 B（无消息 · 滚动占位）</span><span class="pv none">0</span></div>
+          <div class="prow"><span class="pn">其他品牌 C（无消息 · 滚动占位）</span><span class="pv none">0</span></div>
+          <div class="prow"><span class="pn">其他品牌 D（无消息 · 滚动占位）</span><span class="pv none">0</span></div>
+          <div class="prow"><span class="pn">其他品牌 E（无消息 · 滚动占位）</span><span class="pv none">0</span></div>
+        </div>
+        <div class="tip">超出可滚动 · 点外部关闭</div>
+      </div>
+    </div>
+    <div class="spec"></div>
+  </div>
+
+  <div class="frame">
+    <div class="ptitle">C · 门店消息页（点门店进入）<br>门店名作标题；批量已读 + 全部10 / 未读5；<b>子页无底部 Tab</b>，靠返回箭头回门店列表</div>
+    <div class="phone">
+      <div class="statusbar">
+        <div class="island"></div>
+        <span class="sbt">9:41</span>
+        <span class="sbr">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.7 7a6.4 6.4 0 0 1 8.6 0"/><circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none"/></svg>
+          <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".6" y=".6" width="22" height="11.8" rx="3.4" stroke="currentColor" stroke-opacity=".45"/><rect x="2" y="2" width="18.5" height="9" rx="2" fill="currentColor"/><path d="M24 4.4v4.2a2.1 2.1 0 0 0 0-4.2" fill="currentColor" fill-opacity=".5"/></svg>
+        </span>
+      </div>
+      <div class="notif-top">
+        <span class="back">‹</span>
+        <div class="nt-main"><div class="nt-title">辰色酒馆（成都339店）</div></div>
+        <span class="batch">批量已读</span>
+      </div>
+      <div class="pillbar">
+        <div class="pill on">全部10</div>
+        <div class="pill">未读5</div>
+      </div>
+      <div class="nlist">
+        <div class="listitem">
+          <div class="ico w-purple">审</div>
+          <div class="meta">
+            <div class="t1 unread">周明远提交了【采购申请】，请处理</div>
+            <div class="t4">2026-11-06 10:00</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-blue">@</div>
+          <div class="meta">
+            <div class="t1 unread">王敏在报销流程@了你：差旅票据已补，请查收</div>
+            <div class="t4">2026-11-06 09:42</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-red">警</div>
+          <div class="meta">
+            <div class="t1 unread">【备用金申请】申请人 周明远 尚未还款</div>
+            <div class="t2"><span class="amt">¥5,000.00</span></div>
+            <div class="t3"><span class="tag t-pending">待确认还款</span><span class="tag t-red">已逾期 3 天</span></div>
+            <div class="t4">还款日 2026-11-01 · 昨日 10:00</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-red">✕</div>
+          <div class="meta">
+            <div class="t1 unread">【费用报销】审批已驳回</div>
+            <div class="t4">2026-11-05 16:20</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-gray">抄</div>
+          <div class="meta">
+            <div class="t1 unread">吴国栋抄送【合同用印】给你</div>
+            <div class="t4">2026-11-05 14:08</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-green">✓</div>
+          <div class="meta">
+            <div class="t1">【差旅报销】审批已通过</div>
+            <div class="t4">2026-11-05 11:30</div>
+          </div>
+          
+        </div>
+        <div class="listitem">
+          <div class="ico w-blue">警</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】将于 2027-05-03 到期，剩余 183 天，请及时还款</div>
+            <div class="t2"><span class="amt">¥8,000.00</span></div>
+            <div class="t3"><span class="tag t-blue">常规提醒</span></div>
+            <div class="t4">还款日 2027-05-03 · 11-04 10:00</div>
+          </div>
+          
+        </div>
+        <div class="listitem">
+          <div class="ico w-blue">@</div>
+          <div class="meta">
+            <div class="t1">白小兵在考勤流程@了你：本周排班已更新</div>
+            <div class="t4">2026-11-04 09:15</div>
+          </div>
+          
+        </div>
+        <div class="listitem done">
+          <div class="ico w-gray">✓</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】（¥5,000.00，还款日 2026-11-01）已由会计审批处理人 吴国栋 确认还款</div>
+            <div class="t2"><span class="amt">¥5,000.00</span></div>
+            <div class="t3"><span class="tag t-gray">还款完成</span></div>
+            <div class="t4">还款日 2026-11-01 · 11-03 15:32</div>
+          </div>
+          
+        </div>
+        <div class="listitem done">
+          <div class="ico w-gray">✓</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】已于 2026-10-20 还款，还款完成</div>
+            <div class="t2"><span class="amt">¥2,000.00</span></div>
+            <div class="t3"><span class="tag t-gray">已还款</span></div>
+            <div class="t4">还款日 2026-10-20 · 10-21 10:00</div>
+          </div>
+          
+        </div>
+      </div>
+          <div class="homearea"><i></i></div>
+</div>
+    <div class="spec"></div>
+  </div>
+
+  <div class="frame">
+    <div class="ptitle">D · 单门店用户消息页<br>进 App「消息」直接到此页；无铃铛、无返回箭头；<b>保留底部 Tab</b>（消息 Tab 根页）</div>
+    <div class="phone">
+      <div class="statusbar">
+        <div class="island"></div>
+        <span class="sbt">9:41</span>
+        <span class="sbr">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.7 7a6.4 6.4 0 0 1 8.6 0"/><circle cx="8" cy="10" r=".9" fill="currentColor" stroke="none"/></svg>
+          <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".6" y=".6" width="22" height="11.8" rx="3.4" stroke="currentColor" stroke-opacity=".45"/><rect x="2" y="2" width="18.5" height="9" rx="2" fill="currentColor"/><path d="M24 4.4v4.2a2.1 2.1 0 0 0 0-4.2" fill="currentColor" fill-opacity=".5"/></svg>
+        </span>
+      </div>
+      <div class="notif-top">
+        <div class="nt-main"><div class="nt-title">群众青年（南昌店）</div></div>
+        <span class="batch">批量已读</span>
+      </div>
+      <div class="pillbar">
+        <div class="pill on">全部10</div>
+        <div class="pill">未读5</div>
+      </div>
+      <div class="nlist">
+        <div class="listitem">
+          <div class="ico w-blue">@</div>
+          <div class="meta">
+            <div class="t1 unread">李青在采购申请流程@了你：报价单请复核一下</div>
+            <div class="t4">2026-11-06 10:12</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-orange">警</div>
+          <div class="meta">
+            <div class="t1 unread">【备用金申请】今日 2026-11-06 到期，请立即还款</div>
+            <div class="t2"><span class="amt">¥3,000.00</span></div>
+            <div class="t3"><span class="tag t-orange">临近提醒</span></div>
+            <div class="t4">还款日 2026-11-06 · 通知于 10:00</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-purple">审</div>
+          <div class="meta">
+            <div class="t1 unread">王敏提交了【费用报销】，请处理</div>
+            <div class="t4">2026-11-06 09:30</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-green">✓</div>
+          <div class="meta">
+            <div class="t1 unread">【合同用印】审批已通过</div>
+            <div class="t4">2026-11-06 09:05</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-gray">抄</div>
+          <div class="meta">
+            <div class="t1 unread">周明远抄送【差旅报销】给你</div>
+            <div class="t4">2026-11-05 17:40</div>
+          </div>
+          <span class="unreadflag"></span>
+        </div>
+        <div class="listitem">
+          <div class="ico w-red">✕</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】审批已驳回</div>
+            <div class="t4">2026-11-05 15:18</div>
+          </div>
+          
+        </div>
+        <div class="listitem">
+          <div class="ico w-blue">警</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】将于 2026-12-20 到期，剩余 44 天，请及时还款</div>
+            <div class="t2"><span class="amt">¥6,000.00</span></div>
+            <div class="t3"><span class="tag t-blue">常规提醒</span></div>
+            <div class="t4">还款日 2026-12-20 · 11-05 11:00</div>
+          </div>
+          
+        </div>
+        <div class="listitem">
+          <div class="ico w-blue">@</div>
+          <div class="meta">
+            <div class="t1">吴国栋在考勤流程@了你：排班表已更新</div>
+            <div class="t4">2026-11-04 16:22</div>
+          </div>
+          
+        </div>
+        <div class="listitem done">
+          <div class="ico w-gray">✓</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】（¥5,000.00，还款日 2026-11-01）已由会计审批处理人 吴国栋 确认还款</div>
+            <div class="t2"><span class="amt">¥5,000.00</span></div>
+            <div class="t3"><span class="tag t-gray">还款完成</span></div>
+            <div class="t4">还款日 2026-11-01 · 11-03 15:32</div>
+          </div>
+          
+        </div>
+        <div class="listitem done">
+          <div class="ico w-gray">✓</div>
+          <div class="meta">
+            <div class="t1">【备用金申请】已于 2026-10-12 还款，还款完成</div>
+            <div class="t2"><span class="amt">¥3,500.00</span></div>
+            <div class="t3"><span class="tag t-gray">已还款</span></div>
+            <div class="t4">还款日 2026-10-12 · 10-13 10:00</div>
+          </div>
+          
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5z"/></svg>消息</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H8l-4 3z"/></svg>待办</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>工作台</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>我的</div>
+      </div>
+          <div class="homearea"><i></i></div>
+</div>
+    <div class="spec"></div>
+  </div>
+
+</div>
+
+<div class="note">
+  <h3>原型要点说明</h3>
+  <b>A · 消息首页</b>：顶部为<b>姓氏首字头像「陈」+ 用户名「陈嘉言」+ 右上铃铛（99+）</b>，不加页面标题、不显示环境提示条；<b>仅把底部 Tab「首页」改名「消息」</b>，「待办 / 工作台 / 我的」保持原样。列表按品牌分组，<b>门店角标 = 该门店未读消息数</b>（数值与排序沿用归档旧版首页演示数据，≤99 显真实数、≥100 封顶「99+」，读后下降），分组头「共 X 条消息」= 该品牌下所有门店角标之和；铃铛 = 全站未读总数按同一封顶规则显示，三处同一口径。点门店 → 进 C。搜索框做模糊/关键字匹配。门店行字号：店名 16px / 消息时间 12.5px、品牌分组头 15px；时间行只显示时间戳、不带「最近」前缀。<br>
+  <b>数字核对</b>：41 家门店角标合计 <b>1207</b>（辰色酒馆首店角标「99+」按封顶前真实值 156 计）= 8 个品牌合计 <b>418 / 370 / 133 / 107 / 52 / 48 / 48 / 31</b> = 汇总弹窗标题「共 1207 条消息」；铃铛按「≥100 封顶 99+」显示 <b>99+</b>，即 1207 的封顶形态。<b>分组顺序按品牌合计降序、组内按角标降序、同数按最新消息时间倒序</b>，数量与顺序全部取自归档旧版首页原型，不另行编造。C/D 的「全部10 / 未读5」是<b>单门店消息页的独立演示数据</b>（列表仅取 10 条），与 A 屏全量计数不同层级。<br>
+  <b>B · 消息汇总弹窗</b>：在<b>完整首页</b>上点铃铛浮出，弹窗位于铃铛下方；标题「消息汇总」+ 全站消息总数；<b>列表顺序与首页分组完全一致</b>（按品牌合计降序，不再另排一套），<b>固定高度内滚动</b>（8 个真实品牌 + 5 个无消息占位品牌，共 13 行演示 20+ 品牌滚动；占位行显示 0，不计入总数）；<b>仅展示不可点</b>，点外部关闭。<br>
+  <b>C · 门店消息页</b>：顶部<b>不出现「通知」二字</b>，<b>门店名直接占用原标题位</b>（沿用通知页加粗标题格式，长名单行省略）；右上保留「批量已读」；下方「<b>全部10</b> / <b>未读5</b>」胶囊（选中蓝底），数字为当前筛选下的条数。列表按当前门店单独取数（示例 10 条全部 / 5 条未读，可滚动），承载<b>站内既有六类通知混排</b>：@我的（蓝 @）/ 审批通过（绿 ✓）/ 审批驳回（红 ✕）/ 抄送我的（灰 抄）/ 待我审批（紫 审）/ 还款预警（警，蓝·橙·红·灰四态；含「还款完成」子通知）。<b>卡片样式、主文案、类型图标与点击落点一律沿用《消息通知优化（h5）》《web 消息通知》《备用金还款预警通知》及总纲既有口径，本次不改动、不重新定义</b>；卡片上无行内按钮，已还款卡片转灰；仅还款预警类展示金额 / 状态标签 / 还款日三行信息区。左侧方形图标、标题（未读加粗）、时间与右上未读红点为六类共用外观。<b>C 是「消息」Tab 下的子页：保留返回箭头（点返回回到 A 门店列表），不显示底部 Tab</b>——避免子页里底部仍高亮「消息」造成层级歧义，同时让列表多出约 50px 的可见空间。<br>
+  <b>D · 单门店用户消息页</b>：进 App「消息」直接是该门店消息页，<b>无品牌/门店列表、顶部不显示铃铛、无返回箭头</b>；顶部显示该门店名，列表样式与 C 一致、按该门店取数（示例为另一门店的通知数据，体现门店间消息隔离）。<b>D 是「消息」Tab 的根页（无上级页），必须保留底部 Tab</b>，否则用户没有任何路径切到「待办 / 工作台 / 我的」。<br>
+  <b>已读联动</b>：C/D 内消息标记已读（逐条点开或批量已读）后，A 对应门店角标、品牌合计、铃铛汇总数字<b>实时同步下降</b>，无需返回首页刷新。<br>
+  <b>搜索</b>：仅在 A 消息首页提供，做模糊/关键字匹配（品牌名、门店名、括号内地名、数字、后缀、空格分词均可命中）；<b>C/D 门店消息页内不提供搜索</b>。
+  <h3>真实名称与品牌归属依据</h3>
+  <b>名称来源</b>：A 屏的品牌名与门店名取自 7 张「选择商户」截图实读，共 <b>8 个品牌 / 41 家门店</b>，全量排入列表用于验证长名称、中英混排与同名项的显示效果；仅作内部评审，外发或作通用示例前需换回虚构名。门店角标、分组头合计、门店消息时间均为归档旧版首页的演示值，按同一口径互相核对并逐项可验算，人名（陈嘉言等）为虚构。<br>
+  <b>归属判定</b>：门店标签里<b>同一名称作为前缀重复出现</b>即归为一个品牌 —— 辰色酒馆 8 / 群众青年 12 / 金阔 6 / 拾叁唐 4 / 青春九厂 3 / 热辣摇滚 3 / 梦星南 3 / 第三极 2（合计 41）。「品牌」标签里的系统代号（JK / QT / UD …）未与门店名直接对应，故分组头使用真实品牌名而非代号。<br>
+  <b>名称形态</b>：含括号地名、公司全称（最长 19 字「福州晋安区金阔管理咨询合伙企业」）、中英混排（Livehouse / Live Show）、后缀「供应链 / 美食 /（新）/【小卖部】」，以及同名不同角色的两条「金阔公司」。所有品牌与门店<b>共用同一个平台 logo</b>，门店无独立 logo；分组头图形本期<b>统一使用按品牌名自动生成的两字占位</b>，不加载任何图片；不借用平台 logo 或其他品牌图造成误认。<b>正式品牌 logo 待提供后按品牌逐个替换</b>（8 个品牌全部待替换）。<br>
+  <b>排版验证</b>：门店名 16px / 600 单行省略、时间行 12.5px 只显示时间戳，<b>分组头门店数与实际行数一致</b>；41 家门店在 402 pt 基准下 <b>0 行触发省略</b>，最长 19 字公司全称可完整单行显示。逐台切换 25 种形态校验：横向溢出 0、时间行 0 换行、角标（含 99+ 三字符）与箭头不撑破行；更窄形态下长名称按方案 C 既定口径单行省略，不折行。<br>
+  <h3>屏幕规格与多机型兼容</h3>
+  <b>设计基准</b>：iPhone 16 Pro，逻辑分辨率 <b>402 × 874 pt</b>（物理 1206 × 2622 @3x，1 pt = 1 CSS px），屏幕圆角 53 pt，<b>灵动岛 126 × 37 pt</b>（距屏顶 11 pt），顶部安全区 <b>62 pt</b>、底部安全区 <b>34 pt</b>（Home Indicator 134 × 5 pt，距底 8 pt）。画框内部所有字号、间距、控件尺寸均按 pt 1:1 标注，开发可直接取值。新增 <b>iPhone 18 Pro</b>：逻辑分辨率与安全区与 16 Pro <b>完全相同</b>（402 × 874 pt · 62 / 34 pt），仅灵动岛开孔宽度由 126 pt 缩为 <b>82 pt</b>（高 37 pt 不变），因此页面布局无需任何调整；该宽度由供应链开孔尺寸（20.76 → 13.49 mm）按 460 ppi @3x 换算，Apple 官方未公布像素级参数。<br>
+  <b>兼容范围</b>：切换器按 <b>6 类共 25 种形态</b>分组 —— 苹果直板（16 / 18 Pro、16 / 18 Pro Max、iPhone 16、iPhone Air、14 刘海、SE 3）、安卓直板（360 dp 基准、Pixel 9、Mate 80）、双折叠（Mate X7 / Z Fold 8 的外屏与展开内屏）、三折叠（Mate XT / XTs 单屏、双屏、三屏态）、阔折叠（Pura X 外屏 1:1 方形 / 展开、Pura X Max 展开、Pura X View）、竖折小折叠（Z Flip 8 外屏 / 内屏）。逻辑尺寸按 iOS pt ≈ Android dp ≈ 鸿蒙 vp 取 1:1，切换后四屏同步改变画框尺寸、安全区与挖孔形态。<br>
+  <b>适配规则</b>：① 顶部 / 底部间距一律取系统安全区 <code>env(safe-area-inset-*)</code>，<b>不写死机型常量</b>，灵动岛、刘海、挖孔由系统自动让位，内容不进入挖孔区；② 页面为弹性三段式 —— 状态栏与底部 Tab / Home 区固定，中间列表 <code>flex:1</code> 内部滚动，高度随屏幕伸缩；③ 字号与间距固定 pt、<b>不随屏宽等比缩放</b>，避免大屏字变小、小屏挤成一团；④ 门店名单行省略、消息角标宽度自适应，326 pt 起的窄屏下仍不换行、不溢出；⑤ 铃铛「消息汇总」弹窗<b>锚定铃铛底部</b>（<code>top: calc(安全区 + 52pt)</code>），不写死绝对坐标，状态栏高度变化时始终贴合；⑥ 底部 Tab 固定在 Home Indicator 之上，手势区不承载任何点击；⑦ 弹窗列表固定高内滚，并统一设 <code>max-height: 屏高 − 安全区 − 76pt</code> 兜底，任何机型都不会超出屏底；⑧ <b>宽屏内容列约束</b>：屏宽 &gt; 520 pt（双折 / 三折 / 阔折展开态）时，页面内容列居中并限宽 <b>520 pt</b>，避免门店名与右侧角标被拉到相隔大半屏，铃铛弹窗跟随内容列右缘（<code>right: calc(留白 + 12pt)</code>）而非屏幕右缘；⑨ <b>小方形外屏降级</b>：屏高 ≤ 500 pt（Pura X 外屏 326 × 326、Z Flip 8 外屏 330 × 300）时，弹窗由贴铃铛改为<b>贴底半屏</b>（限高 56%、列表内滚），门店行 / 分组头 / 搜索框切为紧凑间距，保证仍可见数条门店。<br>
+  <b>分级适配口径</b>：≥ 375 pt 为<b>完整适配</b>（含 375 × 667 小屏）；<b>屏高 ≤ 500 pt</b>（Pura X 外屏 326 × 326、Z Flip 8 外屏 330 × 300）触发<b>小屏降级</b>，仍可完整操作；326 ~ 374 pt 但高度足够的形态（如 Mate XTs 单屏 350 × 776）仍走标准布局；<b>屏宽 &gt; 520 pt</b> 触发<b>宽屏限宽</b>；&lt; 326 pt 不作本项目验收范围。原「最小适配宽度 375 pt」已被真实折叠外屏打破，按本分级口径执行。<br>
+  <b>实测验证</b>：逐台切换 25 种形态校验，横向溢出全为 0、底部 Tab 全在屏内、门店名 0 溢出、时间行不换行；标准与宽屏形态下弹窗距铃铛恒定 7 pt、右缘跟随内容列，小屏降级形态下弹窗贴底 10 pt 且列表内滚。据此修复了 2 处小方形外屏弹窗超底（原超出 57 / 83 pt）与 4 处展开态内容列被拉伸（原文字区宽 639 ~ 1034 pt，现统一收敛到 ≤ 444 pt）的问题。
+  <div class="q">已确认口径：① 右上操作沿用原文案<b>「批量已读」</b>，不改名；② 门店消息页内不做搜索；③ 已读后首页数字<b>实时同步</b>；④ 底部 Tab 层级采用<b>「C 去 Tab / D 留 Tab」</b>，C 的返回箭头固定回到 A 门店列表；⑤ 首页门店角标、分组头、汇总弹窗的数量与排序<b>统一沿用归档旧版首页原型数据</b>（全站 1207，铃铛 99+ 封顶）。⑥ 铃铛「99+」角标上移并收紧内边距，减少对铃铛图标的遮挡；⑦ 分组头 logo 位本期统一为自动生成的两字文字占位，不加载图片、不借用平台 logo，正式 logo 待补。⑧ 本期无头像上传 / 修改入口，头像统一按当前登录人姓名生成<b>姓氏首字头像</b>（中文取姓氏首字、英文取首字母），圆形主蓝深一档 #185FA5 底白字、不依赖图片资源、不出现破图或灰人形占位；后续接入组织头像字段再按「有图用图、无图降级首字」扩展。⑨ 占位生成规则：取品牌名<b>前两个字符</b> —— 中文取头两个汉字（「辰色酒馆」→「辰色」）、纯英文取头两个字母并转大写（「kucun」→「KU」）、英文数字混合同样取头两个字符并转大写（「K2Supply」→「K2」）；由脚本按 <b>.brand-name</b> 自动生成，新增品牌无需手填；拿到正式 logo 后把 <b>.brand-ico.ph</b> 换成图片即可；需求文档与飞书《消息中心 · 功能需求描述》已按本页口径同步。⑩ C/D 列表承载<b>站内既有六类通知混排</b>（@我的 / 审批通过 / 审批驳回 / 抄送我的 / 待我审批 / 还款预警，「还款完成」归在预警类下不单列第七类），<b>本次只改变通知的进入路径</b>（首页按品牌分组 → 门店消息页 / 单门店直达）；卡片结构、主文案、类型图标与点击落点全部沿用既有需求文档，<b>不重新定义、不改造</b>；仅预警类展示金额 / 状态标签 / 还款日。功能需求（FR）按本页口径逐条输出。</div>
+</div>
+
+<script>
+  // B 屏：复制 A 的完整首页内容作为弹窗背景，保证是完整手机页面
+  (function(){
+    var a=document.getElementById('phoneA');
+    var b=document.getElementById('phoneB');
+    b.insertAdjacentHTML('afterbegin', a.innerHTML);
+  })();
+
+  // 品牌 logo 占位：按品牌名前两个字符自动生成
+  // 中文取头两个汉字；纯英文取头两个字母并转大写；英文数字混合同样取头两个字符并转大写
+  // 正式品牌 logo 待提供后，按品牌把 .brand-ico.ph 换成 <img> 即可
+  function brandPlaceholder(name){
+    return Array.from(String(name || '').trim()).slice(0, 2).join('').toUpperCase();
+  }
+  (function(){
+    [].forEach.call(document.querySelectorAll('.brand-head'), function(h){
+      var ico = h.querySelector('.brand-ico.ph');
+      var nm  = h.querySelector('.brand-name');
+      if (ico && nm) ico.textContent = brandPlaceholder(nm.textContent);
+    });
+  })();
+
+  // 设备规格切换：以 iPhone 16 Pro 为设计基准，验证不同尺寸 / 形态下的兼容表现
+  // w/h/sat/sab 为逻辑尺寸（iOS pt ≈ Android dp ≈ 鸿蒙 vp，1:1 用于布局）
+  // cr=圆角 dw/dh=挖孔宽高 cut=挖孔形态 home=是否有 Home Indicator
+  var DEVICES=[
+    /* 苹果直板 */
+    {k:'16pro',    g:'苹果直板', n:'iPhone 16 Pro（基准）', w:402,h:874, res:'1206 × 2622 @3x',     sat:62,sab:34,cr:53,dw:126,dh:37,cut:'island',home:1,di:'灵动岛 126 × 37 pt'},
+    {k:'18pro',    g:'苹果直板', n:'iPhone 18 Pro（小岛）', w:402,h:874, res:'1206 × 2622 @3x',     sat:62,sab:34,cr:53,dw:82, dh:37,cut:'island',home:1,di:'灵动岛 82 × 37 pt（缩小）'},
+    {k:'18promax', g:'苹果直板', n:'iPhone 18 Pro Max',    w:440,h:956, res:'1320 × 2868 @3x',     sat:62,sab:34,cr:55,dw:82, dh:37,cut:'island',home:1,di:'灵动岛 82 × 37 pt（缩小）'},
+    {k:'16promax', g:'苹果直板', n:'iPhone 16 Pro Max',    w:440,h:956, res:'1320 × 2868 @3x',     sat:62,sab:34,cr:55,dw:126,dh:37,cut:'island',home:1,di:'灵动岛 126 × 37 pt'},
+    {k:'16',       g:'苹果直板', n:'iPhone 16',            w:393,h:852, res:'1179 × 2556 @3x',     sat:59,sab:34,cr:47,dw:124,dh:36,cut:'island',home:1,di:'灵动岛 124 × 36 pt'},
+    {k:'air',      g:'苹果直板', n:'iPhone Air',           w:420,h:912, res:'1260 × 2736 @3x',     sat:68,sab:34,cr:48,dw:126,dh:37,cut:'island',home:1,di:'灵动岛 126 × 37 pt · 顶安全区 68 pt'},
+    {k:'14',       g:'苹果直板', n:'iPhone 14（刘海）',     w:390,h:844, res:'1170 × 2532 @3x',     sat:47,sab:34,cr:47,dw:164,dh:30,cut:'notch', home:1,di:'刘海 164 × 30 pt'},
+    {k:'se',       g:'苹果直板', n:'iPhone SE 3（小屏）',   w:375,h:667, res:'750 × 1334 @2x',      sat:20,sab:0, cr:0, dw:0,  dh:0,  cut:'none',  home:0,di:'无挖孔（Home 键）'},
+    /* 安卓直板 */
+    {k:'dp360',    g:'安卓直板', n:'安卓基准 360 dp',       w:360,h:800, res:'1080 × 2400（≈3x）',  sat:24,sab:16,cr:24,dw:13, dh:13,cut:'hole',  home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'pixel9',   g:'安卓直板', n:'Pixel 9',              w:412,h:923, res:'1080 × 2424（≈2.6x）',sat:48,sab:24,cr:28,dw:13, dh:13,cut:'hole',  home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'mate80',   g:'安卓直板', n:'华为 Mate 80',          w:445,h:985, res:'按系统 dp 取值',      sat:32,sab:24,cr:30,dw:13, dh:13,cut:'hole',  home:1,di:'居中挖孔 Ø13 pt'},
+    /* 双折叠：一次折叠的内外双屏 */
+    {k:'x7out',    g:'双折叠',   n:'Mate X7 外屏（折）',    w:360,h:800, res:'折叠态按系统 vp 取值', sat:28,sab:16,cr:24,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'fold8out', g:'双折叠',   n:'Z Fold 8 外屏（折）',   w:416,h:660, res:'宽外屏 10:16',        sat:28,sab:16,cr:26,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'fold8in',  g:'双折叠',   n:'Z Fold 8 内屏（展）',   w:616,h:816, res:'展开态 4:3 近方屏',   sat:28,sab:24,cr:22,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'x7in',     g:'双折叠',   n:'Mate X7 内屏（展）',    w:938,h:858, res:'展开态 8:7.3 近方屏', sat:28,sab:24,cr:22,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    /* 三折叠：两道铰链三段屏 */
+    {k:'xt1',      g:'三折叠',   n:'Mate XT 单屏态',        w:380,h:814, res:'官方 vp 单屏态',      sat:28,sab:16,cr:24,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'xts1',     g:'三折叠',   n:'Mate XTs 单屏态',       w:350,h:776, res:'官方 vp 单屏态',      sat:28,sab:16,cr:24,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'xt2',      g:'三折叠',   n:'Mate XT 双屏态',        w:712,h:776, res:'官方 vp 双屏态',      sat:28,sab:24,cr:20,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'xt3',      g:'三折叠',   n:'Mate XT 三屏态',        w:1107,h:776,res:'官方 vp 三屏态（平板级）',sat:28,sab:24,cr:20,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    /* 阔折叠：16:10 阔型比例 */
+    {k:'puraxout', g:'阔折叠',   n:'Pura X 外屏（1:1）',    w:326,h:326, res:'方形外屏',            sat:20,sab:0, cr:18,dw:13,dh:13,cut:'hole',home:0,di:'居中挖孔 Ø13 pt · 小屏降级'},
+    {k:'puraxin',  g:'阔折叠',   n:'Pura X 展开态',         w:440,h:707, res:'展开态 16:10',        sat:28,sab:16,cr:24,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'puraxmax', g:'阔折叠',   n:'Pura X Max 展开',       w:939,h:664, res:'阔型大屏展开态',      sat:28,sab:24,cr:20,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    {k:'puraxview',g:'阔折叠',   n:'Pura X View',           w:440,h:744, res:'阔型直板',            sat:28,sab:16,cr:24,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'},
+    /* 竖折小折叠 */
+    {k:'flip8out', g:'竖折小折叠',n:'Z Flip 8 外屏（折）',  w:330,h:300, res:'小方形外屏',          sat:20,sab:0, cr:18,dw:13,dh:13,cut:'hole',home:0,di:'居中挖孔 Ø13 pt · 小屏降级'},
+    {k:'flip8in',  g:'竖折小折叠',n:'Z Flip 8 内屏（展）',  w:411,h:960, res:'展开态长屏',          sat:28,sab:16,cr:26,dw:13,dh:13,cut:'hole',home:1,di:'居中挖孔 Ø13 pt'}
+  ];
+
+  function applyDevice(d,btn){
+    var r=document.documentElement.style;
+    r.setProperty('--pw',d.w+'px'); r.setProperty('--ph',d.h+'px');
+    r.setProperty('--sat',d.sat+'px'); r.setProperty('--sab',d.sab+'px');
+    r.setProperty('--corner',d.cr+'px');
+    r.setProperty('--diw',d.dw+'px'); r.setProperty('--dih',d.dh+'px');
+    var wide=(d.w>520), tiny=(d.h<=500);
+    r.setProperty('--gutter',(wide?(d.w-520)/2:0)+'px');
+    document.body.setAttribute('data-cutout',d.cut);
+    document.body.setAttribute('data-home',d.home);
+    document.body.setAttribute('data-wide',wide?'1':'0');
+    document.body.setAttribute('data-tiny',tiny?'1':'0');
+    [].forEach.call(document.querySelectorAll('.devbtn'),function(b){b.classList.toggle('on',b===btn);});
+    var mode = tiny ? '<b>小屏降级</b>：弹窗贴底半屏、列表切紧凑间距'
+             : wide ? '<b>宽屏约束</b>：内容列居中限宽 520 pt，铃铛弹窗跟随内容列右缘'
+                    : '标准布局：内容铺满、弹窗锚定铃铛底部';
+    document.getElementById('devinfo').innerHTML=
+      '当前：<b>'+d.n+'</b> · '+d.g+' · 逻辑 <b>'+d.w+' × '+d.h+' pt</b> · 规格 '+d.res+
+      ' · 圆角 '+d.cr+' pt · <b>'+d.di+'</b> · 安全区 上 '+d.sat+' / 下 '+d.sab+' pt'+
+      (d.home?'（Home Indicator 134 × 5 pt）':'（无 Home Indicator）')+'<br>'+
+      '布局：'+mode+'<br>'+
+      '预览缩放 72%，画框内部均为 1:1 pt；切换仅改变画框尺寸、安全区与挖孔形态，页面布局按弹性规则自适应。';
+    [].forEach.call(document.querySelectorAll('.spec'),function(e){
+      e.textContent=d.w+' × '+d.h+' pt · 安全区 '+d.sat+' / '+d.sab+' pt'+(tiny?' · 小屏降级':wide?' · 宽屏限宽':'');
+    });
+  }
+
+  (function(){
+    var box=document.getElementById('devgroups'), groups=[];
+    DEVICES.forEach(function(d){
+      var g=null;
+      for(var i=0;i<groups.length;i++){ if(groups[i].n===d.g){g=groups[i];break;} }
+      if(!g){ g={n:d.g,items:[]}; groups.push(g); }
+      g.items.push(d);
+    });
+    groups.forEach(function(g){
+      var row=document.createElement('div'); row.className='devgroup';
+      var lab=document.createElement('div'); lab.className='glabel'; lab.textContent=g.n;
+      var btns=document.createElement('div'); btns.className='gbtns';
+      row.appendChild(lab); row.appendChild(btns); box.appendChild(row);
+      g.items.forEach(function(d){
+        var b=document.createElement('button');
+        b.className='devbtn'; b.type='button'; b.textContent=d.n;
+        b.onclick=function(){applyDevice(d,b);};
+        btns.appendChild(b);
+        if(d.k==='16pro') applyDevice(d,b);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

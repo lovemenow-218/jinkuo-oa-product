@@ -1,0 +1,147 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+  :root{
+    --blue:#2b7fff; --txt:#1f2329; --txt2:#4e5969; --sub:#a8adb5;
+    --line:#edf0f3; --bg:#f2f4f7; --banner:#fdf4dd; --banner-t:#d9a441;
+    --orange-bg:#fde6cd; --orange:#ef9a3c; --blue-bg:#e2edff; --blue-l:#2b6fd4;
+    --red-badge:#f5453d; --green:#3aa655; --avatar:#4a8ff7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;}
+  body{background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:26px 20px 40px;}
+
+  .hd{max-width:1360px;margin:0 auto 22px;}
+  .hd h1{font-size:20px;margin-bottom:6px;}
+  .hd p{color:var(--txt2);font-size:13px;}
+  .hd .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+  .hd .tags span{background:#fff;border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--txt2);}
+
+  .stage{max-width:1360px;margin:0 auto;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;}
+  .col{width:322px;}
+  .cap{margin-bottom:9px;}
+  .cap .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;}
+  .cap .n{background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+  .cap .d{color:var(--sub);font-size:12px;margin-top:2px;}
+
+  .phone{background:#fff;border-radius:26px;border:8px solid #20242b;box-shadow:0 10px 26px rgba(16,24,40,.14);overflow:hidden;height:640px;display:flex;flex-direction:column;}
+  .screen{flex:1;overflow:auto;background:#fff;position:relative;}
+  .screen::-webkit-scrollbar{width:0;}
+  .screen.dark{background:#eef0f4;}
+
+  .banner{background:var(--banner);color:var(--banner-t);text-align:center;font-size:12px;padding:7px 0;}
+  .topbar{display:flex;align-items:center;gap:9px;padding:14px 14px 10px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#e9ecf1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .uname{font-size:17px;font-weight:700;flex:1;}
+  .bell{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:.15s;}
+  .bell:hover{background:#f2f4f7;}
+  .bell.active{background:#eaf2ff;}
+  .bell .dot{position:absolute;top:1px;right:0;min-width:16px;height:16px;border-radius:9px;background:var(--red-badge);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #fff;}
+  .search{margin:2px 14px 12px;background:#f2f3f5;border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:7px;color:var(--sub);font-size:13px;}
+
+  .listitem{display:flex;align-items:center;gap:11px;padding:11px 14px;}
+  .ico{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:19px;font-weight:700;}
+  .ico.person{background:var(--orange-bg);color:var(--orange);}
+  .ico.at{background:var(--blue-bg);color:var(--blue-l);}
+  .meta{flex:1;min-width:0;}
+  .meta .t1{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .meta .t1.unread{font-weight:800;}
+  .meta .t2{font-size:12px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .unreadflag{width:7px;height:7px;border-radius:50%;background:var(--red-badge);flex-shrink:0;}
+  .ico.pass{background:#e6f6ea;color:var(--green);}
+  .ico.reject{background:#fdeaea;color:var(--red-badge);}
+  .ico.cc{background:#eef0f4;color:#6b7785;}
+
+  .subtabs{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:2;}
+  .subtabs::-webkit-scrollbar{height:0;}
+  .stab{padding:5px 11px;border-radius:15px;font-size:12px;color:var(--txt2);background:#f4f5f7;white-space:nowrap;}
+  .stab.on{background:var(--blue);color:#fff;font-weight:600;}
+
+  .navbar{border-top:1px solid var(--line);display:flex;background:#fff;padding:7px 0 12px;flex-shrink:0;}
+  .nav{flex:1;text-align:center;color:var(--sub);font-size:11px;cursor:pointer;}
+  .nav svg{display:block;margin:0 auto 3px;}
+  .nav.on{color:var(--blue);font-weight:600;}
+
+  .note{padding:10px 14px;background:#f7f9fc;border-top:1px solid var(--line);font-size:12px;color:var(--txt2);}
+  .sect{font-size:12px;color:var(--sub);padding:10px 14px 4px;}
+  .empty{padding:60px 20px;text-align:center;color:var(--sub);font-size:13px;}
+
+  /* ---- OA 详情（时间轴） ---- */
+  .dhd{display:flex;align-items:center;padding:13px 14px;background:#fff;border-bottom:1px solid var(--line);}
+  .dhd .bk{font-size:19px;color:var(--txt);line-height:1;}
+  .dhd .ti{flex:1;text-align:center;font-size:16px;font-weight:700;margin-left:-20px;}
+  .dcard{background:#fff;margin:10px 12px;border-radius:10px;padding:13px 14px;}
+  .dcard .ft{font-size:16px;font-weight:700;}
+  .dcard .fk{color:var(--sub);font-size:12px;margin-top:10px;}
+  .dcard .fv{font-size:14px;margin-top:3px;}
+  .tlwrap{background:#fff;margin:10px 12px;border-radius:10px;padding:14px 13px 6px;}
+  .tl{position:relative;padding-left:26px;}
+  .tl .line{position:absolute;left:6px;top:6px;bottom:10px;width:1.5px;background:#e3e6ea;}
+  .tlrow{position:relative;padding-bottom:16px;}
+  .tlrow .nd{position:absolute;left:-26px;top:1px;width:13px;height:13px;border-radius:50%;border:2px solid #d5d9df;background:#fff;}
+  .tlrow.done .nd{border-color:var(--green);background:#fff;}
+  .tlrow.cur .nd{border-color:var(--blue);background:#fff;}
+  .tlrow.todo .nd{border-color:var(--orange);background:#fff;}
+  .tlrow.hit .nd{border-color:var(--blue);background:var(--blue);box-shadow:0 0 0 4px rgba(43,127,255,.16);}
+  .tlrow .rt{display:flex;justify-content:space-between;align-items:baseline;}
+  .tlrow .rt .nm{font-size:15px;font-weight:600;}
+  .tlrow .rt .tm{font-size:11px;color:var(--sub);}
+  .tlbody{display:flex;gap:8px;margin-top:8px;align-items:flex-start;}
+  .av{width:30px;height:30px;border-radius:50%;background:var(--avatar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+  .av.gray{background:#c3cad3;}
+  .tlbody .col{flex:1;min-width:0;width:auto;}
+  .tlbody .who{font-size:14px;font-weight:600;}
+  .tlbody .st{font-size:13px;color:var(--green);font-weight:600;}
+  .bub{background:#f4f6f8;border-radius:6px;padding:7px 9px;font-size:13px;color:var(--txt2);margin-top:7px;display:flex;align-items:center;gap:6px;}
+  .bub .atname{color:var(--blue-l);font-weight:600;}
+  .bub .cp{margin-left:auto;color:#b7bdc6;font-size:12px;}
+  .hitmark{background:#eaf2ff;border:1px solid #c8dcff;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--blue-l);display:inline-block;margin-top:6px;}
+  .dbar{border-top:1px solid var(--line);background:#fff;display:flex;padding:9px 0 12px;flex-shrink:0;}
+  .dbar .b{flex:1;text-align:center;font-size:11px;color:var(--sub);}
+  .dbar .b.on{color:var(--txt);font-weight:600;}
+  .dbar .b.off{color:#c9ced6;}
+  .dbar .b svg{display:block;margin:0 auto 3px;}
+
+  /* ---- @ 选人弹窗 ---- */
+  .mask{position:absolute;inset:0;background:rgba(16,24,40,.42);display:flex;align-items:flex-end;}
+  .sheet{background:#fff;border-radius:14px 14px 0 0;width:100%;max-height:78%;display:flex;flex-direction:column;}
+  .sheet .sh{padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .sheet .sb{overflow:auto;padding:8px 0;}
+  .sheet .sb::-webkit-scrollbar{width:0;}
+  .prow{display:flex;align-items:center;gap:10px;padding:10px 16px;}
+  .prow .av{width:32px;height:32px;font-size:12px;}
+  .prow .pn{flex:1;}
+  .prow .pn .n{font-size:14px;font-weight:600;}
+  .prow .pn .r{font-size:12px;color:var(--sub);}
+  .sheet .sf{padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);background:#fafbfd;}
+
+  .legend{max-width:1360px;margin:24px auto 0;background:#fff;border-radius:10px;padding:18px 22px;border:1px solid var(--line);}
+  .legend h3{font-size:14px;margin-bottom:10px;}
+  .legend table{width:100%;border-collapse:collapse;font-size:13px;}
+  .legend th,.legend td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  .legend th{color:var(--sub);font-size:12px;font-weight:600;background:#fafbfd;}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99;}
+  .toast.show{opacity:1;}
+
+body{margin:0!important;padding:0!important;background:#f2f4f7;display:flex;justify-content:center;align-items:flex-start;padding-top:16px!important;}
+.col{margin-bottom:0!important;}
+</style></head><body><div class="col">
+    <div class="cap">
+      <div class="t"><span class="n">4</span>@ 选人 · 仅流程内参与人</div>
+      <div class="d">流程外的人不出现，从源头保证被 @ 的人有权打开流程详情</div>
+    </div>
+    <div class="phone"><div class="screen dark">
+      <div class="dhd"><span class="bk">‹</span><span class="ti">OA详情</span><span style="width:19px"></span></div>
+      <div class="mask" style="position:absolute">
+        <div class="sheet">
+          <div class="sh"><span>选择被 @ 的人</span><span style="color:var(--sub);font-weight:400;font-size:13px" onclick="toast('关闭')">关闭</span></div>
+          <div class="sb">
+            <div class="prow"><div class="av">林航</div><div class="pn"><div class="n">陈林航</div><div class="r">发起人 · 可选</div></div></div>
+            <div class="prow"><div class="av">小兵</div><div class="pn"><div class="n">白小兵</div><div class="r">审批人 · 同意</div></div></div>
+            <div class="prow"><div class="av gray">审</div><div class="pn"><div class="n">王敏</div><div class="r">审核 · 会签（待处理）</div></div></div>
+            <div class="prow"><div class="av gray">办</div><div class="pn"><div class="n">李强</div><div class="r">办理 · 或签（待处理）</div></div></div>
+            <div class="prow"><div class="av gray">抄</div><div class="pn"><div class="n">赵磊</div><div class="r">抄送人</div></div></div>
+          </div>
+          <div class="sf">仅显示该流程的参与人（发起人 / 各节点审批人含会签或签 / 抄送人）；流程外人员不可被 @。</div>
+        </div>
+      </div>
+    </div></div>
+  </div></body></html>

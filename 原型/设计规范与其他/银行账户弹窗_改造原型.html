@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>合同收款账号 · 银行账户选择弹窗改造 · 效果原型 v1</title>
+<style>
+  /* ============ 共享设计令牌 ============ */
+  :root{
+    --ep:#409eff;            /* EP 默认主色，本弹窗不动：保持与全站按钮一致（白字 2.78:1 未达 AA，属全局议题） */
+    --sel:#2b7fff;           /* OA 规范主蓝：选中竖条 / 选中边框 / ✓（白底 3.78:1，图形达标） */
+    --sel-bg:#ecf5ff;         /* 选中底色 */
+    --txt:#303133;            /* 13.02:1 */
+    --label:#606266;          /* 6.11:1 */
+    --hint:#909399;           /* 3.08:1，仅用于 ≥19px / 禁用态 / 装饰 */
+    --line:#e9ebef;
+    --dash:#e9ecf0;
+    --danger:#c45658;         /* 4.36:1 */
+    --warn:#b25e00;
+    --bg:#f0f2f5;
+    --dw:607px;               /* 弹窗定稿宽 */
+    --cardh:42px;             /* 卡片定稿高 = 1 + 20 + 20 + 1 */
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  p.doc-sub{font-size:13px;color:#4e5969;margin:0 0 6px;line-height:1.7;max-width:1040px;}
+  p.doc-note{font-size:12px;color:#8a9099;margin:0 0 18px;line-height:1.7;max-width:1040px;}
+
+  .toolbar{display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;align-items:center;}
+  .toolbar button{font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:#4e5969;}
+  .toolbar button[aria-pressed="true"]{border-color:var(--sel);color:var(--sel);background:#eef4ff;}
+  .toolbar .sep{width:1px;height:20px;background:var(--line);margin:0 6px;}
+  .toolbar label{font-size:13px;color:#4e5969;display:flex;align-items:center;gap:6px;cursor:pointer;}
+
+  .stage{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap;}
+
+  .frame{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .ptitle{font-size:13px;font-weight:700;color:#667085;}
+  .browser{width:1000px;height:680px;background:#fff;border-radius:10px;overflow:hidden;
+           border:1px solid #dcdfe6;box-shadow:0 10px 30px rgba(20,30,50,.10);position:relative;}
+  .bbar{height:40px;background:#f5f7fa;border-bottom:1px solid #e6e8eb;display:flex;align-items:center;
+        gap:7px;padding:0 12px;}
+  .dot{width:10px;height:10px;border-radius:50%;background:#dcdfe6;}
+  .url{flex:1;height:24px;border-radius:12px;background:#fff;border:1px solid #e6e8eb;font-size:12px;
+       color:#909399;display:flex;align-items:center;padding:0 12px;}
+  .viewport{position:relative;height:calc(680px - 40px);background:#f5f7fa;overflow:hidden;}
+
+  .page{position:absolute;inset:0;padding:16px 20px;opacity:.45;}
+  .page .ph{font-size:15px;font-weight:700;margin-bottom:12px;color:#303133;}
+  .page .pl{height:36px;background:#fff;border-radius:8px;margin-bottom:9px;border:1px solid #e6e8eb;}
+  .page .pl.w60{width:60%;}
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.45);}
+
+  /* ============ 弹窗（607px 定稿） ============ */
+  .dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+       width:min(var(--dw),calc(100vw - 32px));background:#fff;border-radius:8px;
+       display:flex;flex-direction:column;max-height:min(72vh,620px);overflow:hidden;
+       box-shadow:0 16px 44px rgba(20,30,50,.26);}
+  .d-head{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:16px 16px 12px;
+          border-bottom:1px solid var(--dash);}
+  .d-title{font-size:16px;font-weight:600;color:var(--txt);outline:none;}
+  .d-title:focus-visible{box-shadow:0 0 0 2px var(--sel);border-radius:4px;}
+  .d-add{margin-left:auto;font:inherit;font-size:13px;color:var(--ep);background:#fff;
+         border:1px solid var(--ep);border-radius:6px;padding:5px 10px;cursor:pointer;line-height:18px;}
+  .d-add:hover{background:#eef4ff;}
+  .d-x{flex:0 0 32px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+       color:var(--label);font-size:18px;line-height:1;cursor:pointer;border-radius:4px;}
+  .d-x:hover{background:#f2f3f5;}
+
+  .d-tools{flex:0 0 auto;display:none;align-items:center;gap:10px;padding:10px 16px 0;}
+  .d-tools.on{display:flex;}
+  .search{flex:1;height:32px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;
+          padding:0 10px;font-size:13px;color:#b0b4bb;background:#fff;}
+  .count{flex:0 0 auto;font-size:12px;color:var(--label);font-variant-numeric:tabular-nums;}
+
+  .d-list{flex:1 1 auto;min-height:0;overflow-y:auto;padding:12px 16px;outline:none;}
+  .d-list:focus-visible{box-shadow:inset 0 0 0 2px var(--sel);}
+  .cntbar{position:sticky;top:0;z-index:3;background:#fafbfc;border-bottom:1px solid var(--dash);
+          padding:5px 16px;font-size:12px;color:var(--label);}
+
+  /* ---- 卡片 42px / 2 行 × 20px / 定尺列 ---- */
+  .card{display:grid;grid-template-columns:8px 20px 1fr 58px;grid-template-rows:20px 20px;
+        height:var(--cardh);border-bottom:1px solid var(--line);
+        background:#fff;position:relative;cursor:pointer;}
+  .card:first-child{border-top:1px solid var(--line);}
+  .card.sel{background:var(--sel-bg);}
+  .card.sel::after{content:"";position:absolute;inset:0;border:1px solid var(--sel);pointer-events:none;}
+  .c-bar{grid-column:1;grid-row:1/3;height:100%;}
+  .card.sel .c-bar{background:var(--sel);}
+  .c-chk{grid-column:2;grid-row:1/3;height:100%;display:flex;align-items:center;justify-content:center;
+         color:var(--sel);opacity:0;}
+  .card.sel .c-chk{opacity:1;}
+  .c-r1{grid-column:3;grid-row:1;display:flex;align-items:center;padding-left:8px;}
+  .c-r2{grid-column:3;grid-row:2;display:flex;align-items:center;padding-left:8px;}
+  .c-lbl,.c-lbl2,.c-lbl3,.c-lbl4{flex:0 0 64px;font-size:12px;line-height:20px;color:var(--label);}
+  .c-val,.c-val2,.c-val3,.c-val4{font-size:13px;line-height:20px;font-weight:500;color:var(--txt);
+         font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .c-val,.c-val3{flex:0 0 168px;}
+  .c-val2,.c-val4{flex:0 0 159px;}
+  .c-val.wk{font-weight:400;}
+  .c-gap2{flex:0 0 24px;}
+  .c-pad{flex:1 1 auto;}
+  .c-ops{grid-column:4;grid-row:1/3;align-self:start;display:flex;align-items:flex-start;
+         justify-content:flex-start;padding:1px 14px 0 0;}
+  .ic{flex:0 0 22px;height:20px;display:flex;align-items:center;justify-content:center;
+      color:var(--label);cursor:pointer;border-radius:4px;position:relative;}
+  .ic::after{content:"";position:absolute;inset:-4px -2px;}
+  .ic:hover{color:var(--ep);}
+  .ic.del:hover{color:var(--danger);}
+
+  .chip{display:inline-flex;align-items:center;height:16px;padding:0 5px;border-radius:3px;
+        font-size:12px;line-height:16px;font-weight:400;border:1px solid var(--line);
+        color:var(--label);background:#fff;vertical-align:1px;margin-left:6px;}
+  .chip.new{border-color:#ff9f0a;color:var(--warn);background:#fff7e6;}
+  .chip.def{border-color:var(--line);color:var(--label);background:#f7f8fa;}
+
+  .d-status{flex:0 0 auto;padding:9px 16px;font-size:12px;line-height:18px;color:var(--label);
+            border-top:1px solid var(--dash);background:#fff;}
+  .d-status b{color:var(--txt);font-weight:600;}
+  .d-foot{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:12px 16px;
+          border-top:1px solid var(--dash);background:#fff;}
+  .d-hint{font-size:12px;color:var(--hint);}
+  .d-foot .sp{margin-left:auto;}
+  .btn{font:inherit;font-size:13px;line-height:18px;padding:7px 16px;border-radius:6px;cursor:pointer;
+       border:1px solid var(--line);background:#fff;color:var(--txt);}
+  .btn.primary{background:var(--ep);border-color:var(--ep);color:#fff;}
+  .btn.primary:hover{background:#3a8ee6;}
+  .btn[disabled]{background:#f5f7fa;border-color:var(--dash);color:var(--hint);cursor:not-allowed;}
+
+  /* ---- 空态 ---- */
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+         min-height:240px;padding:24px;text-align:center;}
+  .empty .et{font-size:14px;color:var(--txt);margin-bottom:6px;}
+  .empty .ed{font-size:13px;color:var(--label);margin-bottom:18px;line-height:20px;}
+
+  /* ---- 二次确认（Popconfirm） ---- */
+  .pop{position:absolute;z-index:9;background:#fff;border:1px solid var(--line);border-radius:8px;
+       box-shadow:0 8px 26px rgba(20,30,50,.18);width:258px;padding:14px;left:-190px;top:26px;}
+  .pop .pt{font-size:13px;line-height:19px;color:var(--txt);margin-bottom:12px;}
+  .pop .pb{display:flex;gap:8px;justify-content:flex-end;}
+  .pop .btn{padding:5px 12px;}
+
+  /* ---- 提示 toast ---- */
+  .toast{position:absolute;left:50%;top:18px;transform:translateX(-50%);z-index:9;
+         background:rgba(28,32,38,.92);color:#fff;font-size:12px;line-height:18px;
+         padding:7px 14px;border-radius:6px;white-space:nowrap;}
+
+  /* ---- 窄屏降级（<768px）：4 列网格放不下 → 单列 4 行，卡片 82px ---- */
+  .dlg.narrow{--dw:343px;}
+  .dlg.narrow .card{display:flex;flex-direction:column;align-items:stretch;
+                    height:auto;min-height:82px;padding-left:4px;}
+  .dlg.narrow .c-bar{position:absolute;left:0;top:0;bottom:0;width:4px;height:auto;}
+  .dlg.narrow .c-chk{position:absolute;left:8px;top:6px;width:16px;height:16px;}
+  .dlg.narrow .c-r1,.dlg.narrow .c-r2{display:grid;grid-template-columns:52px 1fr;
+                    grid-auto-rows:20px;padding-left:26px;}
+  .dlg.narrow .c-gap2,.dlg.narrow .c-pad{display:none;}
+  .dlg.narrow .c-lbl,.dlg.narrow .c-lbl2,.dlg.narrow .c-lbl3,.dlg.narrow .c-lbl4,
+  .dlg.narrow .c-val,.dlg.narrow .c-val2,.dlg.narrow .c-val3,.dlg.narrow .c-val4{flex:none;}
+  .dlg.narrow .c-val,.dlg.narrow .c-val2,.dlg.narrow .c-val3,.dlg.narrow .c-val4{padding-right:0;}
+  .dlg.narrow .c-r1 .c-val{padding-right:56px;}
+  .dlg.narrow .c-ops{position:absolute;right:8px;top:4px;padding:0;}
+
+  /* ---- 定尺标尺 ---- */
+  .ruler{position:absolute;inset:0;pointer-events:none;z-index:5;display:none;}
+  .dlg.ruler-on .ruler{display:block;}
+  .ruler i{position:absolute;top:0;bottom:0;width:0;border-left:1px dashed rgba(43,127,255,.85);}
+  .ruler b{position:absolute;top:2px;font-size:10px;color:#0b4fd0;background:rgba(255,255,255,.9);
+           padding:0 2px;border-radius:2px;font-weight:500;}
+
+  .notes{flex:1 1 380px;max-width:540px;font-size:13px;line-height:1.8;color:#4e5969;}
+  .notes h2{font-size:15px;margin:18px 0 6px;color:var(--txt);}
+  .notes h2:first-child{margin-top:0;}
+  .notes ul{margin:0 0 8px;padding-left:18px;}
+  .notes li{margin-bottom:3px;}
+  .notes code{background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;color:#1f2329;}
+  .notes .kvline{display:flex;gap:10px;padding:5px 0;border-bottom:1px dashed #e9ecf0;}
+  .notes .kvline span:first-child{flex:0 0 132px;color:#667085;}
+  .warn{border-left:3px solid #fa5151;padding:2px 0 2px 10px;margin:8px 0;color:#4e5969;}
+  .chg{border-left:3px solid #ff9f0a;padding:2px 0 2px 10px;margin:8px 0;color:#4e5969;}
+  .ok{border-left:3px solid #2b7fff;padding:2px 0 2px 10px;margin:8px 0;color:#4e5969;}
+</style>
+</head>
+<body>
+
+<h1>合同收款账号 · 银行账户选择弹窗改造 <span style="font-size:13px;color:#8a9099;font-weight:400;">v1</span></h1>
+<p class="doc-sub">
+  「请选择银行账户」弹窗效果原型。弹窗 <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">607px</code> 定稿、
+  卡片 <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">42px</code> 定稿、<strong>2×2 定尺网格</strong>
+  （行1 户名｜卡号 / 行2 开户行｜备注）。「银行 + 支行」合并为单字段「开户行」，值取
+  <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">subbranch_name || bank_name</code>（展示层拼接，零迁移）。
+  「备注」字段后端一直有、卡片也一直在渲染（只是被 <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">v-show</code> 隐藏），本次补它是为了让 2×2 结构恒定、让 4 格都填真实字段。
+</p>
+<p class="doc-note">
+  本文件是设计效果稿，不是交付规格。数据取自 <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">GET /oa_sys/business/user_account</code>
+  实测返回的 6 个字段（id / account_no / account_name / bank_name / subbranch_name / remark）。
+  ⛔ 实测接口<strong>不返回</strong> account_default，故「默认账户」徽标本轮无数据可显示，且全站不存在「账户管理」页 → 「设默认」无落点，本稿未画。
+  落地改动共 3 处单点：模板 width 1 行 + CSS height 1 行 + CSS padding 1 行（现状 <code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">height: calc(100vh - 236px)</code> 是造成 522px 死白的唯一来源）。<br>
+  ⛔ <strong>Web 与 H5 不共用组件</strong>（H5 是 uni-app uni-popup，零代码共用），本轮<strong>不需要改 H5</strong>；「窄窗口降级」仅为 Web 侧窄视口 / 200% 缩放的防御性兜底。
+  ⛔ 本弹窗与<strong>合同关联弹窗共用同一批全局 CSS 类</strong>（<code style="background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;">.flow-select-container / .flow-list / .flow-item / .flow-item-choosed / .checkbox</code>），任何结构改动<strong>必须加修饰类隔离</strong>，否则会串到合同关联弹窗。<br>
+  ✅ <strong>竖条共用性已查清</strong>：全仓 <code>#3c7eff</code> 只出现 <strong>1 处 CSS</strong>，命中该选择器的文件<strong>只有 2 个</strong> —— 银行账户弹窗 + 「请选择关联审批」弹窗（<strong>后者是多选</strong>）。
+  ⇒ 改 1 条规则 = 同时改 2 个弹窗，<strong>回归范围就这 2 个，没有第 3 个</strong>。⚠ 也说明「这个模式天然单选」不成立，单选是<strong>需求语义</strong>决定的，不是组件能力决定的。
+</p>
+
+<div class="toolbar" id="toolbar">
+  <button data-scene="s1"  aria-pressed="true">1 条（自动选中）</button>
+  <button data-scene="s5"  aria-pressed="false">5 条（一屏全显）</button>
+  <button data-scene="s20" aria-pressed="false">20 条（搜索 + 计数条）</button>
+  <button data-scene="s0"  aria-pressed="false">0 条（空态）</button>
+  <button data-scene="snew" aria-pressed="false">新增后（不自动选中）</button>
+  <button data-scene="sdel" aria-pressed="false">删除二次确认</button>
+  <button data-scene="snarrow" aria-pressed="false">窄窗口降级（&lt;768px 防御）</button>
+  <span class="sep"></span>
+  <label><input type="checkbox" id="rulerChk"> 显示定尺标尺</label>
+</div>
+
+<div class="stage">
+  <div class="frame">
+    <div class="ptitle">Web 桌面端 · OA 会计审批 · 合同收款账号</div>
+    <div class="browser">
+      <div class="bbar">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">oacs.fzjinkuo.com / oa_sys / flow / approval / detail</span>
+      </div>
+      <div class="viewport">
+        <div class="page">
+          <div class="ph">合同审批单</div>
+          <div class="pl"></div><div class="pl w60"></div><div class="pl"></div>
+          <div class="pl w60"></div><div class="pl"></div>
+        </div>
+        <div class="mask"></div>
+        <div class="dlg" id="dlg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="ok">
+      <b>为什么不再「竖下来排列」</b>（机制已按 DOM 实测修正）<br>
+      现状卡片<b>根本没有网格</b>，<code>.flow-item</code> 是 flex，渲染成<b>两个独立纵向列</b>：<br>
+      <code>列1 = [户名, 卡号, 银行]</code>（3 个）｜ <code>列2 = [支行, 备注("")]</code>（2 个，备注空串渲染为不可见）<br>
+      → <b>列 1 有 3 个、列 2 只有 2 个，右列先到头</b>，视觉上就是「几行竖下来排列」，且第 3 行右侧空一整块。
+      这比「grid 某格换行」更贴你的原话 —— <b>「竖下来排列」= 字面意义上的两列竖排</b>，<b>「空空」= 右侧空白 + 下方 522px 纯白</b>。<br>
+      同时「银行」（字典选）与「支行」（手打网点名）语义矛盾，把字段凑成 5 个挤在两列里，越挤越竖。<br>
+      修法：<b>合并「银行+支行」→ 单字段「开户行」</b>（值 = <code>subbranch_name || bank_name</code>，展示层拼接、零迁移）
+      + <b>重排为 2×2 定尺网格</b>（户名｜卡号 / 开户行｜备注）→ 矛盾字段对、竖排、右侧断裂、2×2 填不满，<b>四件事一次解决</b>。
+    </div>
+
+    <div class="chg">
+      <b>CSS 实现口径（一个必须避开的算术坑）</b><br>
+      <code>.flow-item--bank{display:grid;grid-template-columns:232px 223px;column-gap:24px}</code>
+      + <code>.flow-item--bank &gt; .flow-item-col{display:grid;grid-template-columns:64px 1fr}</code><br>
+      ⛔ <b>不要写成 4 列</b>：<code>grid-template-columns:64px 168px 64px 159px</code> 配 <code>column-gap:24px</code> 会生成
+      <b>3 个</b> gap，字段区变 527px、弹窗变 655px —— 直接算错。上面「2 列 + 列内 2 列」的写法天然只有 1 个 gap。
+    </div>
+
+    <h2>定稿参数</h2>
+    <div class="kvline"><span>弹窗宽</span><span>607px（<code>min(607px, calc(100vw - 32px))</code>），相对现状 890px 收窄 283px</span></div>
+    <div class="kvline"><span>弹窗高</span><span>随内容自适应，<code>max-height: min(72vh, 620px)</code>，footer 吸底</span></div>
+    <div class="kvline"><span>卡片高</span><span>42px = 1 上边框 + 20 行1 + 20 行2 + 1 下边框，padding 0</span></div>
+    <div class="kvline"><span>定尺网格</span><span>64 / 168 / 64 / 159，列组间距 24px —— 4 个列位跨卡共享</span></div>
+    <div class="kvline"><span>标签 / 值</span><span>12px 400 #606266 ／ 13px 500 #303133（tabular-nums）</span></div>
+    <div class="kvline"><span>选中四通道</span><span>8px 竖条 + 16px ✓ + #ECF5FF 底色 + 1px #2B6FD4 边框</span></div>
+    <div class="kvline"><span>操作区</span><span>右槽 44px 贯穿全卡，图标对齐行 1 垂直中心（卡片右上角）</span></div>
+    <div class="kvline"><span>命中区</span><span>视觉 22×20，<code>::after{inset:-4px}</code> 扩展到 ≥24×24（WCAG 2.2 SC 2.5.8）</span></div>
+
+    <div class="chg">
+      <b>尺寸跳变：是改造后才有的问题，不是现状问题</b><br>
+      现状弹窗<strong>恒定 732px</strong>（<code>height: calc(100vh - 236px)</code>，与账户条数无关），
+      所以现状<b>没有</b>跳变；改成内容自适应后才会出现「打开 732 → 收敛到 234」的跳变。
+      缓解：骨架屏阶段锁定 min-height → 200ms 高度过渡 → <code>max-height: min(72vh, 620px)</code> + flex 分层 + footer 吸底
+      → <strong>取消顶部对齐改回垂直居中</strong>（否则短弹窗吊在上面更怪）→ <code>prefers-reduced-motion</code> 关过渡。
+      <br>可承诺的稳定边界：同一条数据重复打开高度一致；列表内部滚动时容器高度不变；footer 相对位置稳定。
+      <b>不承诺</b>不同数据量下高度相同 —— 那是内容自适应的必然代价。
+    </div>
+
+    <h2>607px 是硬下限，不是审美值</h2>
+    <ul>
+      <li>CSS Grid 的 4 个列位<b>跨行共享</b> → 值列宽 = 该列各行内容的最大值。</li>
+      <li>值列1 = max(户名 112, 开户行 168) = <b>168</b>；值列2 = max(卡号 159, 备注 112) = <b>159</b>。</li>
+      <li>网格 = 64+168+24+64+159 = <b>479</b>（标签与值之间无间隙，只有两对之间有 24px 列组间距）。</li>
+      <li>607 的完整口径：16(列表左) + 16(列表右) + 2(卡边框) + 36(卡左 = 8 竖条 + 20 ✓槽 + 8 起点) + 479(网格) + 44(操作区) + 14(卡右余量) = <b>607</b>。</li>
+      <li>若按「每行独立定尺」算成 547px，户名 3 字与 8 字的两张卡卡号列起始 x 不同 → <b>纵向扫卡号会跳列</b>，2×2 可扫视的核心价值就没了。</li>
+      <li>现状之所以「散」，是因为<b>它根本没有网格</b>（<code>.flow-item</code> 是 flex，两列各按内容宽度撑开）→ <b>换成 grid 是本方案最实质的一处改动</b>。</li>
+      <li>另有一个 608px 变体（标签列 50 + 值列等宽 168/168 + 操作区 64）：比本稿宽 1px、两列右端更齐。本稿取 <b>607 / 标签 64 / 值 168+159 / 操作区 44</b>，因为 44px 已满足 WCAG 2.2 的 24×24 命中区门槛，64px 属宽裕值而非必需。</li>
+    </ul>
+
+    <div class="warn">
+      <b>⚠ 生产代码级：4 个线上级高危缺陷（比排版更该优先进排期，因为它们会写出错误数据）</b><br>
+      <b>① 列表最多 10 条</b>：<code>flagGet</code> 不传分页 + <code>has-more</code> 直接置 false ⇒ <b>第 11 条起账户根本拿不到</b>。
+      不修这个，「5 条全显 / 20 条搜索 / sticky 计数条」整套 IA 都无从验证。<br>
+      <b>② 「确定」未选中不禁用</b>：<code>oe()</code> 无条件 <code>emit('update:selected', V.value)</code>，而 <code>V</code> 初值 <code>{}</code> ⇒ 用户没选就点确定，<b>父表单的账户被清空</b>。<br>
+      <b>③ 删除已选中账户后不清选中态</b>：用户接着点确定 ⇒ <b>提交一个已被删除的账户</b>（比绑错户更糟：绑了个不存在的户，下游付款才炸）。<br>
+      <b>④ 删除无二次确认、一键直删</b>，且删除图标是 <code>ElIconClose</code>（<b>与弹窗关闭「×」同形</b>）⇒ 误触即永久删除、不可恢复，且形状歧义。本稿已改 trash 图标 + 加 Popconfirm。<br>
+      另有 <b>3 项 a11y 硬失败</b>：<code>div.flow-item</code> 无 tabindex / role / keydown ⇒ 纯键盘用户<b>无法选中、无法编辑、无法删除</b>（WCAG 2.1.1 键盘可达硬失败）；
+      选中态现状只有颜色一个信号（WCAG 1.4.1 硬失败）；图标按钮无 <code>aria-label</code>。本稿的四通道 + radiogroup + roving tabindex 即为修这些硬伤。
+    </div>
+
+    <h2>本次一并修掉的 4 个现存 bug</h2>
+    <div class="kvline"><span>① 删后仍回传</span><span>删除已选中账户后仍回传已删 id → 静默绑错账户</span></div>
+    <div class="kvline"><span>② 触底重拉</span><span>列表触底整表重拉 → 后端排序不稳即滚动即重排</span></div>
+    <div class="kvline"><span>③ 删除无确认</span><span>点一下即真删 —— 本次<b>加二次确认</b>，默认焦点落在「取消」</span></div>
+    <div class="kvline"><span>④ 选中态绑定</span><span>选中态一律按 accountId 绑定，禁按下标 / 对象引用</span></div>
+
+    <div class="chg">
+      <b>成本更正：2.5–3 人日 → 7.0 人日</b><br>
+      前一个数字只算了「宽度 + 卡片结构」，漏了三块必做项：a11y 全套（状态条 / roving tabindex / 焦点归还 / 焦点陷阱）约 1.0 人日、
+      flex 分层与 footer 吸底 0.5 人日、骨架屏锁高与高度过渡 0.5 人日。<br>
+      <b>7.0 人日 = 共同底座 4.25 + 本次增量 2.75</b>（卡片 2×2 重排 1.0 + 宽度 607 0.5 + 字段合并 0.25 + 备注补回 0.25 + 删除确认与焦点 0.5 + h5 回归 0.25）。
+      ⚠ 契约回归 <code>tests/h5/test_org_profile_reports.py::test_bank_account_crud</code> 用了错误字段名
+      <code>account_bank</code> / <code>account_default</code>，实测真字段是 <code>bank_name</code> / <code>subbranch_name</code>，建议顺手修。
+    </div>
+
+    <h2>改造后的弹窗高度（.flow-list 改 auto 后）</h2>
+    <div class="kvline"><span>1 条</span><span>列表 42px → 弹窗约 <b>191px</b>（现状 732px，高度降 74%、宽度降 32%）</span></div>
+    <div class="kvline"><span>5 条</span><span>列表 258px → 弹窗约 407px</span></div>
+    <div class="kvline"><span>8 条</span><span>列表 420px → 弹窗约 569px，<b>不出现滚动条</b></span></div>
+    <div class="kvline"><span>20 条</span><span>列表封顶 <code>calc(100vh − 236px)</code>，内部滚动，footer 常驻</span></div>
+
+    <h2>迁移代价（按实测作用域重估）</h2>
+    <div class="kvline"><span>高度 → auto+max-height</span><span><b>共享类</b>，1 处 → <b>2 个弹窗都受益</b>（合同关联弹窗一起不再留 522px 死白）</span></div>
+    <div class="kvline"><span>竖条色 → #2b7fff + token</span><span><b>共享类</b> 1 条规则 → 2 个弹窗需回归（银行账户 + 多选的关联审批）</span></div>
+    <div class="kvline"><span>卡片 2×2 重排 + 标签值拆 span</span><span><b>.flow-item--bank 修饰类</b> → <b>不影响</b>合同关联弹窗</span></div>
+    <div class="kvline"><span>行内图标 #000 → #606266</span><span>必须作用域化到 <code>.flow-item--bank .options</code></span></div>
+    <div class="kvline"><span>备注「—」/ 取消按钮边框</span><span>弹窗内各 1 处</span></div>
+
+    <h2>行为口径（已按你的选择定稿）</h2>
+    <ul>
+      <li><b>单选</b>。1 条时打开即自动选中，仍需点「确定」才回填。</li>
+      <li><b>新增后不自动选中</b>（按需求原文）：新卡打「新建」chip + 滚动到可见 + toast「已添加，请在下方点选」。</li>
+      <li><b>模型 C</b>：增 / 删 / 改即时落库，只有「本次选择」是暂存态。footer 常驻 12px 微文案
+        「本弹窗内的添加 / 编辑 / 删除会立即保存」。</li>
+      <li>删除已选中的账户 → <b>清空选中态 + 提示重新选择</b>，不自动交给邻居（避免静默改变提交对象）。</li>
+      <li><b>「确定」未选中必须 disabled</b> —— 现状不禁用会清空父表单账户，这是必修缺陷，不是体验建议。</li>
+      <li>1 条时<b>打开即自动选中</b>，且<b>不允许取消</b>（单条没有「比较」语义，取消只会把用户引进死路）。</li>
+      <li>删除二次确认文案：「确认删除该银行账户？删除后不可恢复。若该账户正被选中，删除后需重新选择。」</li>
+    </ul>
+
+    <h2>待拍板 / 待确认</h2>
+    <div class="warn">
+      ⛔ <b>「默认账户」徽标本轮做不出来</b>：接口不返回 <code>account_default</code>，且全站 488 个 chunk 搜索「账户管理」<b>0 命中</b>，
+      「设默认」无入口。需后端补字段 + 前端补入口，或本期明确不做。<br>
+      ✅ <b>合同关联弹窗的蓝色竖条共用性已查清</b>：全仓 <code>#3c7eff</code> 只 1 处 CSS，命中文件只有 2 个（银行账户弹窗 + 多选的「请选择关联审批」弹窗）⇒ 改 1 条规则改 2 个弹窗，回归范围就这 2 个。<br>
+      ⛔ <b>后端项：<code>GET /user_account</code> 读接口要补 <code>account_default</code></b> —— 它在写接口里有、读接口没有 ⇒
+      <b>用户能设默认账户，但列表里看不出哪个是默认的</b>，「一键选默认户」做不到。<br>
+      ⛔ <b>数据治理项</b>：存量 <code>bank_name</code> 与 <code>subbranch_name</code> 自相矛盾（农业银行 vs 建设银行盛辉国际支行，分属两家银行）。
+      前端用 <code>||</code> 回避了它，但<b>新增时仍可能填出自相矛盾的值，前端无校验</b> → 建议后端加校验或把「开户行」做成银行→网点级联字典。<br>
+      ⚠ <b>品牌主色没有 token</b>：代码里 <code>#2b7fff</code> 零命中，<code>#409EFF</code> 由 EP 默认主题注入；全站流通 <b>47 个饱和蓝</b>。
+      「接回品牌主色」是<strong>独立立项</strong>（约 1 人日 + 全站视觉回归），不在本弹窗范围；第一步应是把 Axure 色彩表落成前端 token 文件
+      —— <code>#2b7fff / #2b6fd4 / #2f6fed</code> 在 <code>index-main.css / 10ui/light.css / 10ui/dark.css</code> 里<b>全部 0 命中</b>，
+      Axure 规范从未落到代码，不落成 token 就还会有第 5、第 6 个蓝；本稿竖条用 OA 规范 <code>#2b7fff</code>，
+      主按钮维持 <code>#409EFF</code> 不动（<strong>避免同一产品出现两套按钮色</strong>），其白字 2.78:1 未达 AA 记入全局议题。<br>
+      ⛔ <b>「银行」字典「邮政储蓄银行」值尾部含 U+200C 零宽连接符</b>：任何按银行名做的搜索 / 对账都会漏，需提缺陷单给后端。<br>
+      ⚠ <b>品牌主色没有 token</b>：代码里 <code>#2b7fff</code> 零命中，<code>#409EFF</code> 由 EP 默认主题注入；全站流通 <b>47 个饱和蓝</b>。
+      「接回品牌主色」是<strong>独立立项</strong>（约 1 人日 + 全站视觉回归），不在本弹窗范围；本稿竖条用 OA 规范 <code>#2b7fff</code>，
+      主按钮维持 <code>#409EFF</code> 不动（<strong>避免同一产品出现两套按钮色</strong>），其白字 2.78:1 未达 AA 记入全局议题。
+    </div>
+
+    <h2>无障碍与对比度</h2>
+    <ul>
+      <li>弹窗 <code>role="dialog" aria-modal="true"</code>，打开焦点在标题，关闭归还触发控件。</li>
+      <li>列表 <code>role="radiogroup"</code>，每卡 <code>role="radio" aria-checked</code>，↑↓ 即改选中，列表整体只占一个 Tab 位。</li>
+      <li>状态条 <code>aria-live="polite"</code>，选中 / 删除 / 新增后播报；✓ 标 <code>aria-hidden</code>。</li>
+      <li>标签 #606266 on #FFF = 6.11:1 ✓；值 #303133 = 13.02:1 ✓；选中底色上标签 = 5.55:1 ✓。</li>
+      <li>⚠ #909399 on #FFF 仅 3.08:1 → 只用于 12px 微文案 / 禁用态，不用于 14px 字段标签；#DCDFE6 边框 1.33:1 → 取消按钮边框本弹窗局部覆盖。</li>
+      <li>⚠ 主按钮白字 14px/400 在 #409EFF 上 = 2.78:1（未达 AA 4.5:1），本弹窗不改（一致性优先），记入全局议题；选中竖条 #2b7fff = 3.78:1 达标。</li>
+      <li>现状行内编辑 / 删除图标是 <code>color:#000</code> 纯黑且<strong>常显</strong>（不是 hover 才出现）；本稿按 a11y 降为 #606266（6.11:1），hover 分别 #409EFF / #C45658。</li>
+      <li>⛔ <b>h5 是完全两套实现</b>（uni-popup + uni-swipe-action + 固定 95vw×80vh），必须单独排期、单独回归，本轮 Web 改造<strong>不覆盖 h5</strong>。</li>
+      <li>⚠ 主按钮白字 14px/400 在 #409EFF 上 = 2.78:1（未达 AA 4.5:1），本弹窗不改（一致性优先），记入全局议题；选中竖条 #2b7fff = 3.78:1 达标。</li>
+      <li>现状行内编辑 / 删除图标是 <code>color:#000</code> 纯黑且<strong>常显</strong>（不是 hover 才出现）；本稿按 a11y 降为 #606266（6.11:1），hover 分别 #409EFF / #C45658。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* ============ 演示数据（字段名与实测接口一致） ============ */
+  var ACC = [
+    {id:1, name:'小小名',   no:'6666666666666666666', bank:'农业银行', sub:'建设银行盛辉国际支行', remark:'合同收款专用', isNew:false},
+    {id:2, name:'福多多超市', no:'6222020200034567890', bank:'中国银行', sub:'',                    remark:'',                isNew:false},
+    {id:3, name:'周明远',   no:'6217001234567890123', bank:'招商银行', sub:'上海徐汇支行',           remark:'备用账户',           isNew:false},
+    {id:4, name:'吴国栋',   no:'4367421100039988776', bank:'建设银行', sub:'深圳南山科技园支行',     remark:'',                isNew:false},
+    {id:5, name:'锦程贸易', no:'330018800012345678', bank:'工商银行', sub:'杭州滨江支行',           remark:'对公结算',           isNew:false},
+    {id:6, name:'林海食品', no:'1210102000987654321', bank:'交通银行', sub:'上海静安支行',           remark:'',                isNew:false},
+    {id:7, name:'启元科技', no:'6228480011223344556', bank:'浦发银行', sub:'北京中关村支行',         remark:'技术服务费',         isNew:false}
+  ];
+  var EXTRA = [
+    {id:21,name:'锦耀商贸', no:'110018800023456789', bank:'民生银行', sub:'苏州工业园支行',remark:'货款'},
+    {id:22,name:'晨曦食品', no:'330014800034567891', bank:'光大银行', sub:'广州天河支行',remark:''},
+    {id:23,name:'恒通物流', no:'120017700045678912', bank:'平安银行', sub:'上海徐汇支行',remark:'运费专用'},
+    {id:24,name:'宏发电器', no:'436742110056789013', bank:'建设银行', sub:'广州天河支行',remark:''},
+    {id:25,name:'正大五金', no:'110020300067890124', bank:'民生银行', sub:'深圳南山支行',remark:''},
+    {id:26,name:'海纳贸易', no:'330018800078901235', bank:'工商银行', sub:'北京朝阳支行',remark:'门店收款'},
+    {id:27,name:'瑞成建材', no:'621700123489012346', bank:'招商银行', sub:'成都高新支行',remark:''},
+    {id:28,name:'润丰食品', no:'622848001200334455', bank:'浦发银行', sub:'杭州西湖支行',remark:'新品上市'},
+    {id:29,name:'合力机电', no:'121010200011223344', bank:'交通银行', sub:'南京江宁支行',remark:''},
+    {id:30,name:'新华传媒', no:'436742110022334455', bank:'农业银行', sub:'北京海淀支行',remark:'广告投放'},
+    {id:31,name:'嘉禾餐饮', no:'622202020033445566', bank:'中国银行', sub:'武汉江汉支行',remark:''},
+    {id:32,name:'新生医药', no:'330018800044556677', bank:'招商银行', sub:'长沙岳麓支行',remark:'医保结算'},
+    {id:33,name:'大地农产', no:'121010200055667788', bank:'建设银行', sub:'西安雁塔支行',remark:''}
+  ];
+
+  /* 展示层拼接：subbranch 优先，为空回落 bank —— 0 迁移 */
+  function openBank(a){ return (a.sub && a.sub.trim()) ? a.sub : a.bank; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function tail4(no){ return (no||'').slice(-4); }
+
+  var ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+  var ICON_DEL  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+  var ICON_X    = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  var ICON_CHECK= '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  var ICON_SRCH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
+
+  /* 定尺标尺刻度（相对卡片左内边界，含 1px 边框） */
+  var RULER = [1,9,29,37,101,269,293,357,516,574];
+
+  function cardHTML(a, i, selected, opts){
+    opts = opts || {};
+    var bank = openBank(a);
+    var chips = '';
+    if(a.isNew) chips += '<span class="chip new">新建</span>';
+    var remark = a.remark ? esc(a.remark) : '<span style="color:#909399">—</span>';
+    return ''
+    + '<div class="card'+(selected?' sel':'')+'" role="radio" aria-checked="'+(selected?'true':'false')+'" tabindex="-1">'
+    +   '<div class="c-bar"></div>'
+    +   '<div class="c-chk" aria-hidden="true">'+(selected?ICON_CHECK:'')+'</div>'
+    +   '<div class="c-r1">'
+    +     '<span class="c-lbl">户名</span>'
+    +     '<span class="c-val">'+esc(a.name)+chips+'</span>'
+    +     '<span class="c-gap2"></span>'
+    +     '<span class="c-lbl2">卡号</span>'
+    +     '<span class="c-val2">'+esc(a.no)+'</span>'
+    +     '<span class="c-pad"></span>'
+    +   '</div>'
+    +   '<div class="c-r2">'
+    +     '<span class="c-lbl3">开户行</span>'
+    +     '<span class="c-val3" title="银行：'+esc(a.bank)+'">'+esc(bank)+'</span>'
+    +     '<span class="c-gap2"></span>'
+    +     '<span class="c-lbl4">备注</span>'
+    +     '<span class="c-val4'+(a.remark?'':' wk')+'">'+remark+'</span>'
+    +     '<span class="c-pad"></span>'
+    +   '</div>'
+    +   '<div class="c-ops">'
+    +     '<span class="ic" role="button" tabindex="0" aria-label="编辑 '+esc(a.name)+'">'+ICON_EDIT+'</span>'
+    +     '<span class="ic del" role="button" tabindex="0" aria-label="删除 '+esc(a.name)+'">'+ICON_DEL+'</span>'
+    +     (opts.pop && opts.popOn===i ? popHTML(a) : '')
+    +   '</div>'
+    + '</div>';
+  }
+
+  function popHTML(a){
+    return ''
+    + '<div class="pop" role="dialog" aria-label="删除确认">'
+    +   '<div class="pt">确认删除该银行账户？删除后不可恢复。若该账户正被选中，删除后需重新选择。</div>'
+    +   '<div class="pb"><button class="btn">取消</button><button class="btn primary">确认删除</button></div>'
+    + '</div>';
+  }
+
+  function headHTML(title){
+    return ''
+    + '<div class="d-head">'
+    +   '<div class="d-title" tabindex="-1">'+title+'</div>'
+    +   '<button class="d-add">＋ 添加银行卡账户</button>'
+    +   '<span class="d-x" role="button" tabindex="0" aria-label="关闭">'+ICON_X+'</span>'
+    + '</div>';
+  }
+
+  function footHTML(sel, enabled, hint){
+    var status;
+    if(sel) status = '已选：<b>'+esc(sel.name)+'</b> · 尾号 '+tail4(sel.no);
+    else     status = '尚未选择银行账户 · ↑↓ 可快速切换';
+    return ''
+    + '<div class="d-status" aria-live="polite">'+status+'</div>'
+    + '<div class="d-foot">'
+    +   '<span class="d-hint">'+hint+'</span>'
+    +   '<span class="sp"></span>'
+    +   '<button class="btn">取消</button>'
+    +   '<button class="btn primary"'+(enabled?'':' disabled')+'>确定</button>'
+    + '</div>';
+  }
+
+  var HINT = '本弹窗内的添加 / 编辑 / 删除会立即保存';
+
+  var SCENES = {
+    s1: function(){
+      var a = ACC[0];
+      return { narrow:false,
+        head: headHTML('请选择银行账户'),
+        tools: '',
+        list: cardHTML(a, 0, true, {}),
+        foot: footHTML(a, true, HINT) };
+    },
+    s5: function(){
+      var list = '';
+      for(var i=0;i<5;i++) list += cardHTML(ACC[i], i, i===1, {});
+      return { narrow:false, head: headHTML('请选择银行账户'), tools:'',
+        list: list, foot: footHTML(ACC[1], true, HINT) };
+    },
+    s20: function(){
+      var all = ACC.concat(EXTRA);
+      var list = '';
+      for(var i=0;i<all.length;i++) list += cardHTML(all[i], i, i===3, {});
+      return { narrow:false, head: headHTML('请选择银行账户'),
+        tools: '<div class="d-tools on"><span class="search">'+ICON_SRCH+'<span style="margin-left:6px">搜索户名 / 卡号后四位 / 开户行 / 备注</span></span><span class="count">第 1–8 条 / 共 20 条</span></div>',
+        list: list, foot: footHTML(all[3], true, HINT) };
+    },
+    s0: function(){
+      return { narrow:false, head: headHTML('请选择银行账户'), tools:'',
+        list: '<div class="empty"><div class="et">还没有银行账户</div>'
+            + '<div class="ed">添加一个银行账户后，即可在此选择用于收付款。</div>'
+            + '<button class="btn primary">＋ 添加银行卡账户</button></div>',
+        foot: footHTML(null, false, HINT) };
+    },
+    snew: function(){
+      var nw = {id:99, name:'新加的账户', no:'6212261234567890123', bank:'招商银行', sub:'上海陆家嘴支行', remark:'本月备用', isNew:true};
+      var list = cardHTML(nw, 0, false, {}) + cardHTML(ACC[0], 1, false, {}) + cardHTML(ACC[1], 2, false, {});
+      return { narrow:false, head: headHTML('请选择银行账户'), tools:'',
+        list: list, foot: footHTML(null, false, HINT),
+        toast: '<div class="toast">已添加，请在下方点选</div>' };
+    },
+    sdel: function(){
+      var list = cardHTML(ACC[0], 0, true, {pop:true, popOn:0}) + cardHTML(ACC[1], 1, false, {});
+      return { narrow:false, head: headHTML('请选择银行账户'), tools:'',
+        list: list, foot: footHTML(ACC[0], true, HINT) };
+    },
+    snarrow: function(){
+      var list = '';
+      for(var i=0;i<5;i++) list += cardHTML(ACC[i], i, i===1, {});
+      return { narrow:true, head: headHTML('请选择银行账户'), tools:'',
+        list: list, foot: footHTML(ACC[1], true, HINT) };
+    }
+  };
+
+  var dlg = document.getElementById('dlg');
+  function render(scene){
+    var s = SCENES[scene]();
+    var ruler = '';
+    for(var i=0;i<RULER.length;i++){
+      ruler += '<i style="left:'+RULER[i]+'px"></i>';
+    }
+    dlg.className = 'dlg'+(s.narrow?' narrow':'');
+    dlg.innerHTML = s.head + s.tools + '<div class="d-list" role="radiogroup" aria-label="银行账户列表">'
+      + s.list + '</div>' + s.foot + (s.toast||'')
+      + '<div class="ruler">'+ruler+'</div>';
+  }
+
+  document.getElementById('toolbar').addEventListener('click', function(e){
+    var b = e.target.closest('button[data-scene]');
+    if(!b) return;
+    var all = this.querySelectorAll('button[data-scene]');
+    for(var i=0;i<all.length;i++) all[i].setAttribute('aria-pressed', all[i]===b ? 'true':'false');
+    render(b.getAttribute('data-scene'));
+  });
+  document.getElementById('rulerChk').addEventListener('change', function(){
+    dlg.classList.toggle('ruler-on', this.checked);
+  });
+
+  render('s1');
+})();
+</script>
+</body>
+</html>

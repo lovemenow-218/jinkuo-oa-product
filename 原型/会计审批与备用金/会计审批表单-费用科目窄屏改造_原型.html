@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>会计审批表单 · 费用科目窄屏改造 · 效果原型 v2</title>
+<style>
+  /* ============ 共享设计令牌 ============ */
+  :root{
+    --primary:#2f6fed;
+    --txt:#1f2329;
+    --label:#667085;
+    --sub-legacy:#8a9099;
+    --line:#e6e8eb;
+    --dash:#e9ecf0;
+    --ok:#15803d;
+    --bg:#f0f2f5;
+    --pw:402px; --ph:874px; --sat:62px; --corner:53px;
+    --mw:372px; --pad:16px; --cw:340px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:24px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  p.doc-sub{font-size:13px;color:#667085;margin:0 0 6px;line-height:1.7;max-width:960px;}
+  p.doc-note{font-size:12px;color:#8a9099;margin:0 0 20px;line-height:1.7;max-width:960px;}
+  .stage{display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap;}
+
+  .toolbar{display:flex;gap:8px;margin:0 0 20px;flex-wrap:wrap;}
+  .toolbar button{font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:#667085;}
+  .toolbar button[aria-pressed="true"]{border-color:var(--primary);color:var(--primary);background:#eef4ff;}
+
+  .frame{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .ptitle{font-size:13px;font-weight:700;color:#667085;}
+  .phone{width:var(--pw);height:var(--ph);background:#fff;border-radius:var(--corner);overflow:hidden;
+         box-shadow:0 0 0 5px #2c2c31,0 16px 44px rgba(20,30,50,.24);position:relative;}
+  .statusbar{height:var(--sat);padding:0 26px;display:flex;justify-content:space-between;align-items:center;
+             font-size:13px;font-weight:600;color:var(--txt);background:#fff;}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);
+          width:126px;height:37px;background:#000;border-radius:20px;}
+  .viewport{position:relative;height:calc(var(--ph) - var(--sat));background:#eef0f3;overflow:hidden;}
+
+  .oa{padding:14px;color:var(--txt);}
+  .oa-h{font-size:16px;font-weight:700;margin-bottom:10px;}
+  .oa-l{height:34px;background:#fff;border-radius:8px;margin-bottom:8px;border:1px solid var(--line);}
+  .oa-tab{position:absolute;left:0;right:0;bottom:0;height:52px;background:#fff;border-top:1px solid var(--line);
+          display:flex;align-items:center;justify-content:space-around;font-size:12px;color:#667085;}
+
+  .mask{position:absolute;inset:0;background:rgba(0,0,0,.4);}
+  .modal{position:absolute;left:15px;right:15px;top:46px;bottom:78px;background:#fff;border-radius:14px;
+         box-shadow:0 18px 48px rgba(0,0,0,.24);display:flex;flex-direction:column;overflow:hidden;}
+  .m-head{flex:0 0 auto;padding:14px var(--pad) 10px;border-bottom:1px solid var(--dash);}
+  .m-hrow{display:flex;align-items:center;gap:8px;}
+  .m-title{font-size:17px;line-height:24px;font-weight:700;}
+  .badge{flex:0 0 auto;font-size:10px;line-height:14px;color:var(--ok);border:1px solid var(--ok);
+         border-radius:4px;padding:1px 5px;}
+  .x{margin-left:auto;width:44px;height:44px;margin:-10px -8px -10px 0;display:flex;align-items:center;
+     justify-content:center;color:#667085;font-size:20px;line-height:1;}
+  .m-intro{font-size:13px;line-height:20px;color:#667085;margin-top:2px;}
+  .m-body{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 var(--pad) 4px;}
+  .m-foot{flex:0 0 auto;padding:10px var(--pad) calc(10px + env(safe-area-inset-bottom,0px));
+           border-top:1px solid var(--dash);background:#fff;}
+  .m-foot button{width:100%;height:44px;border:1px solid var(--line);background:#fff;border-radius:8px;
+                 font:inherit;font-size:14px;color:var(--txt);}
+
+  .sec{margin:14px 0 8px;display:flex;align-items:baseline;gap:8px;}
+  .sec-h{font-size:15px;line-height:22px;font-weight:600;padding-left:8px;border-left:3px solid var(--primary);}
+  .sec-sum{margin-left:auto;font-size:13px;line-height:20px;font-weight:600;}
+
+  /* ============ 方向 B：主从明细卡（v2） ============ */
+  .cards{display:flex;flex-direction:column;gap:12px;}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff;}
+  .c-head{display:flex;align-items:baseline;gap:8px;}
+  .c-no{font-size:11px;line-height:16px;font-weight:500;color:var(--label);font-variant-numeric:tabular-nums;}
+  .c-amt-label{font-size:11px;line-height:16px;color:var(--label);}
+  .c-amt{margin-left:auto;font-size:16px;line-height:22px;font-weight:600;color:var(--txt);
+         font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;}
+
+  /* 字段名标签：每个值都有就近的字段名 */
+  .f-label{font-size:11px;line-height:16px;color:var(--label);margin-top:10px;}
+  /* 项目名称（标题） */
+  .c-title{font-size:15px;line-height:24px;font-weight:600;color:var(--txt);
+           overflow-wrap:anywhere;word-break:break-word;}
+  /* 长值字段：科目 */
+  .c-code{font-size:14px;line-height:20px;color:var(--txt);font-weight:500;
+          overflow-wrap:anywhere;word-break:break-word;}
+  .c-code.dim{color:var(--label);font-weight:400;}
+  /* 次要字段：备注 */
+  .c-note{font-size:12px;line-height:18px;color:var(--label);overflow-wrap:anywhere;}
+
+  .c-head.stacked{flex-direction:column;align-items:stretch;gap:2px;}
+  .c-head.stacked .c-amt{margin-left:0;}
+
+  /* 下方既有键值行 */
+  .kv{display:flex;justify-content:space-between;gap:10px;font-size:13px;line-height:20px;
+      min-height:40px;height:auto;align-items:center;padding:9px 0;border-bottom:1px dashed var(--dash);}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--sub-legacy);flex:0 0 auto;}
+  .kv .v{font-weight:600;text-align:right;color:var(--txt);overflow-wrap:anywhere;}
+
+  .empty{font-size:13px;line-height:20px;color:var(--label);padding:10px 0 4px;}
+  .sticky-sum{position:sticky;top:0;z-index:2;background:#fff;font-size:12px;line-height:18px;
+              font-weight:400;color:var(--label);padding:8px 0 8px;border-bottom:1px dashed var(--dash);}
+
+  .notes{flex:1 1 380px;max-width:520px;font-size:13px;line-height:1.8;color:#4e5969;}
+  .notes h2{font-size:15px;margin:18px 0 6px;color:var(--txt);}
+  .notes h2:first-child{margin-top:0;}
+  .notes ul{margin:0 0 8px;padding-left:18px;}
+  .notes li{margin-bottom:3px;}
+  .notes code{background:#eef0f3;border-radius:4px;padding:1px 5px;font-size:12px;color:#1f2329;}
+  .notes .kvline{display:flex;gap:10px;padding:5px 0;border-bottom:1px dashed #e9ecf0;}
+  .notes .kvline span:first-child{flex:0 0 116px;color:#667085;}
+  .warn{border-left:3px solid #fa5151;padding:2px 0 2px 10px;margin:8px 0;color:#4e5969;}
+  .chg{background:#fff7e6;border-left:3px solid #ff9f0a;padding:2px 0 2px 10px;margin:8px 0;color:#4e5969;}
+</style>
+</head>
+<body>
+
+<h1>会计审批表单 · 费用科目窄屏改造 <span style="font-size:13px;color:#8a9099;font-weight:400;">v2</span></h1>
+<p class="doc-sub">
+  方向 B「主从明细卡」效果原型。一条费用科目 = 一张卡：金额在卡头作唯一视觉重音，项目名称作卡片标题，科目按<strong>单字段长值</strong>呈现，备注作次要字段。
+  视口按 iPhone 16 Pro（402×874 pt）绘制；下方「还款日期 / 账套 / 账户 / 审批意见 / 附件」等整单级字段维持既有键值行不变。
+</p>
+<p class="doc-note">
+  本文件是设计效果稿，不是交付规格。落地需前端仓库实现，且落地前须先在真机校准单位体系：本仓 Playwright 实测 H5 的
+  window.innerWidth=980（设备视口 402），uni-app 的 rpxCalcMaxDeviceWidth=960 会触发回落、运行时将 root font-size 设为 16px，
+  本稿全部 px 规格与设计 px 可能不在同一坐标系。断点一律以「弹窗内容区宽度」判定，不以视口宽度判定。
+</p>
+
+<div class="toolbar" id="toolbar">
+  <button data-state="normal" aria-pressed="true">正常态（3 条）</button>
+  <button data-state="many" aria-pressed="false">多条态（9 条 · 吸顶汇总）</button>
+  <button data-state="extreme" aria-pressed="false">极端金额（&gt;12 字符）</button>
+  <button data-state="empty" aria-pressed="false">空态（0 条）</button>
+</div>
+
+<div class="stage">
+  <div class="frame">
+    <div class="ptitle">iPhone 16 Pro · 402 × 874 pt</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statusbar"><span>9:41</span><span>●●●●  ▮</span></div>
+      <div class="viewport">
+        <div class="oa">
+          <div class="oa-h">OA 详情</div>
+          <div class="oa-l"></div><div class="oa-l"></div><div class="oa-l"></div><div class="oa-l"></div>
+        </div>
+        <div class="oa-tab"><span>评论</span><span>撤销</span><span>办理</span><span>更多操作</span></div>
+        <div class="mask"></div>
+        <div class="modal">
+          <div class="m-head">
+            <div class="m-hrow">
+              <span class="m-title">会计审批表单</span>
+              <span class="badge">只读</span>
+              <span class="x" aria-hidden="true">×</span>
+            </div>
+            <div class="m-intro">本次会计审批实际提交的表单</div>
+          </div>
+          <div class="m-body" id="body"></div>
+          <div class="m-foot"><button type="button">关闭</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="chg">
+      <b>v2 改了什么</b><br>
+      ① <b>科目改为单字段长值</b>「10021002_银行存款」，不再拆成「科目 / 当前目录」两行 —— 真实数据就是一条长串。<br>
+      ② <b>项目名称补上字段名标签</b>，标题不再是没有字段名的裸文本。<br>
+      ③ <b>补回「备注」字段</b>：需求文档 L21–22 已列该字段，当前卡片未渲染，属现状偏离需求。<br>
+      ④ 卡片纵向占高因此上升，下方 5 行键值行被推到首屏外，需要滚动才看得到。
+    </div>
+
+    <h2>卡片结构</h2>
+    <div class="kvline"><span>卡头</span><span>序号 01 ｜ 金额标签 11px + 金额 16/22 600 等宽右对齐</span></div>
+    <div class="kvline"><span>项目名称</span><span>11px 字段名标签 + 15/24 600 标题，整宽换行不截断</span></div>
+    <div class="kvline"><span>科目</span><span>11px 字段名标签 + 14/20 500 长值</span></div>
+    <div class="kvline"><span>备注</span><span>11px 字段名标签 + 12/18 次要色，可为空</span></div>
+    <div class="kvline"><span>卡片</span><span>1px #E6E8EB · radius 10 · padding 12 · 白底无阴影</span></div>
+    <div class="kvline"><span>整单键值行</span><span>13/20 label · 14/22 600 value · dashed #E9ECF0 · min-height 40</span></div>
+    <div class="kvline"><span>区块标题</span><span>15/22 600 + 左 3px #2F6FED 竖线</span></div>
+
+    <h2>长值处理规则</h2>
+    <ul>
+      <li>科目值 <code>10021002_银行存款</code> 一律 <code>overflow-wrap:anywhere</code>，在 402 视口下单行可容下；更窄或更长时允许折行，<b>不截断、不加省略号</b>。</li>
+      <li>科目值里若含下划线，折行点可能落在下划线后，需在真机复核断行位置是否可接受。</li>
+      <li>若接口实际把科目拆成「编码 + 目录名」两个字段返回，可改为两行呈现，卡片高度 +24px；本稿按<strong>单字段</strong>实现。</li>
+      <li>项目名称、科目、备注三类文本均不截断；容器随内容增高。</li>
+    </ul>
+
+    <h2>边界处理</h2>
+    <ul>
+      <li>金额为 0 显示 <code>¥0.00</code>；空值或非数值显示 <code>—</code>，绝不显示 <code>¥0.00</code>。</li>
+      <li>科目缺失时字段名保留、值显示 <code>—</code>。</li>
+      <li>备注为空时<strong>整行留空</strong>，不写「—」占位。</li>
+      <li>金额超过 12 字符时，标签与数值上下分行，字号不变，不加省略号、不横向滚动。</li>
+      <li>明细超过 8 条时滚动出首条后吸顶一条 ≤28px 纯文字汇总（无底色块、无下划线、不加粗），回到顶部淡出。</li>
+      <li>0 条时显示「暂无费用科目明细」，且不显示「共 0 项 · 合计 ¥0.00」。</li>
+    </ul>
+
+    <h2>这轮要接受的代价</h2>
+    <div class="warn">
+      1）Web 端本轮不动 → 双端金额格式与空值口径会不一致（Web 仍是全角 ￥+原始值、空值显示「历史未记录」），需产品签字接受，或后续补 Web 改造。<br>
+      2）卡片是弹窗内首次出现的容器分组语言，需与下方纯虚线键值行靠统一 label 色与虚线收口。<br>
+      3）本方向是四个候选里 Web 改造量最大的一档，若后续决定改 Web，需同步做卡片组件与视觉回归。<br>
+      4）历史单据的「当前目录」取自实时科目字典而非当年快照，字典改名或停用后目录名会变，与「与审批人当年提交一致」冲突 —— 需后端补快照或约定显示 —。
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function fmtMoney(v){
+    if(v===null||v===undefined||v===''||isNaN(v)) return '—';
+    var n=Number(v), s=Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+    return (n<0?'-':'')+'¥'+s;
+  }
+  function pad(n){return (n<10?'0':'')+n;}
+
+  /* 科目为单字段长值；备注按需求文档补回 */
+  var D_NORMAL=[
+    {title:'没钱了没钱了没钱了没钱了没钱了没钱了没钱了没钱了没钱了没钱了没钱了没钱了',money:100,code:'10021002_银行存款',note:'合同收款备用账户'},
+    {title:'差旅借支',money:3000,code:'10011001_库存现金',note:''},
+    {title:'办公用品采购',money:0,code:'',note:''}
+  ];
+  var D_MANY=[
+    {title:'差旅借支',money:3000,code:'10011001_库存现金',note:'差旅备用金'},
+    {title:'办公用品采购',money:1280.5,code:'10011001_库存现金',note:''},
+    {title:'业务招待费',money:860,code:'66016601_管理费用',note:'客户来访接待'},
+    {title:'交通费',money:450,code:'66016601_管理费用',note:''},
+    {title:'通讯费',money:180,code:'66016601_管理费用',note:''},
+    {title:'培训费',money:2000,code:'66026602_管理费用',note:'岗位技能培训'},
+    {title:'车辆油费',money:760,code:'66016601_管理费用',note:''},
+    {title:'会议费',money:1200,code:'66026602_管理费用',note:''},
+    {title:'仓储费',money:12000,code:'10031003_库存现金',note:'第三方仓租费'}
+  ];
+  var D_EXTREME=[
+    {title:'跨年度大额设备采购合同尾款结算',money:12345678.9,code:'16011601_固定资产',note:'设备尾款结算专用'},
+    {title:'技术服务费',money:86000,code:'66026602_管理费用',note:''}
+  ];
+
+  var body=document.getElementById('body');
+  var toolbar=document.getElementById('toolbar');
+
+  function card(it,i,opts){
+    opts=opts||{};
+    var head='<div class="c-head'+(opts.stacked?' stacked':'')+'">'+
+      '<span class="c-no">'+pad(i+1)+'</span>'+
+      '<span class="c-amt-label">金额</span>'+
+      '<span class="c-amt">'+fmtMoney(it.money)+'</span></div>';
+
+    var s='<div class="card">'+head+
+      '<div class="f-label">项目名称</div>'+
+      '<div class="c-title">'+it.title+'</div>'+
+      '<div class="f-label">科目</div>'+
+      '<div class="c-code'+(it.code?'':' dim')+'">'+(it.code||'—')+'</div>';
+    if(it.note){
+      s+='<div class="f-label">备注</div><div class="c-note">'+it.note+'</div>';
+    }
+    s+='</div>';
+    return s;
+  }
+
+  function sum(list){
+    var ok=true,t=0;
+    list.forEach(function(it){
+      if(it.money===null||it.money===undefined||it.money===''||isNaN(it.money)) ok=false;
+      else t+=Number(it.money);
+    });
+    return ok?fmtMoney(t):null;
+  }
+
+  function section(list,opts){
+    opts=opts||{};
+    var h='<div class="sec"><span class="sec-h">费用科目</span>';
+    if(list.length) h+='<span class="sec-sum">共 '+list.length+' 项'+(opts.withSum?' · 合计 '+sum(list):'')+'</span>';
+    h+='</div>';
+    if(!list.length){
+      return h+'<div class="empty">暂无费用科目明细</div>'+kvBlock();
+    }
+    var inner='';
+    if(opts.sticky) inner+='<div class="sticky-sum">费用科目 · 共 '+list.length+' 项 · 合计 '+sum(list)+'</div>';
+    inner+='<div class="cards">';
+    list.forEach(function(it,i){ inner+=card(it,i,opts); });
+    inner+='</div>';
+    return h+inner+kvBlock();
+  }
+
+  function kvBlock(){
+    return '<div style="margin-top:10px">'+
+      kv('还款日期','2026-11-10')+
+      kv('选择账套','abc')+
+      kv('选择账户','建设银行(1298)')+
+      kv('会计审批意见','历史未记录')+
+      kv('附件','无')+
+      '</div>';
+  }
+  function kv(k,v){return '<div class="kv"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>';}
+
+  var STATES={
+    normal:function(){ return section(D_NORMAL,{withSum:true}); },
+    many:function(){ return section(D_MANY,{withSum:true,sticky:true}); },
+    extreme:function(){ return section(D_EXTREME,{withSum:true,stacked:true}); },
+    empty:function(){ return section([],{}); }
+  };
+
+  function render(state){
+    body.innerHTML=STATES[state]();
+    body.scrollTop=0;
+  }
+
+  toolbar.addEventListener('click',function(e){
+    var b=e.target.closest('button[data-state]'); if(!b) return;
+    Array.prototype.forEach.call(toolbar.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed','false');});
+    b.setAttribute('aria-pressed','true');
+    render(b.getAttribute('data-state'));
+  });
+
+  render('normal');
+})();
+</script>
+</body>
+</html>

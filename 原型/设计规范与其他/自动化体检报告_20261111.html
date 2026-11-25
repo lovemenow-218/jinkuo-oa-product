@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>金阔OA 自动化体检报告</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin: 0; background: var(--color-bg-page); color: var(--color-text-primary);
+         font-family: var(--font-family-base); font-size: var(--font-size-base);
+         line-height: var(--line-height-normal); }
+  .wrap { max-width: 960px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+  header { display: flex; align-items: flex-end; justify-content: space-between;
+            gap: var(--space-4); margin-bottom: var(--space-6); }
+  h1 { margin: 0; font-size: var(--font-size-xxl); font-weight: var(--font-weight-semibold);
+        line-height: var(--line-height-tight); }
+  .meta { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+  .verdict { display: inline-flex; align-items: center; gap: var(--space-2);
+              padding: var(--space-2) var(--space-4); border-radius: var(--radius-pill);
+              font-weight: var(--font-weight-medium); font-size: var(--font-size-sm); }
+  .verdict.ok { background: var(--color-success-bg); color: var(--color-success); }
+  .verdict.bad { background: var(--color-danger-bg); color: var(--color-danger); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3);
+            margin-bottom: var(--space-8); }
+  .stat { background: var(--color-bg-card); border: 1px solid var(--color-border);
+           border-radius: var(--radius-md); padding: var(--space-4);
+           box-shadow: var(--shadow-card); }
+  .stat b { display: block; font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); }
+  .stat span { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+  .stat.pass b { color: var(--color-success); }
+  .stat.warn b { color: var(--color-warning-text); }
+  .stat.fail b { color: var(--color-danger); }
+  h2 { font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);
+        margin: var(--space-8) 0 var(--space-3); }
+  .grid { display: grid; gap: var(--space-3); }
+  .item { background: var(--color-bg-card); border: 1px solid var(--color-border);
+           border-radius: var(--radius-md); padding: var(--space-4);
+           box-shadow: var(--shadow-card); }
+  .item.fail { border-color: var(--color-danger); }
+  .item-head { display: flex; align-items: center; gap: var(--space-2); }
+  h3 { margin: 0; font-size: var(--font-size-md); font-weight: var(--font-weight-semibold); }
+  .badge { font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold);
+            padding: var(--space-1) var(--space-2); border-radius: var(--radius-xs); }
+  .badge.pass { background: var(--color-success-bg); color: var(--color-success); }
+  .badge.warn { background: var(--color-warning-bg); color: var(--color-warning-text); }
+  .badge.fail { background: var(--color-danger-bg); color: var(--color-danger); }
+  .sum { margin: var(--space-2) 0 0; color: var(--color-text-secondary);
+          font-size: var(--font-size-sm); }
+  .det { margin: var(--space-2) 0 0; padding-left: var(--space-5);
+          color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+  .det li { margin: var(--space-1) 0; font-family: var(--font-family-mono);
+             font-size: var(--font-size-xs); word-break: break-all; }
+  .headline { margin: 0 0 var(--space-6); font-size: var(--font-size-lg);
+               font-weight: var(--font-weight-medium); }
+  .hint { margin: var(--space-1) 0 0; color: var(--color-text-secondary);
+           font-size: var(--font-size-sm); }
+  details { margin-top: var(--space-2); }
+  summary { cursor: pointer; color: var(--color-primary-dark);
+             font-size: var(--font-size-sm); }
+  .next { margin: 0; padding-left: var(--space-5);
+           color: var(--color-text-secondary); }
+  .next li { margin: var(--space-1) 0; }
+  footer { margin-top: var(--space-8); padding-top: var(--space-4);
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-tertiary); font-size: var(--font-size-xs); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>金阔OA 自动化体检报告</h1>
+      <div class="meta">生成时间 2026-11-12 15:59:09 · 耗时 29.6s</div>
+    </div>
+    <span class="verdict ok">通过</span>
+  </header>
+  <p class="headline">全部检查通过，可以发版。</p>
+  <div class="stats">
+    <div class="stat pass"><b>13</b><span>通过</span></div>
+    <div class="stat warn"><b>0</b><span>需关注</span></div>
+    <div class="stat fail"><b>0</b><span>需处理</span></div>
+    <div class="stat"><b>13</b><span>检查项合计</span></div>
+  </div>
+  <section><h2>合规闸门</h2><div class="grid"><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>生产地址残留</h3></div><p class="sum">工作区零命中（测试域名 h5cs / oacs 不受影响）</p><p class="hint">确认代码里没有写死线上域名，不会因为跑错环境动到真实数据。</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>真实凭据入库</h3></div><p class="sum">2 个凭据文件均未入库且已被忽略</p><p class="hint">确认账号密码没有被提交进代码仓库。</p><details><summary>查看明细（2 条）</summary><ul class="det"><li>config/config.yaml 存在但未被跟踪</li><li>config/web.yaml 存在但未被跟踪</li></ul></details></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>生产环境禁用</h3></div><p class="sum">prod 段 = example.invalid 占位 + read_only: true</p><p class="hint">确认配置里的线上入口是关着的，误跑也会被拦下。</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>探针凭据脱敏</h3></div><p class="sum">17 个 zen_*.py 无硬编码凭据（在线探针读环境变量 15 个，离线后处理 2 个）</p><p class="hint">确认抓数据的脚本不把密码写死在文件里。</p><details><summary>查看明细（1 条）</summary><ul class="det"><li>离线后处理: zen_build_doc.py, zen_scan_heads.py</li></ul></details></article></div></section><section><h2>代码质量</h2><div class="grid"><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>语法可编译</h3></div><p class="sum">223 个 .py 全部编译通过</p><p class="hint">确认每个 .py 文件都能被正常加载，没有语法错误。</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>字典重复键</h3></div><p class="sum">未发现字典字面量重复键</p><p class="hint">同一个键写两遍不会报错，但后写的会覆盖前写的，参数会静默失效。</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>docstring 覆盖</h3></div><p class="sum">99.7%（2450/2457）</p><p class="hint">每个模块、类、函数有没有写说明，决定别人能不能看懂这份代码。</p><details><summary>查看明细（11 条）</summary><ul class="det"><li>(根目录): 100%（47/47）</li><li>common: 100%（192/192）</li><li>tests: 100%（1395/1396）</li><li>scripts: 99%（816/822）</li><li>缺口文件: tests/contract/test_accounting_form_preview.py:144 _cmds</li><li>缺口文件: scripts/notify_warn_range.py:36 safe_post</li><li>缺口文件: scripts/notify_warn_range.py:48 load_rids</li><li>缺口文件: scripts/notify_warn_range.py:67 main</li><li>缺口文件: scripts/make_warn_seed_range.py:55 safe_get</li><li>缺口文件: scripts/make_warn_seed_range.py:67 bj_today</li><li>缺口文件: scripts/make_warn_seed_range.py:71 main</li></ul></details></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>TODO/FIXME</h3></div><p class="sum">0 处</p><p class="hint">留给以后处理的标记，数量多了说明有欠账。</p></article></div></section><section><h2>用例基线</h2><div class="grid"><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>用例规模与分级</h3></div><p class="sum">共 1625 条；四档合计 1625，未归级 0</p><p class="hint">一共有多少条用例，各自归到提交级 / 夜跑级 / 周跑级。</p><details><summary>查看明细（4 条）</summary><ul class="det"><li>unit: 101</li><li>smoke: 27</li><li>regression: 1292</li><li>slow: 205</li></ul></details></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>断言有效性</h3></div><p class="sum">空断言 0 条，恒真断言 0 条；xfail 58、skip 158</p><p class="hint">用例里有没有真的在做判断，而不是发个请求就算通过。</p></article></div></section><section><h2>流水线</h2><div class="grid"><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>CI 命令完整性</h3></div><p class="sum">1 个 workflow 的 run 命令均为字面量块或单行</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>联网作业门禁</h3></div><p class="sum">3 个联网作业均已挂门禁（pytest.yml:smoke、pytest.yml:regression、pytest.yml:slow）</p></article><article class="item pass"><div class="item-head"><span class="badge pass">PASS</span><h3>定时作息</h3></div><p class="sum">3 条 cron 均落在上班窗口（09:00–18:30 北京）</p><details><summary>查看明细（3 条）</summary><ul class="det"><li>pytest.yml cron '0 2 * * 1-5' → 北京 10:00（周字段 1-5）</li><li>pytest.yml cron '0 8 * * 1-5' → 北京 16:00（周字段 1-5）</li><li>pytest.yml cron '0 7 * * 5' → 北京 15:00（周字段 5）</li></ul></details></article></div></section>
+  
+  <footer>报告由 scripts/audit_project.py 生成，样式引用 docs/tokens.css，未连接测试环境。
+  静态检查覆盖工作区全部源码；用例实跑仅 tests/unit 与 tests/warn/test_warn_tiers.py。</footer>
+</div>
+</body>
+</html>

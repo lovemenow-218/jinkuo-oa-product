@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>消息通知 · 图标令牌表（开发交付件）</title>
+<style>
+  :root{
+    --blue:#2b7fff;  --blue-l:#2b6fd4;  --blue-bg:#e2edff;
+    --green:#3aa655; --pass-bg:#e6f6ea;
+    --red:#f5453d;   --reject-bg:#fdeaea;
+    --orange:#ef9a3c; --orange-bg:#fde6cd;
+    --cc-t:#6b7785;  --cc-bg:#eef0f4;
+    --gray:#909399;  --gray-bg:#f2f3f5;
+    --avatar:#185FA5;
+    --purple:#7c5cfc; --purple-bg:#f0ebff;  /* 待我审批：已确认定稿 */
+  }
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    margin:0;background:#f2f4f7;color:#1f2329;padding:28px;}
+  .wrap{max-width:940px;margin:0 auto;background:#fff;border:1px solid #edf0f3;
+    border-radius:14px;padding:24px;box-shadow:0 2px 10px rgba(16,24,40,.04);}
+  h1{font-size:20px;margin:0 0 4px;}
+  .meta{font-size:12.5px;color:#a8adb5;margin:0 0 18px;line-height:1.6;}
+  .vars{background:#f2f4f7;border:1px solid #edf0f3;border-radius:8px;
+    padding:12px 14px;font-family:ui-monospace,Menlo,monospace;font-size:12px;
+    color:#2b6fd4;white-space:pre-wrap;line-height:1.7;margin-bottom:20px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{border:1px solid #edf0f3;padding:8px 10px;text-align:left;vertical-align:middle;}
+  th{background:#f2f4f7;color:#4e5969;font-weight:600;}
+  code{font-family:ui-monospace,Menlo,monospace;color:#2b6fd4;}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px;border:1px solid rgba(0,0,0,.08);}
+  .st{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;}
+  .ok{background:#e6f6ea;color:#3aa655;}
+  .prop{background:#f0ebff;color:#7c5cfc;}
+  .fix{background:#fde6cd;color:#ef9a3c;}
+  footer{font-size:12px;color:#a8adb5;margin-top:18px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>消息通知 · 图标令牌表（开发交付件）</h1>
+  <p class="meta">本文件为 <code>消息通知_图标总览原型.html</code> 的"切图"交付件，已审核定稿（还款完成选用 <b>A 中性灰「警」</b>；待我审批紫色 <b>#7c5cfc 已确认</b>；铃铛图标<b>不纳入</b>）。开发可直接 copy 下方 <code>:root</code> CSS 变量块与令牌表。<br>图标形态通用规格：44×44 圆角 8px 方块、字形 19px / 700 居中；列表卡片未读额外加粗标题 + 左侧 7×7 红点 #f5453d。</p>
+
+  <div class="vars">:root{
+  --blue:#2b7fff;  --blue-l:#2b6fd4;  --blue-bg:#e2edff;
+  --green:#3aa655; --pass-bg:#e6f6ea;
+  --red:#f5453d;   --reject-bg:#fdeaea;
+  --orange:#ef9a3c; --orange-bg:#fde6cd;
+  --cc-t:#6b7785;  --cc-bg:#eef0f4;
+  --gray:#909399;  --gray-bg:#f2f3f5;
+  --avatar:#185FA5;
+  --purple:#7c5cfc; --purple-bg:#f0ebff;  /* 待我审批：提议值，待研发确认 */
+}</div>
+
+  <table>
+    <tr><th>图标</th><th>type / stage</th><th>字形</th><th>底色</th><th>字色</th><th>状态</th></tr>
+    <tr><td>@我的</td><td>mention</td><td>@</td><td><span class="sw" style="background:#e2edff"></span>#e2edff</td><td><span class="sw" style="background:#2b6fd4"></span>#2b6fd4</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>审批通过</td><td>approved</td><td>✓</td><td><span class="sw" style="background:#e6f6ea"></span>#e6f6ea</td><td><span class="sw" style="background:#3aa655"></span>#3aa655</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>审批驳回</td><td>rejected</td><td>✕</td><td><span class="sw" style="background:#fdeaea"></span>#fdeaea</td><td><span class="sw" style="background:#f5453d"></span>#f5453d</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>抄送我的</td><td>cc</td><td>抄</td><td><span class="sw" style="background:#eef0f4"></span>#eef0f4</td><td><span class="sw" style="background:#6b7785"></span>#6b7785</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>待我审批</td><td>flow_task</td><td>审</td><td><span class="sw" style="background:#f0ebff"></span>#f0ebff</td><td><span class="sw" style="background:#7c5cfc"></span>#7c5cfc</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>还款预警·常规</td><td>repayment_warning/normal</td><td>警</td><td><span class="sw" style="background:#e2edff"></span>#e2edff</td><td><span class="sw" style="background:#2b7fff"></span>#2b7fff</td><td><span class="st fix">定稿·修复42</span></td></tr>
+    <tr><td>还款预警·临近</td><td>near（剩1天）</td><td>警</td><td><span class="sw" style="background:#fde6cd"></span>#fde6cd</td><td><span class="sw" style="background:#ef9a3c"></span>#ef9a3c</td><td><span class="st fix">定稿·修复42</span></td></tr>
+    <tr><td>还款预警·到期</td><td>due（0天）</td><td>警</td><td><span class="sw" style="background:#fde6cd"></span>#fde6cd</td><td><span class="sw" style="background:#ef9a3c"></span>#ef9a3c</td><td><span class="st fix">定稿·修复42</span></td></tr>
+    <tr><td>还款预警·逾期</td><td>overdue</td><td>警</td><td><span class="sw" style="background:#fdeaea"></span>#fdeaea</td><td><span class="sw" style="background:#f5453d"></span>#f5453d</td><td><span class="st fix">定稿·修复42</span></td></tr>
+    <tr><td>还款完成</td><td>repayment_done/repaid</td><td>警</td><td><span class="sw" style="background:#f2f3f5"></span>#f2f3f5</td><td><span class="sw" style="background:#909399"></span>#909399</td><td><span class="st ok">定稿（A）</span></td></tr>
+    <tr><td>未读红点</td><td>（列表级）</td><td>●</td><td colspan="2"><span class="sw" style="background:#f5453d"></span>#f5453d · 7×7 圆</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>门店未读角标</td><td>（门店行）</td><td>数字</td><td><span class="sw" style="background:#f5453d"></span>#f5453d 底白字</td><td>= 该门店未读数，0 不显示</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>首字头像</td><td>（登录人）</td><td>姓</td><td><span class="sw" style="background:#185FA5"></span>#185FA5 底白字</td><td>圆形 34px</td><td><span class="st ok">定稿</span></td></tr>
+    <tr><td>person（非六类）</td><td>（首页流程推送）</td><td>姓</td><td><span class="sw" style="background:#fde6cd"></span>#fde6cd</td><td><span class="sw" style="background:#ef9a3c"></span>#ef9a3c</td><td><span class="st ok">定稿·非六类</span></td></tr>
+  </table>
+
+  <footer>
+    说明：<br>
+    ① 还款完成 repayment_done 选用 <b>A 中性灰「警」</b>（#909399 / 底 #f2f3f5），= D03 repaid 终态，不单列第七类；备选 B 绿色打勾因与审批通过图标撞型、且偏离"全部卡片转灰"原文，未采纳。<br>
+    ② 待我审批紫色 #7c5cfc 已<b>确认定稿</b>（需求仅写"紫色『审』字图标"、Axure 清单未含 flow_task，本次补全确认）。<br>
+    ③ 测试通知 test 为「发送预警」按钮手动触发临时通道，<b>本期不纳入</b>定稿。<br>
+    ④ 还款预警五阶段色（蓝/橙/橙/红/灰）即<b>缺陷 42 修复目标</b>：当前 h5/web 恒为红色「警」，需改为按 stage 取上述五阶段色。<br>
+    ⑤ 六类通知（@我的/审批通过/审批驳回/抄送我的/待我审批/还款预警）类型图标、卡片样式与落点沿用既有口径，本次不改动、不重新定义（消息中心需求 L79-L82）。
+  </footer>
+</div>
+</body>
+</html>

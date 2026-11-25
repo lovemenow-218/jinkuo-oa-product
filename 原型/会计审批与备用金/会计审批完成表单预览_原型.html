@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>会计审批完成表单预览 · 可交互原型</title>
+<style>
+  :root{
+    --primary:#2f6fed; --chip-a:#e8f0fe; --req:#e54545; --line:#e6e8eb;
+    --bg:#f5f6f8; --txt:#1f2329; --sub:#8a9099; --ok:#16a34a;
+  }
+  *{box-sizing:border-box;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+  body{margin:0;background:#eef0f3;color:var(--txt);padding:24px;}
+  h1.doc-title{font-size:20px;margin:0 0 4px}
+  p.doc-sub{color:var(--sub);font-size:13px;margin:0 0 20px}
+  .screens{display:flex;flex-wrap:wrap;gap:28px;}
+  .frame{background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(0,0,0,.08);overflow:hidden;}
+  /* ---- h5 手机框 ---- */
+  .phone{width:375px;}
+  .phone .bar{height:48px;display:flex;align-items:center;padding:0 14px;background:#fff;border-bottom:1px solid var(--line);font-weight:600;}
+  .phone .bar .back{margin-right:8px;color:var(--primary);}
+  .phone .body{padding:14px;background:var(--bg);max-height:760px;overflow:auto;}
+  .sec-title{font-size:13px;color:var(--sub);margin:14px 2px 8px;font-weight:600;}
+  .card{background:#fff;border-radius:12px;padding:12px;margin-bottom:10px;}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #f0f1f3;gap:10px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--sub);flex:0 0 auto;}
+  .kv .v{font-weight:600;text-align:right;max-width:62%;}
+  /* 流程节点 */
+  .flow{background:#fff;border-radius:12px;padding:6px 12px;}
+  .node{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);position:relative;}
+  .node:last-child{border-bottom:none;}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--primary);flex:0 0 auto;margin-right:10px;}
+  .dot.done{background:var(--ok);}
+  .node .who{font-size:13px;font-weight:600;}
+  .node .st{font-size:12px;color:var(--sub);}
+  .node .right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .preview-btn{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--primary);color:var(--primary);
+    background:#fff;border-radius:16px;padding:4px 10px;font-size:12px;cursor:pointer;}
+  .preview-btn svg{width:13px;height:13px;}
+  .hint{font-size:11px;color:var(--sub);margin:6px 2px 0;}
+  .bottom{display:flex;gap:8px;padding:10px 12px;background:#fff;border-top:1px solid var(--line);}
+  .bottom button{flex:1;border:none;background:#f0f2f5;color:var(--txt);border-radius:8px;padding:9px 0;font-size:13px;}
+  .bottom button.primary{background:var(--primary);color:#fff;}
+  /* ---- web 面板 ---- */
+  .web{width:620px;}
+  .web .topbar{height:44px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid var(--line);font-weight:600;gap:10px;}
+  .web .topbar .icons{margin-left:auto;color:var(--sub);font-size:16px;letter-spacing:3px;}
+  .web .wbody{display:flex;background:var(--bg);height:680px;}
+  .wlist{width:220px;border-right:1px solid var(--line);background:#fff;overflow:auto;font-size:13px;}
+  .wlist .it{padding:12px 14px;border-bottom:1px solid var(--line);}
+  .wlist .it.active{background:#eef4ff;color:var(--primary);font-weight:600;}
+  .wdetail{flex:1;padding:16px;overflow:auto;}
+  .wdetail .flow{margin-top:14px;}
+  .wdetail .node{padding:14px 0;}
+  .wbottom{display:flex;gap:8px;padding:10px 16px;background:#fff;border-top:1px solid var(--line);}
+  .wbottom button{flex:1;border:none;background:#f0f2f5;border-radius:8px;padding:9px 0;font-size:13px;}
+  .wbottom button.primary{background:var(--primary);color:#fff;}
+  /* ---- 弹窗 ---- */
+  .modal{position:absolute;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:20;}
+  .modal.show{display:flex;}
+  .pop{width:300px;background:#fff;border-radius:14px;overflow:hidden;}
+  .pop .ph{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:600;font-size:14px;}
+  .pop .ph .x{margin-left:auto;cursor:pointer;color:var(--sub);font-size:18px;line-height:1;}
+  .pop .pb{padding:12px 14px;max-height:360px;overflow:auto;}
+  .pop .diff{font-size:11px;color:var(--sub);background:#f7f8fa;border-radius:8px;padding:6px 8px;margin-bottom:10px;}
+  .pop .kv{padding:7px 0;gap:10px;}
+  .pop .kv .v{font-weight:600;word-break:break-all;padding-right:2px;}
+  .ro-badge{display:inline-block;font-size:10px;color:var(--ok);border:1px solid var(--ok);border-radius:4px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+  .att{color:var(--primary);text-decoration:underline;cursor:pointer;word-break:break-all;}
+  .screen-label{font-size:12px;font-weight:700;color:var(--primary);margin:0 0 8px 2px;}
+</style>
+</head>
+<body>
+  <h1 class="doc-title">会计审批完成表单预览 · 可交互原型</h1>
+  <p class="doc-sub">在 h5 / web 流程详情页的"会计审批"节点右侧新增"预览"图标按钮，仅当前流程的"会计办理处理人"与"出纳审批处理人"可见，点击弹窗只读展示审批时提交的表单（附件可点击查看）。默认以"有权限角色视角"呈现（故显示预览按钮）。</p>
+
+  <div class="screens">
+
+    <!-- 屏 1：h5 流程详情页 -->
+    <div class="frame phone" style="position:relative;">
+      <div class="screen-label">屏 1 · H5 流程详情页（有权限角色视角）</div>
+      <div class="bar"><span class="back">‹</span> OA详情</div>
+      <div class="body">
+        <div class="sec-title">单据信息</div>
+        <div class="card">
+          <div class="kv"><span class="k">是否签订合同</span><span class="v">否</span></div>
+          <div class="kv"><span class="k">款项所属周期</span><span class="v">2026-10</span></div>
+          <div class="kv"><span class="k">货款金额</span><span class="v">¥12,000.00</span></div>
+        </div>
+        <div class="sec-title">流程</div>
+        <div class="flow">
+          <div class="node"><span class="dot done"></span><div><div class="who">提交</div><div class="st">周明远 · 已提交 2026-10-28 15:47</div></div></div>
+          <div class="node"><span class="dot done"></span><div><div class="who">审核（2人会签）</div><div class="st">白小兵 周明远 · 已通过</div></div></div>
+          <div class="node"><span class="dot done"></span><div><div class="who">会计审批</div><div class="st">白小兵 · 已通过 2026-10-28 17:02</div></div>
+            <div class="right">
+              <span class="preview-btn" onclick="document.getElementById('m1').classList.add('show')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>预览</span>
+            </div>
+          </div>
+          <div class="node"><span class="dot"></span><div><div class="who">出纳办理</div><div class="st">待办理</div></div></div>
+        </div>
+        <div class="hint">预览按钮仅当前流程的"会计办理处理人"与"出纳审批处理人"可见；节点未完成时不展示。</div>
+      </div>
+      <div class="bottom"><button>评论</button><button>撤销</button><button class="primary">审批</button><button>更多</button></div>
+
+      <!-- h5 弹窗（默认隐藏，点击按钮弹出） -->
+      <div class="modal" id="m1">
+        <div class="pop">
+          <div class="ph">会计审批表单<span class="ro-badge">只读</span><span class="x" onclick="document.getElementById('m1').classList.remove('show')">×</span></div>
+          <div class="pb">
+            <div class="diff">以下为白小兵 在会计审批环节实际提交的表单（字段依该笔流程而定）</div>
+            <div class="kv"><span class="k">是否签订</span><span class="v">否</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2027-10-29</span></div>
+            <div class="kv"><span class="k">选择帐套</span><span class="v">福州金阔-主帐套</span></div>
+            <div class="kv"><span class="k">选择账户</span><span class="v">中国银行 6217****3388</span></div>
+            <div class="kv"><span class="k">会计审批意见</span><span class="v">同意，帐务核对无误</span></div>
+            <div class="kv"><span class="k">附件</span><span class="v"><a class="att" onclick="alert('查看附件：回单.pdf')">回单.pdf ↗</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 屏 2：h5 预览弹窗已打开（静态截图态） -->
+    <div class="frame phone" style="position:relative;">
+      <div class="screen-label">屏 2 · H5 预览弹窗（只读展示审批表单）</div>
+      <div class="bar"><span class="back">‹</span> OA详情</div>
+      <div class="body">
+        <div class="card"><div class="kv"><span class="k">是否签订合同</span><span class="v">否</span></div><div class="kv"><span class="k">货款金额</span><span class="v">¥12,000.00</span></div></div>
+        <div class="flow">
+          <div class="node"><span class="dot done"></span><div><div class="who">会计审批</div><div class="st">白小兵 · 已通过</div></div><div class="right"><span class="preview-btn">预览</span></div></div>
+        </div>
+      </div>
+      <div class="modal show">
+        <div class="pop">
+          <div class="ph">会计审批表单<span class="ro-badge">只读</span><span class="x">×</span></div>
+          <div class="pb">
+            <div class="diff">以下为白小兵 在会计审批环节实际提交的表单（字段依该笔流程而定）</div>
+            <div class="kv"><span class="k">是否签订</span><span class="v">否</span></div>
+            <div class="kv"><span class="k">还款日期</span><span class="v">2027-10-29</span></div>
+            <div class="kv"><span class="k">选择帐套</span><span class="v">福州金阔-主帐套</span></div>
+            <div class="kv"><span class="k">选择账户</span><span class="v">中国银行 6217****3388</span></div>
+            <div class="kv"><span class="k">会计审批意见</span><span class="v">同意，帐务核对无误</span></div>
+            <div class="kv"><span class="k">附件</span><span class="v"><a class="att" onclick="alert('查看附件：回单.pdf')">回单.pdf ↗</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 屏 3：web 详情页 -->
+    <div class="frame web" style="position:relative;">
+      <div class="screen-label">屏 3 · Web 流程详情页（有权限角色视角）</div>
+      <div class="topbar">测试特殊的审批和办理 · 29163 <span class="icons">⤓ ⎙ ↻</span></div>
+      <div class="wbody">
+        <div class="wlist">
+          <div class="it active">测试特殊的审批和办理</div>
+          <div class="it">备用金-采购周转</div>
+          <div class="it">供应商付款-0012</div>
+        </div>
+        <div class="wdetail">
+          <div class="sec-title">单据信息</div>
+          <div class="card">
+            <div class="kv"><span class="k">单行文本</span><span class="v">1</span></div>
+            <div class="kv"><span class="k">金额</span><span class="v">¥1.00</span></div>
+            <div class="kv"><span class="k">明细表合计</span><span class="v">¥1.00</span></div>
+          </div>
+          <div class="sec-title">流程</div>
+          <div class="flow">
+            <div class="node"><span class="dot done"></span><div><div class="who">提交</div><div class="st">白小兵 · 已提交</div></div></div>
+            <div class="node"><span class="dot done"></span><div><div class="who">通过</div><div class="st">白小兵 · 已通过</div></div>
+              <div class="right"><span class="preview-btn" onclick="document.getElementById('m3').classList.add('show')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>预览</span></div>
+            </div>
+            <div class="node"><span class="dot"></span><div><div class="who">待出纳办理</div><div class="st">待办理</div></div></div>
+          </div>
+          <div class="hint">会计审批（通过）节点右侧"预览"按钮，仅会计办理处理人、出纳审批处理人可见。</div>
+        </div>
+      </div>
+      <div class="wbottom"><button>评论</button><button>撤销</button><button class="primary">办理</button><button>更多</button></div>
+
+      <div class="modal" id="m3">
+        <div class="pop">
+          <div class="ph">会计审批表单<span class="ro-badge">只读</span><span class="x" onclick="document.getElementById('m3').classList.remove('show')">×</span></div>
+          <div class="pb">
+            <div class="diff">以下为白小兵 在会计审批环节实际提交的表单（字段依该笔流程而定）</div>
+            <div class="kv"><span class="k">是否签订</span><span class="v">是</span></div>
+            <div class="kv"><span class="k">合同关联</span><span class="v">采购合同 HT-2026-088</span></div>
+            <div class="kv"><span class="k">合同收款账号</span><span class="v">工商银行 6212****7766</span></div>
+            <div class="kv"><span class="k">选择帐套</span><span class="v">福州金阔-主帐套</span></div>
+            <div class="kv"><span class="k">选择账户</span><span class="v">中国银行 6217****3388</span></div>
+            <div class="kv"><span class="k">会计审批意见</span><span class="v">123</span></div>
+            <div class="kv"><span class="k">附件</span><span class="v"><a class="att" onclick="alert('查看附件：采购合同扫描件.pdf')">采购合同扫描件.pdf ↗</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 屏 4：web 预览弹窗已打开（静态截图态） -->
+    <div class="frame web" style="position:relative;">
+      <div class="screen-label">屏 4 · Web 预览弹窗（只读展示审批表单）</div>
+      <div class="topbar">测试特殊的审批和办理 · 29163 <span class="icons">⤓ ⎙ ↻</span></div>
+      <div class="wbody">
+        <div class="wlist"><div class="it active">测试特殊的审批和办理</div></div>
+        <div class="wdetail">
+          <div class="card"><div class="kv"><span class="k">金额</span><span class="v">¥1.00</span></div></div>
+          <div class="flow"><div class="node"><span class="dot done"></span><div><div class="who">通过</div><div class="st">白小兵</div></div><div class="right"><span class="preview-btn">预览</span></div></div></div>
+        </div>
+      </div>
+      <div class="modal show">
+        <div class="pop">
+          <div class="ph">会计审批表单<span class="ro-badge">只读</span><span class="x">×</span></div>
+          <div class="pb">
+            <div class="diff">以下为白小兵 在会计审批环节实际提交的表单（字段依该笔流程而定）</div>
+            <div class="kv"><span class="k">是否签订</span><span class="v">是</span></div>
+            <div class="kv"><span class="k">合同关联</span><span class="v">采购合同 HT-2026-088</span></div>
+            <div class="kv"><span class="k">合同收款账号</span><span class="v">工商银行 6212****7766</span></div>
+            <div class="kv"><span class="k">选择帐套</span><span class="v">福州金阔-主帐套</span></div>
+            <div class="kv"><span class="k">选择账户</span><span class="v">中国银行 6217****3388</span></div>
+            <div class="kv"><span class="k">会计审批意见</span><span class="v">123</span></div>
+            <div class="kv"><span class="k">附件</span><span class="v"><a class="att" onclick="alert('查看附件：采购合同扫描件.pdf')">采购合同扫描件.pdf ↗</a></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

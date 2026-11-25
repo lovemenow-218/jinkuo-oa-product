@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1200"/>
+<title>附件上传 / 查看 · 优化原型</title>
+<style>
+  :root{
+    --primary:#1d4ed8; --primary-l:#eff4ff; --primary-b:#c7d7fe;
+    --red:#e24b4a; --red-l:#fdeceb;
+    --orange:#ef9a3c; --orange-l:#fdf3e3;
+    --blue:#378add; --blue-l:#eaf3fc;
+    --green:#1d9e75; --green-l:#e7f6f0;
+    --purple:#7c5cfc; --purple-l:#f0ebff;
+    --text:#1f2329; --sub:#4e5969; --tertiary:#a8adb5;
+    --line:#edf0f3; --line-strong:#dcdfe6;
+    --page:#f2f4f7; --card:#ffffff; --muted:#f7f8fa;
+    --radius:10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-font-smoothing:antialiased;}
+  body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+       background:#f6f7f9; color:var(--text); padding:26px 16px 60px;}
+  .doc-h{font-size:19px; font-weight:700; text-align:center;}
+  .doc-sub{font-size:12.5px; color:var(--sub); text-align:center; margin:8px auto 22px;
+           line-height:1.75; max-width:880px;}
+  .row{display:flex; gap:34px; justify-content:center; flex-wrap:wrap; align-items:flex-start;}
+
+  /* 手机框 */
+  .phone{width:375px; background:var(--page); border-radius:22px; overflow:hidden;
+         box-shadow:0 6px 26px rgba(20,30,50,.12); border:1px solid #e3e6ec;}
+  .p-top{height:48px; background:#fff; border-bottom:1px solid var(--line);
+         display:flex; align-items:center; padding:0 14px; gap:12px;}
+  .p-top .back{font-size:20px; color:var(--text);}
+  .p-top .ttl{font-size:16px; font-weight:600; flex:1; text-align:center; margin-right:28px;}
+  .p-body{padding:14px;}
+
+  /* 金额卡片 */
+  .amt-card{background:var(--card); border-radius:var(--radius); padding:14px 16px;
+            display:flex; align-items:center; margin-bottom:12px;}
+  .amt-card .col{flex:1;}
+  .amt-card .lab{font-size:12px; color:var(--sub); margin-bottom:4px;}
+  .amt-card .val{font-size:18px; font-weight:700;}
+  .amt-card .val.orr{color:var(--orange);}
+  .amt-card .sep{width:1px; height:30px; background:var(--line-strong);}
+
+  /* 表单字段 */
+  .field{background:var(--card); border-radius:var(--radius); padding:13px 14px; margin-bottom:10px;}
+  .field .fl{font-size:13px; font-weight:600; margin-bottom:8px;}
+  .field .fl .req{color:var(--red); margin-right:3px;}
+  .field .fv{font-size:13px; color:var(--tertiary);}
+  .field textarea{width:100%; border:1px solid var(--line-strong); border-radius:8px;
+                  padding:9px 10px; font-size:13px; color:var(--text); resize:none; height:58px;}
+  .field .picker{display:flex; align-items:center; justify-content:space-between;
+                 border:1px solid var(--line-strong); border-radius:8px; padding:9px 11px; font-size:13px;}
+  .field .picker .ph{color:var(--tertiary);}
+  .field .picker .ar{color:var(--tertiary);}
+
+  /* 附件区 */
+  .att-title{font-size:13px; font-weight:600; margin:14px 2px 10px;}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .thumb{position:relative; aspect-ratio:1/1; border-radius:8px; overflow:hidden;
+          background:#eef1f5; display:flex; align-items:center; justify-content:center;}
+  .thumb svg{width:38%; height:38%; color:#b7c0cc;}
+  .thumb .del{position:absolute; top:5px; right:5px; width:18px; height:18px; border-radius:50%;
+              background:rgba(0,0,0,.45); color:#fff; font-size:12px; line-height:18px; text-align:center;}
+  .add{border:1.5px dashed var(--line-strong); border-radius:8px; aspect-ratio:1/1;
+       display:flex; align-items:center; justify-content:center; color:var(--blue); font-size:30px;
+       background:var(--card);}
+  .att-hint{font-size:11.5px; color:var(--tertiary); margin-top:8px;}
+
+  /* 提交按钮 */
+  .submit{margin-top:18px; width:100%; height:46px; border:none; border-radius:10px;
+          background:var(--orange); color:#fff; font-size:16px; font-weight:600;}
+
+  /* 审批节点卡片 */
+  .node{background:var(--card); border-radius:var(--radius); padding:14px;}
+  .node .who{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .node .av{width:34px; height:34px; border-radius:50%; background:#185FA5; color:#fff;
+            font-size:14px; font-weight:600; display:flex; align-items:center; justify-content:center;}
+  .node .nm{font-size:14px; font-weight:600;}
+  .node .role{font-size:11.5px; color:var(--tertiary);}
+  .node .act{display:inline-block; font-size:12px; font-weight:600; color:var(--green);
+             background:var(--green-l); border-radius:6px; padding:2px 9px; margin-bottom:8px;}
+  .node .time{font-size:12px; color:var(--tertiary); margin-bottom:10px;}
+  .node .cmt{font-size:13px; color:var(--text); background:var(--muted); border-radius:8px; padding:9px 11px;}
+
+  /* 文件图标卡片（图标在上·文件名在下） */
+  .fcard{display:flex; flex-direction:column; align-items:center; gap:7px;}
+  .fic{position:relative; width:52px; height:60px; background:#fff; border:1px solid var(--line-strong);
+       border-radius:7px;}
+  .fic .glyph{position:absolute; top:7px; left:0; right:0; height:34px; display:flex;
+              align-items:center; justify-content:center;}
+  .fic .glyph svg{width:30px; height:30px;}
+  .fic .lbl{position:absolute; left:0; right:0; bottom:0; height:16px; border-radius:0 0 6px 6px;
+            display:flex; align-items:center; justify-content:center; color:#fff;
+            font-size:9.5px; font-weight:700; letter-spacing:.3px;}
+  .fic .fold{position:absolute; top:0; right:0; width:0; height:0; border-style:solid;
+             border-width:0 13px 13px 0; border-color:transparent #d7dbe2 transparent transparent;}
+  .fname{font-size:11px; color:var(--sub); max-width:80px; text-align:center; line-height:1.35;
+         display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+
+  /* 查看态·图片类缩略图卡片（与上传态缩略图一致，不套附件图标卡） */
+  .imgcard{display:flex; flex-direction:column; align-items:center; gap:7px;}
+  .imgcard .ithumb{width:52px; height:52px; border-radius:8px; overflow:hidden; background:#f3f6fb;
+                   border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .imgcard .ithumb svg{width:40%; height:40%; color:#b7c0cc;}
+
+  /* 参考资产区 */
+  .ref{margin:34px auto 0; max-width:1080px; background:var(--card); border:1px solid var(--line);
+       border-radius:12px; padding:18px 20px;}
+  .ref-h{font-size:14px; font-weight:700; margin-bottom:4px;}
+  .ref-s{font-size:11.5px; color:var(--sub); margin-bottom:16px;}
+  .ref-grid{display:grid; grid-template-columns:repeat(14,1fr); gap:16px 10px;}
+  .ref-grid .fcard .fname{color:var(--tertiary);}
+</style>
+</head>
+<body>
+  <div class="doc-h">附件上传 / 查看 · 优化原型</div>
+  <div class="doc-sub">两种状态：① 办理页「上传」——点击图片上传后直接以缩略图呈现，一行 3 张，末尾为「+」添加格；② 流程详情「查看附件」——图片类附件以缩略图呈现（与上传态一致），其余文件以类型图标在上、文件名在下的卡片呈现。下方为现有文件类型图标设计资产（14 类）。</div>
+
+  <div class="row">
+
+    <!-- 屏 1：办理页 · 上传态 -->
+    <div class="phone">
+      <div class="p-top"><span class="back">‹</span><span class="ttl">办理</span></div>
+      <div class="p-body">
+        <div class="amt-card">
+          <div class="col"><div class="lab">应付金额</div><div class="val orr">¥1.00</div></div>
+          <div class="sep"></div>
+          <div class="col"><div class="lab">剩余金额</div><div class="val">¥1.00</div></div>
+        </div>
+
+        <div class="field">
+          <div class="fl"><span class="req">*</span>支付时间</div>
+          <div class="picker"><span class="ph">请选择</span><span class="ar">›</span></div>
+        </div>
+        <div class="field">
+          <div class="fl"><span class="req">*</span>支付金额</div>
+          <div class="picker"><span class="ph">请输入</span><span class="ar">›</span></div>
+        </div>
+        <div class="field">
+          <div class="fl">办理内容（选填）</div>
+          <textarea placeholder="请输入办理说明"></textarea>
+        </div>
+
+        <div class="att-title">附件</div>
+        <div class="grid">
+          <div class="thumb"><span class="del">×</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div>
+          <div class="thumb"><span class="del">×</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div>
+          <div class="thumb"><span class="del">×</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div>
+          <div class="thumb"><span class="del">×</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div>
+          <div class="thumb"><span class="del">×</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div>
+          <div class="add">+</div>
+        </div>
+        <div class="att-hint">支持图片 / 文档，已上传 5 个，还可继续添加</div>
+
+        <button class="submit">提交</button>
+      </div>
+    </div>
+
+    <!-- 屏 2：流程详情 · 查看态 -->
+    <div class="phone">
+      <div class="p-top"><span class="back">‹</span><span class="ttl">审批详情</span></div>
+      <div class="p-body">
+        <div class="node">
+          <div class="who"><div class="av">吴</div><div><div class="nm">吴国栋</div><div class="role">会计审批处理人</div></div></div>
+          <div class="act">已同意</div>
+          <div class="time">2026-11-12 14:32</div>
+          <div class="cmt">么宇遇见</div>
+        </div>
+
+        <div class="att-title">附件</div>
+        <div class="grid" id="detailGrid"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 设计资产：14 类文件图标 -->
+  <div class="ref">
+    <div class="ref-h">文件类型图标（设计资产）</div>
+    <div class="ref-s">图标 = 纸张 + 右上折角 + 底部类型色标；类型由色标文字区分，上方线性图形为类型示意。</div>
+    <div class="ref-grid" id="refGrid"></div>
+  </div>
+
+<script>
+  // 类型色
+  const C = {
+    PDF:'#e24b4a', DOC:'#1d4ed8', XLS:'#1d9e75', PPT:'#ef9a3c', CSV:'#1d9e75', TXT:'#909399',
+    IMG:'#16a6a0', VID:'#7c5cfc', AUD:'#7c5cfc', ZIP:'#c08a3e', CODE:'#1d4ed8', CAD:'#1d4ed8',
+    MD:'#5a6b86', UNKNOWN:'#909399'
+  };
+  // 类型图形（线性）
+  const G = {
+    IMG:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg>',
+    PDF:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 4 H13 L17 8 V20 H7 Z"/><path d="M13 4 V8 H17"/><path d="M9 13 h6 M9 16 h4"/></svg>',
+    DOC:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 4 H13 L17 8 V20 H7 Z"/><path d="M13 4 V8 H17"/><path d="M9 12 h6 M9 15 h6"/></svg>',
+    XLS:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="12" height="16" rx="1"/><path d="M6 9 H18 M6 14 H18 M11 4 V20"/></svg>',
+    PPT:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="12" height="16" rx="1"/><path d="M9 17 V11 M12 17 V8 M15 17 V13"/></svg>',
+    CSV:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="4" width="12" height="16" rx="1"/><path d="M6 9 H18 M6 14 H18 M11 4 V20"/></svg>',
+    TXT:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 4 H13 L17 8 V20 H7 Z"/><path d="M13 4 V8 H17"/><path d="M9 12 h6 M9 15 h6"/></svg>',
+    VID:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M10 9 L16 12 L10 15 Z" fill="currentColor" stroke="none"/></svg>',
+    AUD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17 V8 L17 6 V15"/><circle cx="7.5" cy="17" r="2.2"/><circle cx="15.5" cy="15" r="2.2"/></svg>',
+    ZIP:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 4 H13 L17 8 V20 H7 Z"/><path d="M10 4 V8 M10 11 h1.5 M10 14 h1.5 M10 17 h1.5"/></svg>',
+    CODE:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 8 L5 12 L9 16 M15 8 L19 12 L15 16"/></svg>',
+    CAD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19 L19 5 M16 5 H19 V8"/><path d="M5 19 h3 M5 16 V19"/></svg>',
+    MD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8 V16 M6 16 L4 14 M6 16 L8 14"/><path d="M16 8 V16 L19 8"/></svg>',
+    UNKNOWN:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="8"/><path d="M12 9 V13 M12 16 h.01"/></svg>'
+  };
+
+  function fcard(type, name){
+    const color = C[type] || C.UNKNOWN;
+    const g = G[type] || G.UNKNOWN;
+    return '<div class="fcard"><div class="fic" style="color:'+color+'">'
+      + '<span class="fold"></span>'
+      + '<div class="glyph">'+g+'</div>'
+      + '<div class="lbl" style="background:'+color+'">'+type+'</div>'
+      + '</div><div class="fname">'+(name||type)+'</div></div>';
+  }
+
+  // 查看态·图片类用缩略图卡片（不套附件图标卡）
+  function imgCard(name){
+    return '<div class="imgcard"><div class="ithumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.4"/><path d="M3 19 L9 12 L13 16 L16 13 L21 19 Z" stroke-linejoin="round"/></svg></div><div class="fname">'+(name||'图片')+'</div></div>';
+  }
+
+  // 查看态：图标在上·文件名在下
+  const detail = [
+    ['IMG','图片1'],
+    ['PDF','报销凭证.pdf'],
+    ['XLS','采购合同.xlsx'],
+    ['DOC','情况说明.docx'],
+    ['ZIP','附件打包.zip'],
+    ['IMG','现场照片2']
+  ];
+  document.getElementById('detailGrid').innerHTML = detail.map(d=> d[0]==='IMG' ? imgCard(d[1]) : fcard(d[0],d[1])).join('');
+
+  // 资产区：14 类全量
+  const all = ['PDF','DOC','XLS','PPT','CSV','TXT','IMG','VID','AUD','ZIP','CODE','CAD','MD','UNKNOWN'];
+  document.getElementById('refGrid').innerHTML = all.map(t=>fcard(t,t)).join('');
+</script>
+</body>
+</html>

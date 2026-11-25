@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><style>
+  :root{
+    --blue:#2b7fff; --txt:#1f2329; --txt2:#4e5969; --sub:#a8adb5;
+    --line:#edf0f3; --bg:#f2f4f7; --banner:#fdf4dd; --banner-t:#d9a441;
+    --orange-bg:#fde6cd; --orange:#ef9a3c; --blue-bg:#e2edff; --blue-l:#2b6fd4;
+    --red-badge:#f5453d; --green:#3aa655; --avatar:#4a8ff7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;}
+  body{background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:26px 20px 40px;}
+
+  .hd{max-width:1360px;margin:0 auto 22px;}
+  .hd h1{font-size:20px;margin-bottom:6px;}
+  .hd p{color:var(--txt2);font-size:13px;}
+  .hd .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;}
+  .hd .tags span{background:#fff;border:1px solid var(--line);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--txt2);}
+
+  .stage{max-width:1360px;margin:0 auto;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;}
+  .col{width:322px;}
+  .cap{margin-bottom:9px;}
+  .cap .t{font-weight:700;font-size:14px;display:flex;align-items:center;gap:7px;}
+  .cap .n{background:var(--blue);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;}
+  .cap .d{color:var(--sub);font-size:12px;margin-top:2px;}
+
+  .phone{background:#fff;border-radius:26px;border:8px solid #20242b;box-shadow:0 10px 26px rgba(16,24,40,.14);overflow:hidden;height:640px;display:flex;flex-direction:column;}
+  .screen{flex:1;overflow:auto;background:#fff;position:relative;}
+  .screen::-webkit-scrollbar{width:0;}
+  .screen.dark{background:#eef0f4;}
+
+  .banner{background:var(--banner);color:var(--banner-t);text-align:center;font-size:12px;padding:7px 0;}
+  .topbar{display:flex;align-items:center;gap:9px;padding:14px 14px 10px;}
+  .avatar{width:34px;height:34px;border-radius:50%;background:#e9ecf1;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .uname{font-size:17px;font-weight:700;flex:1;}
+  .bell{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:.15s;}
+  .bell:hover{background:#f2f4f7;}
+  .bell.active{background:#eaf2ff;}
+  .bell .dot{position:absolute;top:1px;right:0;min-width:16px;height:16px;border-radius:9px;background:var(--red-badge);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;border:1.5px solid #fff;}
+  .search{margin:2px 14px 12px;background:#f2f3f5;border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:7px;color:var(--sub);font-size:13px;}
+
+  .listitem{display:flex;align-items:center;gap:11px;padding:11px 14px;}
+  .ico{width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:19px;font-weight:700;}
+  .ico.person{background:var(--orange-bg);color:var(--orange);}
+  .ico.at{background:var(--blue-bg);color:var(--blue-l);}
+  .meta{flex:1;min-width:0;}
+  .meta .t1{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .meta .t1.unread{font-weight:800;}
+  .meta .t2{font-size:12px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .unreadflag{width:7px;height:7px;border-radius:50%;background:var(--red-badge);flex-shrink:0;}
+  .ico.pass{background:#e6f6ea;color:var(--green);}
+  .ico.reject{background:#fdeaea;color:var(--red-badge);}
+  .ico.cc{background:#eef0f4;color:#6b7785;}
+
+  .subtabs{display:flex;gap:6px;padding:10px 12px;overflow-x:auto;border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:2;}
+  .subtabs::-webkit-scrollbar{height:0;}
+  .stab{padding:5px 11px;border-radius:15px;font-size:12px;color:var(--txt2);background:#f4f5f7;white-space:nowrap;}
+  .stab.on{background:var(--blue);color:#fff;font-weight:600;}
+
+  .navbar{border-top:1px solid var(--line);display:flex;background:#fff;padding:7px 0 12px;flex-shrink:0;}
+  .nav{flex:1;text-align:center;color:var(--sub);font-size:11px;cursor:pointer;}
+  .nav svg{display:block;margin:0 auto 3px;}
+  .nav.on{color:var(--blue);font-weight:600;}
+
+  .note{padding:10px 14px;background:#f7f9fc;border-top:1px solid var(--line);font-size:12px;color:var(--txt2);}
+  .sect{font-size:12px;color:var(--sub);padding:10px 14px 4px;}
+  .empty{padding:60px 20px;text-align:center;color:var(--sub);font-size:13px;}
+
+  /* ---- OA 详情（时间轴） ---- */
+  .dhd{display:flex;align-items:center;padding:13px 14px;background:#fff;border-bottom:1px solid var(--line);}
+  .dhd .bk{font-size:19px;color:var(--txt);line-height:1;}
+  .dhd .ti{flex:1;text-align:center;font-size:16px;font-weight:700;margin-left:-20px;}
+  .dcard{background:#fff;margin:10px 12px;border-radius:10px;padding:13px 14px;}
+  .dcard .ft{font-size:16px;font-weight:700;}
+  .dcard .fk{color:var(--sub);font-size:12px;margin-top:10px;}
+  .dcard .fv{font-size:14px;margin-top:3px;}
+  .tlwrap{background:#fff;margin:10px 12px;border-radius:10px;padding:14px 13px 6px;}
+  .tl{position:relative;padding-left:26px;}
+  .tl .line{position:absolute;left:6px;top:6px;bottom:10px;width:1.5px;background:#e3e6ea;}
+  .tlrow{position:relative;padding-bottom:16px;}
+  .tlrow .nd{position:absolute;left:-26px;top:1px;width:13px;height:13px;border-radius:50%;border:2px solid #d5d9df;background:#fff;}
+  .tlrow.done .nd{border-color:var(--green);background:#fff;}
+  .tlrow.cur .nd{border-color:var(--blue);background:#fff;}
+  .tlrow.todo .nd{border-color:var(--orange);background:#fff;}
+  .tlrow.hit .nd{border-color:var(--blue);background:var(--blue);box-shadow:0 0 0 4px rgba(43,127,255,.16);}
+  .tlrow .rt{display:flex;justify-content:space-between;align-items:baseline;}
+  .tlrow .rt .nm{font-size:15px;font-weight:600;}
+  .tlrow .rt .tm{font-size:11px;color:var(--sub);}
+  .tlbody{display:flex;gap:8px;margin-top:8px;align-items:flex-start;}
+  .av{width:30px;height:30px;border-radius:50%;background:var(--avatar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+  .av.gray{background:#c3cad3;}
+  .tlbody .col{flex:1;min-width:0;width:auto;}
+  .tlbody .who{font-size:14px;font-weight:600;}
+  .tlbody .st{font-size:13px;color:var(--green);font-weight:600;}
+  .bub{background:#f4f6f8;border-radius:6px;padding:7px 9px;font-size:13px;color:var(--txt2);margin-top:7px;display:flex;align-items:center;gap:6px;}
+  .bub .atname{color:var(--blue-l);font-weight:600;}
+  .bub .cp{margin-left:auto;color:#b7bdc6;font-size:12px;}
+  .hitmark{background:#eaf2ff;border:1px solid #c8dcff;border-radius:6px;padding:4px 8px;font-size:11px;color:var(--blue-l);display:inline-block;margin-top:6px;}
+  .dbar{border-top:1px solid var(--line);background:#fff;display:flex;padding:9px 0 12px;flex-shrink:0;}
+  .dbar .b{flex:1;text-align:center;font-size:11px;color:var(--sub);}
+  .dbar .b.on{color:var(--txt);font-weight:600;}
+  .dbar .b.off{color:#c9ced6;}
+  .dbar .b svg{display:block;margin:0 auto 3px;}
+
+  /* ---- @ 选人弹窗 ---- */
+  .mask{position:absolute;inset:0;background:rgba(16,24,40,.42);display:flex;align-items:flex-end;}
+  .sheet{background:#fff;border-radius:14px 14px 0 0;width:100%;max-height:78%;display:flex;flex-direction:column;}
+  .sheet .sh{padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+  .sheet .sb{overflow:auto;padding:8px 0;}
+  .sheet .sb::-webkit-scrollbar{width:0;}
+  .prow{display:flex;align-items:center;gap:10px;padding:10px 16px;}
+  .prow .av{width:32px;height:32px;font-size:12px;}
+  .prow .pn{flex:1;}
+  .prow .pn .n{font-size:14px;font-weight:600;}
+  .prow .pn .r{font-size:12px;color:var(--sub);}
+  .sheet .sf{padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);background:#fafbfd;}
+
+  .legend{max-width:1360px;margin:24px auto 0;background:#fff;border-radius:10px;padding:18px 22px;border:1px solid var(--line);}
+  .legend h3{font-size:14px;margin-bottom:10px;}
+  .legend table{width:100%;border-collapse:collapse;font-size:13px;}
+  .legend th,.legend td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);}
+  .legend th{color:var(--sub);font-size:12px;font-weight:600;background:#fafbfd;}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px;}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#1f2733;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:99;}
+  .toast.show{opacity:1;}
+
+body{margin:0!important;padding:0!important;background:#f2f4f7;display:flex;justify-content:center;align-items:flex-start;padding-top:16px!important;}
+.col{margin-bottom:0!important;}
+</style></head><body><div class="col">
+    <div class="cap">
+      <div class="t"><span class="n">1</span>首页 · 新增通知入口</div>
+      <div class="d">流程推送列表保留在首页不动；头像同行右端新增铃铛，带未读角标</div>
+    </div>
+    <div class="phone"><div class="screen">
+      <div class="banner">测试环境</div>
+      <div class="topbar">
+        <div class="avatar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#b3b9c2"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.2c-3.3 0-9.9 1.7-9.9 5v2.6h19.8v-2.6c0-3.3-6.6-5-9.9-5z"/></svg>
+        </div>
+        <div class="uname">测试</div>
+        <div class="bell" id="bell" onclick="goNotify()" title="点击进入通知列表">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#4e5969"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.1-1.6-5.6-4.5-6.3V4c0-.8-.7-1.5-1.5-1.5S10.5 3.2 10.5 4v.7C7.6 5.4 6 7.9 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <span class="dot">3</span>
+        </div>
+      </div>
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#a8adb5"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg>
+        搜索
+      </div>
+      <div class="listitem"><div class="ico person">陈</div><div class="meta"><div class="t1">陈林航提交的测试</div><div class="t2">提交于2026-10-16 15:20:07</div></div></div>
+      <div class="listitem"><div class="ico person">白</div><div class="meta"><div class="t1">白小兵提交的测试</div><div class="t2">提交于2026-10-15 16:17:50</div></div></div>
+      <div class="listitem"><div class="ico person">陈</div><div class="meta"><div class="t1">陈林航提交的测试</div><div class="t2">提交于2026-10-15 15:59:01</div></div></div>
+      <div class="listitem"><div class="ico person">陈</div><div class="meta"><div class="t1">陈林航提交的lhlh</div><div class="t2">提交于2026-10-14 17:13:42</div></div></div>
+      <div class="listitem"><div class="ico person">白</div><div class="meta"><div class="t1">白小兵提交的考勤</div><div class="t2">提交于2026-10-12 14:12:03</div></div></div>
+      <div class="note">首页流程推送列表保持现状，不做改造</div>
+    </div>
+    <div class="navbar">
+      <div class="nav on"><svg width="21" height="21" viewBox="0 0 24 24" fill="#2b7fff"><path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3l9-8z"/></svg>首页</div>
+      <div class="nav" onclick="toast('底部第 2 位：原【消息】改名【待办】，功能与图标均不变')"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2z"/></svg>待办</div>
+      <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z"/></svg>工作台</div>
+      <div class="nav"><svg width="21" height="21" viewBox="0 0 24 24" fill="#a8adb5"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12zm0 2.2c-3.3 0-9.9 1.7-9.9 5v2.6h19.8v-2.6c0-3.3-6.6-5-9.9-5z"/></svg>我的</div>
+    </div></div>
+  </div></body></html>
